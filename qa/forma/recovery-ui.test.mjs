@@ -1,0 +1,26 @@
+import {test,before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {Window} from 'happy-dom';
+import {IDBFactory} from 'fake-indexeddb';
+import {createServer} from 'vite';
+import {openWorkStore} from '../../src/forma/work-store.js';
+import {presetWork} from '../../src/forma/work-model.js';
+import {getExample} from '../../src/forma/catalog.js';
+import {newSequence} from '../../src/forma/morph-sequence.js';
+let win,server,mountWorkCollection,normalizeBackupInput;const originals=new Map();
+before(async()=>{win=new Window({url:'http://localhost:4203'});for(const [key,value] of Object.entries({window:win,document:win.document,XMLSerializer:win.XMLSerializer,ResizeObserver:win.ResizeObserver,requestAnimationFrame:win.requestAnimationFrame.bind(win),cancelAnimationFrame:win.cancelAnimationFrame.bind(win)})){originals.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}server=await createServer({server:{middlewareMode:true,hmr:false},appType:'custom'});({mountWorkCollection,normalizeBackupInput}=await server.ssrLoadModule('/src/forma/work-collection.js'));});
+after(async()=>{await server?.close();await win?.happyDOM.close();for(const [key,value] of originals){if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}});
+const settle=()=>new Promise(r=>setTimeout(r,80));
+async function fixture(t){const repository=await openWorkStore({indexedDB:new IDBFactory(),name:crypto.randomUUID(),storage:{getItem:()=>null},broadcast:false}),work=presetWork('classic');await repository.save(work);await repository.save({...work,name:'修订后'},{expectedRevision:1,checkpoint:true});const host=document.createElement('main'),messages=[];document.body.append(host);const app=mountWorkCollection(host,{repository,onOpen:()=>{},toast:m=>messages.push(m)});t.after(()=>{app.destroy();host.remove();repository.close();});return {repository,work,host,app,messages};}
+test('collection remove, inline permanent-delete cancellation and restore preserve the saved version',async t=>{const f=await fixture(t),before=f.repository.peek(f.work.id);f.host.querySelector('[data-collection=remove]').click();await settle();assert.equal((await f.repository.list()).length,0);f.host.querySelector('[data-collection-tab=trash]').click();assert.equal(f.host.querySelectorAll('[data-trash-id]').length,1);f.host.querySelector('[data-collection=confirm-purge]').click();assert.match(f.host.textContent,/无法恢复/);f.host.querySelector('[data-collection=cancel-purge]').click();f.host.querySelector('[data-collection=restore]').click();await settle();assert.equal(f.repository.trash().length,0);assert.deepEqual(f.repository.peek(f.work.id).work,before.work);assert.deepEqual(f.repository.peek(f.work.id).recovery,before.recovery);});
+test('file restore requires a read-only preview before adding independent copies',async t=>{const f=await fixture(t),backup=await f.repository.backup();await f.app.previewFiles([new File([JSON.stringify(backup)],'backup.json')]);assert.equal((await f.repository.list()).length,1);assert.equal(f.host.querySelector('[role=dialog]').getAttribute('aria-modal'),'false');assert.match(f.host.textContent,/1 份作品/);f.host.querySelector('[data-collection=apply-import]').click();await settle();assert.equal((await f.repository.list()).length,2);assert.equal(f.host.querySelector('[role=dialog]').hidden,true);assert.deepEqual((await f.repository.list()).find(w=>w.id!==f.work.id).steps,f.work.steps);});
+test('closing a slow preview keeps it closed when file parsing finishes',async t=>{const f=await fixture(t);let release;const backup=JSON.stringify(await f.repository.backup()),preview=f.app.previewFiles([{name:'slow.json',size:backup.length,text:()=>new Promise(r=>release=r)}]);f.host.querySelector('[data-collection=close]').click();release(backup);await preview;assert.equal(f.host.querySelector('[role=dialog]').hidden,true);assert.equal((await f.repository.list()).length,1);});
+test('legacy file import archives exact whitespace and retains sync history for later packing',async()=>{const work=presetWork('classic'),value={version:1,projects:[work],draft:work},raw=JSON.stringify(value,null,4)+'\n';const normalized=await normalizeBackupInput(value,{raw});assert.equal(normalized.legacy[0].raw,raw);assert.equal(normalized.records[0].work.id,work.id);});
+
+test('downloaded raw saved-chart, draft and sequence archives can be read back with warnings and no silent loss',async t=>{
+ const f=await fixture(t),doc=getExample('column');
+ for(const value of [[{id:'saved',doc},{bad:true}],[{key:'draft',doc}],{projects:[newSequence('classic')]},newSequence('classic')]){
+  const raw=JSON.stringify(value,null,2)+'\n',backup=await normalizeBackupInput(value,{raw});assert.equal(backup.records.length,1);assert.equal(backup.legacy[0].raw,raw);const summary=await f.repository.importBackup(backup,{preview:true});assert.equal(summary.works,1);
+ }
+ await f.app.previewFiles([new File([JSON.stringify([{id:'saved',doc},{bad:true}])],'legacy.json')]);assert.match(f.host.querySelector('[role=note]').textContent,/需要核对/);assert.equal((await f.repository.list()).length,1);
+});

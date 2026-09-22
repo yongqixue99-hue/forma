@@ -1,0 +1,16 @@
+/* Playback controls affect inspection only; authored timing stays in the work. */
+.wp-clock .wp-rate{flex:0 0 56px;width:56px;min-width:0;height:28px;padding:3px 5px;background:var(--paper,#f8f6f1);border:1px solid var(--line,#d9d4ca);border-radius:4px;color:var(--fg,#302e29);font:11px var(--mono,monospace);cursor:pointer;transition:border-color .16s,background .16s}
+.wp-clock .wp-rate:hover{border-color:#aaa295;background:#efebe3}.wp-clock .wp-rate:focus-visible{outline:2px solid #c55940;outline-offset:2px}
+.wp-clock>button{min-height:28px;border-radius:4px;transition:background .16s,color .16s}.wp-clock>button:hover{background:#e9e4db;color:#302e29}.wp-clock>button:active{background:#ded6c9}.wp-clock>button:focus-visible{outline:2px solid #c55940;outline-offset:2px}.wp-clock>button:disabled{opacity:.45;cursor:default}
+@media(max-width:520px){.wp-clock{gap:7px}.wp-clock .wp-rate{flex-basis:47px;width:47px;font-size:10px;padding-inline:3px}.wp-clock>time{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.wp-clock .wp-rate,.wp-clock>button{transition:none}}
+/* Live-artboard magnification stays inside the player, with its clock always reachable. */
+.wp-player .wp-view-tools{height:33px;min-height:33px;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:0 15px;border-bottom:1px solid #e3ded4;background:#f8f6f1;color:#716b61;flex-shrink:0;font:10px var(--sans,sans-serif)}
+.wp-view-tools>div,.wp-zoom-adjust{display:flex;align-items:center;gap:3px}.wp-view-hint{margin-right:auto;font-size:10px;white-space:nowrap}
+.wp-view-tools button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:27px;padding:4px 7px;background:transparent;border:1px solid transparent;border-radius:3px;color:#615a50;font:11px var(--sans,sans-serif);cursor:pointer;white-space:nowrap}
+.wp-view-tools button:hover:not(:disabled){background:#ece7dd;border-color:#d1c8ba;color:#302e29}.wp-view-tools button:active:not(:disabled){background:#e3dbce}.wp-view-tools button:focus-visible,.wp-player .wp-viewport:focus-visible{outline:2px solid #c55940;outline-offset:-2px}
+.wp-view-tools button:disabled{opacity:.35;cursor:default}.wp-view-tools [data-wp-zoom-value]{min-width:36px;text-align:center;font:10px var(--mono,monospace);font-variant-numeric:tabular-nums}.wp-view-tools [data-wp-zoom=fit]{margin-left:5px;border-left-color:#d8d1c5;border-radius:0}
+.wp-player .wp-viewport{overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b7afa1 #efebe3;touch-action:pan-x pan-y;position:relative;}
+.wp-player .wp-viewport-space{position:relative;min-width:100%;min-height:100%}.wp-player .wp-viewport-space>.wp-artboard{position:absolute;left:0;top:0;max-width:none;box-sizing:border-box;transform-origin:0 0}
+.we-pair-preview .wp-view-tools{display:none}
+@media(max-width:520px){.wp-player .wp-view-tools{min-height:37px;height:37px;padding-inline:10px}.wp-view-tools button{min-height:32px;padding-inline:6px}.wp-view-tools .wp-view-hint{font-size:9px}.wp-view-tools [data-wp-zoom-value]{min-width:31px;font-size:9px}}

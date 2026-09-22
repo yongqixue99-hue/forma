@@ -1,0 +1,99 @@
+/* One restrained interaction language across the library and workspace. */
+:root{--control-ease:cubic-bezier(.2,.75,.2,1);--control-ring:color-mix(in srgb,var(--accent,#d45d47) 55%,transparent)}
+:is(.button,.icon-button,.text-button,.ft-chart-button,.we-copy-split>button,.we-mode>button,.we-inspector-tabs>button,.wp-clock>button,.mg-group-tabs>button,.mg-presets>button,.we-morph-picker>button,.we-picker-tabs>button,.we-catalog-list>button,.we-source-list>button,.wp-step-strip>button,.we-family-filters>button){
+  transition:background-color 160ms var(--control-ease),border-color 160ms var(--control-ease),color 160ms var(--control-ease),box-shadow 160ms var(--control-ease),transform 120ms var(--control-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+:is(.button,.icon-button,.text-button,.ft-chart-button,.we-copy-split>button,.we-mode>button,.wp-clock>button,.mg-group-tabs>button,.mg-presets>button,.we-morph-picker>button,.we-picker-tabs>button,.we-catalog-list>button,.we-source-list>button,.wp-step-strip>button):active:not(:disabled){transform:translateY(1px);box-shadow:inset 0 1px 3px #29262012}
+:is(button,a,input,select,summary):focus-visible{outline:2px solid var(--control-ring);outline-offset:3px}
+button:disabled{cursor:default}
+.button{border-radius:5px;font-weight:500}
+.button.dark{box-shadow:0 1px 2px #201c1814,inset 0 1px #ffffff0d}
+.we-copy-split{border-radius:5px;overflow:visible}
+.we-copy-split>[data-we=copy]{min-width:65px;justify-content:center}
+.we-copy-split>[data-we=copy][data-copied=true]{color:var(--accent)}
+.we-copy-split>button:first-child{border-radius:4px 0 0 4px}
+.we-copy-split>button:nth-child(2){border-radius:0 4px 4px 0}
+.we-copy-split>[aria-expanded=true]{background:var(--paper,#f8f7f4);color:var(--fg)}
+.we-copy-split>[aria-expanded=true]>svg{transform:rotate(180deg)}
+.we-copy-split>button>svg{transition:transform 160ms var(--control-ease)}
+:is(.we-copy-menu,.ft-copy-menu):not([hidden]){animation:control-reveal 140ms var(--control-ease);transform-origin:top right}
+.we-popover:not([hidden]){animation:control-reveal 160ms var(--control-ease);border-radius:7px;box-shadow:0 12px 38px #302a2417,0 2px 6px #302a240d}
+@keyframes control-reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.we-family-filters{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 12px}
+.we-family-filters>button{font-size:11px;color:var(--muted);padding:6px 10px;border-radius:4px;border:1px solid transparent}
+.we-family-filters>button[aria-pressed=true]{background:var(--paper);color:var(--fg);border-color:var(--line);font-weight:600}
+.we-morph-picker>button{position:relative;border-radius:5px;min-height:58px;align-items:center}
+.we-morph-picker>button .we-view-icon{color:var(--muted)}
+.we-morph-picker>button[aria-pressed=true]{border-color:var(--accent);background:#f4eee6;box-shadow:inset 2px 0 var(--accent)}
+.we-morph-picker>button[aria-pressed=true] .we-view-icon{color:var(--accent)}
+.we-morph-picker>button:disabled{opacity:.52}
+.we-view-reason{display:block;max-width:118px;font-size:10px;font-weight:400;line-height:1.6;margin-top:4px;color:var(--muted)}
+.we-morph-picker>button>span:last-child{line-height:1.5}
+.we-catalog-list>button>.we-compat{justify-self:end;font-size:10px;color:var(--muted);white-space:nowrap}
+.we-catalog-list>button>.we-compat[data-ready=true]{color:var(--fg)}
+.we-compat[data-ready=true]::before{content:'';display:inline-block;width:4px;height:4px;margin-right:5px;vertical-align:2px;border-radius:50%;background:var(--accent)}
+.mg-presets{scroll-padding-inline:4px}
+.mg-presets>button{border-radius:5px}
+.mg-pair-selectors{display:grid!important;grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr) 31px;gap:5px!important;align-items:end}
+.mg-pair-selectors>label{display:flex;flex-direction:column;min-width:0;gap:4px;font-size:10px;color:var(--muted)}
+.mg-pair-selectors>label>select{width:100%;text-overflow:ellipsis;color:var(--fg);font-size:11px;padding:8px 4px}
+.mg-pair-selectors>span{align-self:end;line-height:33px;font-size:11px;color:var(--muted)}
+.mg-pair-selectors>button{height:33px;transition:background-color 150ms,border-color 150ms,transform 120ms}
+.mg-pair-selectors>button:active{transform:translateY(1px)}
+.mg-presets>button[aria-pressed=true]{box-shadow:inset 0 -2px var(--accent);border-color:#c5b9a9}
+.wp-step-strip>button[aria-pressed=true]{box-shadow:inset 0 -2px var(--accent);font-weight:600}
+.wp-clock [data-wp-play]{min-width:60px;border-radius:4px}
+.wp-player{container-type:inline-size}
+@container (min-width:680px){
+  .wp-artboard:has(>.wp-data-legend:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) 174px;grid-template-rows:auto minmax(0,1fr) auto;column-gap:18px;padding-bottom:12px}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>header{grid-column:1/-1}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>.wp-graphic{grid-column:1;grid-row:2}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>.wp-data-legend{grid-column:2;grid-row:2;flex-direction:column;flex-wrap:nowrap;justify-content:safe center;gap:8px;max-height:none;min-height:0;border-top:0;border-left:1px solid var(--wp-line);padding:4px 0 4px 15px;margin:14px 0 12px}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>.wp-data-legend>span{flex:0 0 auto;width:100%;font-size:11px}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>.wp-data-legend b{margin-left:auto;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>footer{grid-column:1/-1}
+  .wp-artboard:has(>.wp-data-legend:not([hidden]))>.wp-data-legend:has(>span:nth-child(9)){gap:3px}
+  .wp-artboard>.wp-data-legend:has(>span:nth-child(9))>span,.wp-artboard>.wp-data-legend:has(>span:nth-child(9)) b{line-height:1.3}
+}
+@media(hover:hover){
+  .button.dark:hover:not(:disabled){background:#3c3a37;box-shadow:0 2px 5px #201c181a}
+  :is(.icon-button,.text-button,.we-copy-split>button,.wp-clock>button):hover:not(:disabled){background:#e4e0d833}
+  :is(.we-morph-picker>button,.we-source-list>button,.we-catalog-list>button):hover:not(:disabled){background:#f2efe8;border-color:#bdb4a5}
+  .we-morph-picker>button:hover:not(:disabled) .we-view-icon{color:var(--fg)}
+  .we-family-filters>button:hover{color:var(--fg);background:#e4e0d855}
+}
+@media(max-width:820px){.we-copy-split>[data-we=copy]{min-width:30px}.we-family-filters{gap:3px}.we-family-filters>button{padding:6px 9px}.wp-clock [data-wp-play]{min-width:28px}.we-catalog-list>button>.we-compat{font-size:9px}}
+@media(min-width:821px) and (max-height:760px){
+  .mg-scenes .mg-presets>button{padding:8px 13px;gap:4px;min-width:133px}
+  .mg-scenes .mg-preset-icons{height:17px}.mg-scenes .mg-preset-icons svg{height:16px}
+  .mg-scenes .wp-artboard{padding:17px 27px 0}
+  .mg-scenes .wp-artboard h2{font-size:21px;margin:5px 0 2px}
+  .mg-scenes .wp-graphic{margin:7px 0 5px}
+  .mg-scenes .wp-data-legend{padding:8px 0;gap:6px 20px}
+  .mg-scenes .wp-step-strip{padding:10px 16px}
+  .mg-scenes .wp-step-strip>button{min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}button:active{transform:none!important}}
+
+.route-loading{padding:42px;color:var(--muted);font-size:14px}
+
+/* Let translated preset names set their width inside the scrollable row. */
+.mg-scenes .mg-presets>button{flex:0 0 auto;max-width:250px}
+.mg-scenes .mg-presets strong{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+/* Keep the seek dot and duration grips independently draggable at boundaries. */
+.wp-scrubber:has(.wp-hold-track){height:40px}
+.wp-scrubber:has(.wp-hold-track)>input{height:40px}
+.wp-scrubber:has(.wp-hold-track)>.wp-segments{inset:16px 0}
+.wp-scrubber .wp-hold-track button{top:0;height:16px}
+.wp-scrubber .wp-hold-track button>span{height:12px}
+@media(pointer:coarse){.wp-scrubber .wp-hold-track button{height:24px;top:-8px}}
+@media(max-width:600px){.wp-clock:has(.wp-hold-track){row-gap:10px}}
+/* A narrow preview needs room for both the plot and its readable data key. */
+@media(max-width:680px){
+  .mg-gallery.mg-scenes .mg-player-host{height:780px}
+  .beta-showcase .beta-demo [data-beta-player]{height:780px;min-height:780px}
+  .wp-player .wp-artboard{padding-inline:18px}
+  .wp-player .wp-artboard>.wp-graphic{min-height:280px}
+  .wp-player .wp-artboard>.wp-data-legend{max-height:none;flex-shrink:0}
+}

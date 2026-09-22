@@ -1,0 +1,21 @@
+{
+  "source": "Natural Earth ne_110m_admin_0_countries",
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+  "license": "Public domain",
+  "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "retrieved": "2026-09-12",
+  "rawSha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
+  "embeddedSha256": "1a260c4ccc1187fab7970042f06126c18cd35001cdf04011f2a4cd79730a372c",
+  "processing": "Keep ADM0_A3 and NAME_EN; remove Antarctica; coordinates rounded to 3 decimal degrees; no simplification or invented polygons. 176 geographic regions at Natural Earth 1:110m; not all countries or dependencies are individually represented.",
+  "regionIndex": {
+    "file": "world-regions.json",
+    "derivedFrom": "world-110m.json feature.properties",
+    "sha256": "2efe03c9c487bc56565cada0468e94553a93fde67305e53e6adcd4ba7087a5dd",
+    "processing": "Exact code and name properties from all 176 embedded features, in the same order; no geometry. Shared by map validation and help."
+  },
+  "countryAliases": {
+    "file": "world-country-aliases.json",
+    "sha256": "428c3cf9cdaea7b3dfd4ceb5ce1bd985d39cf2b2923498acb4f261a6a6df117c",
+    "processing": "Same source hash and 176 ADM0_A3 features as the geometry. Retain ISO_A2_EH/ISO_A3_EH (fall back to ISO_A2/ISO_A3), NAME_ZH, NAME, NAME_LONG, FORMAL_EN and NAME_EN for input search; explicit canonical codes take priority. This adds no geometry or geographic coverage."
+  }
+}

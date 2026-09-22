@@ -1,0 +1,127 @@
+[
+  {
+    "year": "2000",
+    "inflation": 3.37685727149929,
+    "unemployment": 3.992
+  },
+  {
+    "year": "2001",
+    "inflation": 2.82617111885407,
+    "unemployment": 4.731
+  },
+  {
+    "year": "2002",
+    "inflation": 1.58603162650601,
+    "unemployment": 5.783
+  },
+  {
+    "year": "2003",
+    "inflation": 2.27009497336115,
+    "unemployment": 5.989
+  },
+  {
+    "year": "2004",
+    "inflation": 2.67723669309172,
+    "unemployment": 5.529
+  },
+  {
+    "year": "2005",
+    "inflation": 3.3927468454955,
+    "unemployment": 5.084
+  },
+  {
+    "year": "2006",
+    "inflation": 3.22594410070404,
+    "unemployment": 4.623
+  },
+  {
+    "year": "2007",
+    "inflation": 2.85267248150138,
+    "unemployment": 4.622
+  },
+  {
+    "year": "2008",
+    "inflation": 3.839100296651,
+    "unemployment": 5.784
+  },
+  {
+    "year": "2009",
+    "inflation": -0.355546266299747,
+    "unemployment": 9.254
+  },
+  {
+    "year": "2010",
+    "inflation": 1.6400434423899,
+    "unemployment": 9.633
+  },
+  {
+    "year": "2011",
+    "inflation": 3.156841568622,
+    "unemployment": 8.949
+  },
+  {
+    "year": "2012",
+    "inflation": 2.06933726526067,
+    "unemployment": 8.069
+  },
+  {
+    "year": "2013",
+    "inflation": 1.46483265562717,
+    "unemployment": 7.375
+  },
+  {
+    "year": "2014",
+    "inflation": 1.62222297740817,
+    "unemployment": 6.168
+  },
+  {
+    "year": "2015",
+    "inflation": 0.118627135552451,
+    "unemployment": 5.28
+  },
+  {
+    "year": "2016",
+    "inflation": 1.26158320570536,
+    "unemployment": 4.869
+  },
+  {
+    "year": "2017",
+    "inflation": 2.13011000365961,
+    "unemployment": 4.355
+  },
+  {
+    "year": "2018",
+    "inflation": 2.44258329692817,
+    "unemployment": 3.896
+  },
+  {
+    "year": "2019",
+    "inflation": 1.81221007526021,
+    "unemployment": 3.669
+  },
+  {
+    "year": "2020",
+    "inflation": 1.23358439630629,
+    "unemployment": 8.055
+  },
+  {
+    "year": "2021",
+    "inflation": 4.69785886363742,
+    "unemployment": 5.349
+  },
+  {
+    "year": "2022",
+    "inflation": 8.00279982052121,
+    "unemployment": 3.65
+  },
+  {
+    "year": "2023",
+    "inflation": 4.11633838374488,
+    "unemployment": 3.638
+  },
+  {
+    "year": "2024",
+    "inflation": 2.94952520485207,
+    "unemployment": 4.022
+  }
+]

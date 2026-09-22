@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "runtimes": {
+    "chart": {
+      "path": "/forma/agent-runtimes/chart-7a665142d10cbc5d76bbd40f80da646cfdb7c6638b2e3fb35634a79bc6e51d39.js",
+      "sha256": "7a665142d10cbc5d76bbd40f80da646cfdb7c6638b2e3fb35634a79bc6e51d39",
+      "integrity": "sha384-3k0wzVIFpOMc0+O6bifNb6oueUeDDw+OGgkKhACFK6wo82tDmMy02pQ4nEPoTRqz",
+      "bytes": 1394407
+    },
+    "work": {
+      "path": "/forma/agent-runtimes/work-34606e12a76a968bdca25842243e4ae67481b1c21d2f35f7cc457fdea668b95c.js",
+      "sha256": "34606e12a76a968bdca25842243e4ae67481b1c21d2f35f7cc457fdea668b95c",
+      "integrity": "sha384-uLsOmUiw0ljp1762rIC2Rv79mW60t31xiLDBhUbXMjfKYLKPj6kSH2bq72BUm4TU",
+      "bytes": 1776873
+    },
+    "sequence": {
+      "path": "/forma/agent-runtimes/sequence-75358f78e1fd639b90cce8d6c909d3cbe2351a5d14ee547f528d3681d6c61e7d.js",
+      "sha256": "75358f78e1fd639b90cce8d6c909d3cbe2351a5d14ee547f528d3681d6c61e7d",
+      "integrity": "sha384-Wukj1ED2lUwnVWWx/9v8rWgfxGMv0Sq6F8T9Xs1q4sO76CMRZpbH2qAKGSWtnwfG",
+      "bytes": 655445
+    },
+    "canvas": {
+      "path": "/forma/agent-runtimes/canvas-54002949998b8974759e2cd8fea7bbfd85d34833871192256624932e5b2851f5.js",
+      "sha256": "54002949998b8974759e2cd8fea7bbfd85d34833871192256624932e5b2851f5",
+      "integrity": "sha384-6sUsRDqVf9V/G5ZU1kaoq2dIHSsix6mVLuAJJ8crGCB4GFw99SAxQ0gTl5J9v2Zr",
+      "bytes": 1356289
+    }
+  }
+}

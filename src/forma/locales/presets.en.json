@@ -1,0 +1,272 @@
+{
+  "public-growth": {
+    "name": "Economic growth",
+    "description": "Compare ten years of World Bank growth data for three countries, moving from trends to grouped columns and bars while retaining negative growth.",
+    "relation": "Public data · Growth rates",
+    "dataNote": "Annual real GDP growth for China, Germany and the US, 2014–2023: 30 records. Values are already percentages. Country growth rates cannot be added or stacked. Source: World Bank WDI, CC BY 4.0; downloaded 2026-09-11."
+  },
+  "public-penguins": {
+    "name": "Penguin body mass",
+    "description": "Explore raw measurements from three penguin species through observations, quartiles and density, preserving sample identities throughout.",
+    "relation": "Public data · Raw samples",
+    "dataNote": "The Palmer Penguins source has 344 rows: 342 measured body masses and two missing values at source rows 5 and 273. Missing values are not zeros. Other columns and source row numbers are retained. Download the 342 observations or the full 344-row source. Gorman et al. (2014), curated by Horst et al., CC0."
+  },
+  "method-agreement": {
+    "name": "Method agreement",
+    "description": "Move paired measurements from a scatter plot to means and differences, then inspect ranked differences and individual pairs.",
+    "relation": "Same samples · Two methods",
+    "dataNote": "Enter a unique sample ID and two measurements in the same unit. Differences always use A−B. Agreement limits are not confidence intervals."
+  },
+  "measurement-review": {
+    "name": "Measurement review",
+    "description": "Inspect each measurement pair, locate large differences and return to the overall measurement range.",
+    "relation": "Same objects · Measurements and differences",
+    "dataNote": "Enter readings from two named instruments for the same object. Retain raw values; do not pair unrelated objects by row position."
+  },
+  "prediction-diagnostics": {
+    "name": "Prediction diagnostics",
+    "description": "Move observed and predicted values to residual coordinates, then compare absolute errors and ranked samples.",
+    "relation": "Same predictions · Values and errors",
+    "dataNote": "Enter completed predictions. Residuals are observed minus predicted; sample IDs remain stable and the model is not refitted."
+  },
+  "forecast-review": {
+    "name": "Forecast review",
+    "description": "Locate dates with large errors, then examine overprediction and underprediction against the predicted values.",
+    "relation": "Same forecast records · Record-level review",
+    "dataNote": "Enter date IDs, actual demand and the original advance forecasts in the same unit. Do not replace them with later revisions."
+  },
+  "classification-diagnostics": {
+    "name": "Classification diagnostics",
+    "description": "Expand the count matrix into bubbles, then regroup by actual and predicted classes to compare errors under different denominators.",
+    "relation": "Same count matrix · Actual and predicted",
+    "dataNote": "Enter a complete actual×predicted count square, including measured zeros. Every regrouping identifies its denominator; classes without predicted samples remain undefined."
+  },
+  "recognition-review": {
+    "name": "Recognition review",
+    "description": "Inspect the origins of predicted classes, then return to the full matrix to verify counts and error destinations.",
+    "relation": "Same classifications · Regrouped counts",
+    "dataNote": "Use for recognition reviews and annotation checks. Class names must match across rows and columns; counts are not probability scores."
+  },
+  "duration-distribution": {
+    "name": "Duration distribution",
+    "description": "Move raw durations from an equal-width histogram to frequency, cumulative bars and the exact empirical distribution.",
+    "relation": "Same observations · Bins and cumulative shares",
+    "dataNote": "Enter a unique ID and one measured duration per row, not preaggregated frequencies. Bin boundaries are shared; ECDF retains actual observations and ties."
+  },
+  "assay-distribution": {
+    "name": "Assay distribution",
+    "description": "Compare cumulative proportions with frequencies to inspect concentration and tails, then check cumulative shares at bin upper bounds.",
+    "relation": "Same experimental samples · Exact and binned distributions",
+    "dataNote": "Enter original measurements and their unit. ECDF is neither smoothed nor binned; the histogram retains all samples and the common range."
+  },
+  "classifier-comparison": {
+    "name": "Model discrimination",
+    "description": "Compare ROC and PR on the same test set, then inspect score thresholds and the trade-off between detection and false alarms.",
+    "relation": "Same test set · Matching thresholds",
+    "dataNote": "Enter model, sample ID, actual label and score. Models must use the same samples. Higher scores indicate the positive class; tied scores are processed together."
+  },
+  "probability-reliability": {
+    "name": "Probability reliability",
+    "description": "Inspect discrimination before checking reliability in probability bins. Threshold points contract before bins unfold.",
+    "relation": "Same probabilities · Discrimination and calibration",
+    "dataNote": "Use held-out 0/1 labels and predicted probabilities in [0,1]. ROC, PR and calibration answer different questions. Empty bins remain gaps and bin sample sizes stay visible."
+  },
+  "correlation-exploration": {
+    "name": "Correlation exploration",
+    "description": "Remove symmetric duplicates from the heatmap, read strength through circle areas and rank unique variable pairs.",
+    "relation": "Same complete samples · Stable variable pairs",
+    "dataNote": "Enter sample IDs, variable names and raw values, with all variables for every sample. Pearson r is calculated; constant variables remain undefined rather than zero."
+  },
+  "metric-redundancy": {
+    "name": "Related metrics",
+    "description": "Find strong linear associations in the pair ranking, then inspect the bubble matrix and full heatmap.",
+    "relation": "Same objects · Pairwise and overall structure",
+    "dataNote": "Use the same observation window for each object's metrics and include units in variable names. Ranking uses |r|. Correlation is not a causal conclusion or an automatic reason to delete a metric."
+  },
+  "scale-relationship": {
+    "name": "Position and scale",
+    "description": "Compare two measurements, then expand each observation using its real size while preserving its position and identity.",
+    "relation": "Same objects · Position and area",
+    "dataNote": "One object per row: name, group, X, Y and a real size measurement. Bubble area represents size. Give each axis its measurement and unit."
+  },
+  "calibration-study": {
+    "name": "Linear calibration",
+    "description": "Move from raw observations to a linear fit and a mean-response confidence band. Observed points stay at their measured positions.",
+    "relation": "Same samples · Observations and model",
+    "dataNote": "Enter a unique name, X and Y for each independent observation. Uses one-variable OLS and a Student t mean-response interval. Check linearity and independence assumptions first."
+  },
+  "sample-distributions": {
+    "name": "Reading distributions",
+    "description": "Move raw samples through swarm, box, violin and raincloud plots to compare detail with statistical summaries.",
+    "relation": "Same raw samples · Distribution and summary",
+    "dataNote": "Enter one group and raw observation per row. Quartiles, 1.5 × IQR whiskers and shared-bandwidth density use these same samples; duplicates and outliers are retained."
+  },
+  "replicate-summary": {
+    "name": "Replicates and spread",
+    "description": "Start with independent experimental observations, reveal mean and SD, then compare the median and quartiles.",
+    "relation": "Same independent replicates · SD and quartiles",
+    "dataNote": "Enter unique sample names, groups and measured values. Sample SD uses n−1. Density is unavailable when sample size is insufficient; SD is not a confidence interval."
+  },
+  "estimate-comparison": {
+    "name": "Estimates and uncertainty",
+    "description": "Read estimates, expand their supplied bounds, then rotate the interval comparison to a vertical axis.",
+    "relation": "Same estimates · Linear scale",
+    "dataNote": "Enter label, estimate, low and high. State what the interval means. Bounds must come from your analysis; missing bounds are not estimated automatically."
+  },
+  "ratio-effects": {
+    "name": "Ratio effects",
+    "description": "Move ratio estimates between points, forest-style intervals and vertical intervals while retaining a logarithmic scale.",
+    "relation": "Same study results · Logarithmic scale",
+    "dataNote": "Enter study names, ratio effects, calculated bounds and sample sizes. All bounds and effects must be positive; reference is 1. Sample size is not a weight and effects are not pooled."
+  },
+  "paired-evaluation": {
+    "name": "Before and after",
+    "description": "Follow paired observations from connected endpoints to paired bars and each object's change.",
+    "relation": "Same objects · Paired measurements",
+    "dataNote": "Three columns: object, before and after. Use unique names, matching units and complete pairs. Any of the five encodings may be selected directly."
+  },
+  "paired-study": {
+    "name": "Paired samples",
+    "description": "Retain both measurements for each sample, then align the first to zero to inspect individual changes.",
+    "relation": "20 synthetic pairs · Individual changes",
+    "dataNote": "Enter a unique sample, first measurement and second measurement. Supports up to 50 pairs. Do not pair unrelated groups by row order. No significance test is generated."
+  },
+  "research-budget": {
+    "name": "Research budget",
+    "description": "Unfold a two-level budget from radial sectors to an icicle and then compare child amounts by area.",
+    "relation": "Same budget · Two-level hierarchy",
+    "dataNote": "Three columns: parent, child and amount. Enter children only; parent totals are calculated. Each expense belongs to one child and uses the same unit."
+  },
+  "unit-counts": {
+    "name": "Counting units",
+    "description": "Split each bar into countable dots, then combine them again. One dot represents one exact unit.",
+    "relation": "Same data · One dot per unit",
+    "dataNote": "Two columns: category and count. Use integers from 0 to 50, up to 12 categories. Dots sort by count while retaining category colors."
+  },
+  "inventory": {
+    "name": "Inventory changes",
+    "description": "After a stock change, retain the new level until the next event. Step width follows actual elapsed time.",
+    "relation": "Same data · State persists after each change",
+    "dataNote": "Two columns: change date and resulting inventory. Dates use YYYY-MM-DD. Enter the resulting stock level, not the increment. Keep unobserved values blank."
+  },
+  "cyclic": {
+    "name": "Cyclic patterns",
+    "description": "Wrap visits measured every two hours around a complete daily cycle.",
+    "relation": "Same data · Equally spaced full cycle",
+    "dataNote": "Two columns: cycle position and nonnegative value, in cycle order. Only repeating data suits a closed loop. Radius encodes value."
+  },
+  "channel-comparison": {
+    "name": "Channel comparisons",
+    "description": "Move from components within channels to channel totals and shares. Horizontal layouts leave more room for names.",
+    "relation": "Same data · Categories and components",
+    "dataNote": "Three columns: channel, revenue component and amount. Include every component for each channel. Amounts must share a unit and not overlap. Shares are calculated from raw amounts."
+  },
+  "series-revenue": {
+    "name": "Revenue by channel",
+    "description": "Compare quarterly series, overall scale and changing shares, maintaining each component's identity.",
+    "relation": "Same data · Multiple series",
+    "dataNote": "Three columns: period, series and value. Include every channel in each period, in matching units without overlap. Percentages derive from amounts; raw values remain in the table."
+  },
+  "series-change": {
+    "name": "Multiple trends",
+    "description": "Compare monthly changes in two business lines, retaining negative values, zeros and missing months.",
+    "relation": "Same data · Signed and missing values",
+    "dataNote": "Three columns: month, business line and net change. Include both lines in each period. Leave unobserved values blank; negative means decrease, while zero means measured no change."
+  },
+  "monthly": {
+    "name": "Monthly trends",
+    "description": "Follow one metric across a year, from monthly quantities to trends. Missing months retain gaps.",
+    "relation": "Same data · Ordered time",
+    "dataNote": "Two columns: month and value, in time order. Leave unobserved months blank rather than entering 0."
+  },
+  "channels": {
+    "name": "Channel mix",
+    "description": "Compare nonoverlapping channel revenues for one period, then inspect their shares of the whole.",
+    "relation": "Same data · Parts and whole",
+    "dataNote": "Two columns: channel and revenue. Use consistent definitions and additive amounts. Do not include an extra total row."
+  },
+  "comparison": {
+    "name": "Period comparison",
+    "description": "Compare the same channels across two quarters using fixed scales and stable category colors.",
+    "relation": "Two datasets · Same objects",
+    "dataNote": "Enter each quarter's data in its own step. Keep channel correspondence; new and removed channels enter or exit independently."
+  },
+  "contribution": {
+    "name": "Cumulative contribution",
+    "description": "Move from individual expenses to cumulative shares and their contribution to the total.",
+    "relation": "Same data · Additive items",
+    "dataNote": "Two columns: expense item and amount. Use nonoverlapping positive expenses without a precomputed total row."
+  },
+  "cashflow": {
+    "name": "Cash flow",
+    "description": "Inspect monthly net cash flow around a common zero baseline, retaining positive values, negatives and zeros.",
+    "relation": "Same data · Signed values",
+    "dataNote": "Two columns: month and net cash flow (inflows minus outflows). Retain negative signs; use 0 only for a measured zero."
+  },
+  "conversion": {
+    "name": "Conversion stages",
+    "description": "Track the same visitor cohort from visits to payment in stage order.",
+    "relation": "Same cohort · Ordered stages",
+    "dataNote": "Two columns: stage and count. Each stage must come from the preceding stage's cohort. Do not combine unrelated populations."
+  },
+  "essential": {
+    "name": "Bars, lines and shares",
+    "description": "Observe contours transforming between columns, lines and sectors.",
+    "relation": "",
+    "dataNote": ""
+  },
+  "classic": {
+    "name": "Classic morphs",
+    "description": "Eight original encodings with their established morph behavior.",
+    "relation": "",
+    "dataNote": ""
+  },
+  "flow": {
+    "name": "Lines and areas",
+    "description": "Collapse columns into a line, unfold the area and regroup.",
+    "relation": "",
+    "dataNote": ""
+  },
+  "radial": {
+    "name": "Radial forms",
+    "description": "Explore geometric changes between circles, sectors and rectangles.",
+    "relation": "",
+    "dataNote": ""
+  },
+  "compare": {
+    "name": "Quantity and contribution",
+    "description": "Track categories from individual comparisons to cumulative contribution.",
+    "relation": "",
+    "dataNote": ""
+  },
+  "geometry": {
+    "name": "Shares and geometry",
+    "description": "Unfold sectors into a grid, then gather them into radial contours.",
+    "relation": "",
+    "dataNote": ""
+  },
+  "serial-diagnostics": {
+    "name": "ACF and PACF diagnostics",
+    "description": "Retract to zero, change estimator and return on the same coefficient axis.",
+    "dataNote": "Complete equally spaced period/value sequence in acquisition order. Fixed [-1,1] coefficient axis and unchanged maximum lag.",
+    "relation": "Same source records · Reversible views"
+  },
+  "interval-story": {
+    "name": "Estimates and uncertainty",
+    "description": "Expand supplied intervals from point estimates, rotate and return.",
+    "dataNote": "Supply estimates, lower and upper bounds with an explicit interval definition.",
+    "relation": "Same source records · Reversible views"
+  },
+  "distribution-story": {
+    "name": "Reading distributions",
+    "description": "Expand quartiles and density around the same original samples, then return.",
+    "dataNote": "Each row is an original sample. Retain sample IDs through all summaries.",
+    "relation": "Same source records · Reversible views"
+  },
+  "matrix-story": {
+    "name": "Reading the indicator matrix",
+    "description": "Compare cell color and area while retaining the original values.",
+    "dataNote": "One nonnegative original value per row/column combination; missing values remain missing.",
+    "relation": "Same source records · Reversible views"
+  }
+}

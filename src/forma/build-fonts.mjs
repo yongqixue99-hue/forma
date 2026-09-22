@@ -1,0 +1,5 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const fonts=[['Manrope','@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2','200 800'],['DM Mono','@fontsource/dm-mono/files/dm-mono-latin-400-normal.woff2','400'],['Instrument Serif','@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2','400']];
+const licenses=await Promise.all(fonts.map(async([name,path])=>`${name}\n${await readFile(new URL(`../../node_modules/${path.split('/files/')[0]}/LICENSE`,import.meta.url),'utf8')}`));
+const rules=await Promise.all(fonts.map(async([name,path,weight])=>`@font-face{font-family:"${name}";font-style:normal;font-weight:${weight};font-display:swap;src:url(data:font/woff2;base64,${(await readFile(new URL(`../../node_modules/${path}`,import.meta.url))).toString('base64')}) format("woff2");}`));
+await writeFile(new URL('./export-fonts.js',import.meta.url),`// Embedded OFL Latin fonts and license notices. Chinese uses the device font stack.\n// Regenerate with: node src/forma/build-fonts.mjs\nexport const exportFonts=${JSON.stringify('/*\n'+licenses.join('\n\n').replaceAll('*/','* /')+'\n*/\n'+rules.join(''))};\n`);

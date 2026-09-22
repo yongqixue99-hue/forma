@@ -1,0 +1,1375 @@
+{
+  "version": 1,
+  "updatedAt": "2026-09-10T09:05:52.367160+00:00",
+  "scope": "Acceptance is specific to build, directed route and recorded dataset. A different fixture or reverse direction does not inherit it. Intermediate shapes are not statistical estimates.",
+  "routes": [
+    {
+      "id": "entities-20260910:classifier-comparison:forward",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "59341522f7ffcc4f6b0fa63416ab85a45178741c06156abcdc5330cb2c09559a",
+      "from": "eval-roc",
+      "to": "eval-pr",
+      "recipe": "analysis-threshold",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；2 个模型，各 72 条同一测试集观测，共 144 行；同分阈值共同处理，正类定义与单位一致。",
+      "observations": "两条模型曲线颜色持续对应，终点显示 AP 而非 AUC；25%、50%、75% 隐藏不适合中间形状的刻度，并保留变形中不可读数的提示。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/classifier-comparison-forward.html",
+        "sha256": "aecb5f2ce58e6ff1c2a6df201a5dd26e204a2c34d5b818bb454a0603bfbc810d"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-forward-0.png",
+            "sha256": "68e55d265e8bf2c68b3be2a90c8bafc377177932abb9477fe9fb4fd383412df8"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-forward-0.svg",
+            "sha256": "28c67251a711b5c2ab28d69f668246523002ad643bd8b1de63b5237d73848dab"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-forward-25.png",
+            "sha256": "24e46486c4058492ebf279433497b47939824dc9a1987543d64d0684fb6a58f8"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-forward-25.svg",
+            "sha256": "005bbde94ad55bf717d577272364dad907dbc22595e8cf59e4c3335315ab8a77"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-forward-50.png",
+            "sha256": "6d18b1e00b355818a6b8806e120459385ed9f8c0f8a0a3c3cfafdc7c43cab8b6"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-forward-50.svg",
+            "sha256": "31f6dcf46ea4c7154d66455d9c28d1a96334ae71837aebd3784e3e4b52eb7873"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-forward-75.png",
+            "sha256": "4285cb9f39c91b50741b7ec7f3fd69787f46d08f730a9fd025958dd0a6f95edf"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-forward-75.svg",
+            "sha256": "dd6c351d04e633769fff019d8631e69f6f114f3f0fa9d814fc77ac9905753c39"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-forward-100.png",
+            "sha256": "968a198fc614cb93ae827a85d004d2a7693176f84ac76486a9e614608667c77f"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-forward-100.svg",
+            "sha256": "3d829bbe33ff709e68b5c4bf93f592fd0c50f3c1c7a231a709007993a620808e"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-forward-repeat.png",
+            "sha256": "6d18b1e00b355818a6b8806e120459385ed9f8c0f8a0a3c3cfafdc7c43cab8b6"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "classifier-comparison",
+          "from": "eval-roc",
+          "towards": "eval-pr",
+          "interruptedAtPercent": 50,
+          "retarget": "eval-threshold",
+          "observation": "ROC→PR 走到 50% 时改选阈值图；新过渡 0% 保留已经显示的曲线和中间帧提示，50% 附近仍明显折叠拥挤，100% 恢复正确阈值曲线。待专项优化。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-0.png",
+                "sha256": "01c93e662fc90332c22ee18f706b764c7188a69cfe8a30bacecc11272d3b86a1"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-25.png",
+                "sha256": "bbdf98fca787bdc47d556d06dd6c980196459cce4ebf97843ddac73bde0e08c9"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-50.png",
+                "sha256": "143c514c0ce19b156dedbcf5dc9670812a1728ca0537a8a19440615c6189ace2"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-75.png",
+                "sha256": "c9877e2a6755c1221834c0d5d7c9e76cb8856f6dadb89fa2f645b6bbcba3177d"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-100.png",
+                "sha256": "fafa3155d21ba75efa96d632e76481d5fea0077ddfb8ffab840e117992a81dc8"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:classifier-comparison:reverse",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "59341522f7ffcc4f6b0fa63416ab85a45178741c06156abcdc5330cb2c09559a",
+      "from": "eval-pr",
+      "to": "eval-roc",
+      "recipe": "analysis-threshold",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；2 个模型，各 72 条同一测试集观测，共 144 行；同分阈值共同处理，正类定义与单位一致。",
+      "observations": "从 PR 逆向返回 ROC 后，两模型的 AUC 0.966 / 0.909、正类定义和轴含义恢复；中间曲线保持模型对应。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/classifier-comparison-reverse.html",
+        "sha256": "de6285deb4a0d9a66c9b24a7fb058cd7713e8f0497fdb6fd164079b3f02d2ff1"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-reverse-0.png",
+            "sha256": "bb1f2ecc67b23c7710d505234a824c86c605ef75634c417b2f78450cd3e36a4d"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-reverse-0.svg",
+            "sha256": "27f1ead61800e7f254573e9043396387b0492c31058b90c2218f4e46a018fbaf"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-reverse-25.png",
+            "sha256": "825e67f720b33958d4478890a714e167cdeb44856b4fbbdb6501d7e111839d4d"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-reverse-25.svg",
+            "sha256": "e50f12732afb60c470987c57923f87f1ed0a93f7817d026de8f85707630fd377"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-reverse-50.png",
+            "sha256": "58cc0ce548994acc4d319ec4909750f5cfd82ef2b4f2ba140f9bae5f766bf36a"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-reverse-50.svg",
+            "sha256": "edf47714e68519a057d8b500ebac32c9ec74e38e7a91c177599c5ce78e92b76b"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-reverse-75.png",
+            "sha256": "8ed2bf6e75917030792d3b1ef8ba3a4e4dd11f223e75f4bd43938abab6f276e5"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-reverse-75.svg",
+            "sha256": "d76d3d2824af303e6e36c11be885fb02dccc10570be01815f1d9cc0871691f54"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-reverse-100.png",
+            "sha256": "5e5d73f202e485a5ed7f33b32588cf26679c04e56d0d735ec9ee5f4bdca87379"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-reverse-100.svg",
+            "sha256": "7ed357bea1e5e523904ea149adc2b0fabe74344157953153f44494f738f407ea"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-reverse-repeat.png",
+            "sha256": "58cc0ce548994acc4d319ec4909750f5cfd82ef2b4f2ba140f9bae5f766bf36a"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "classifier-comparison",
+          "from": "eval-roc",
+          "towards": "eval-pr",
+          "interruptedAtPercent": 50,
+          "retarget": "eval-threshold",
+          "observation": "ROC→PR 走到 50% 时改选阈值图；新过渡 0% 保留已经显示的曲线和中间帧提示，50% 附近仍明显折叠拥挤，100% 恢复正确阈值曲线。待专项优化。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-0.png",
+                "sha256": "01c93e662fc90332c22ee18f706b764c7188a69cfe8a30bacecc11272d3b86a1"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-25.png",
+                "sha256": "bbdf98fca787bdc47d556d06dd6c980196459cce4ebf97843ddac73bde0e08c9"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-50.png",
+                "sha256": "143c514c0ce19b156dedbcf5dc9670812a1728ca0537a8a19440615c6189ace2"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-75.png",
+                "sha256": "c9877e2a6755c1221834c0d5d7c9e76cb8856f6dadb89fa2f645b6bbcba3177d"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-100.png",
+                "sha256": "fafa3155d21ba75efa96d632e76481d5fea0077ddfb8ffab840e117992a81dc8"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:classifier-comparison:skip",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "59341522f7ffcc4f6b0fa63416ab85a45178741c06156abcdc5330cb2c09559a",
+      "from": "eval-roc",
+      "to": "eval-threshold",
+      "recipe": "analysis-threshold",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "needs-polish",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；2 个模型，各 72 条同一测试集观测，共 144 行；同分阈值共同处理，正类定义与单位一致。",
+      "observations": "直接 ROC 到阈值图的终点数据、实线 TPR 与浅线 FPR 可读；但场景中从 ROC→PR 的中间帧改选阈值图，50% 附近明显折叠拥挤，暂不列为推荐。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/classifier-comparison-skip.html",
+        "sha256": "4f1b6b91676587e86ebc20b2b20bff597b640d849e847011db34dfe064cc66ae"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-skip-0.png",
+            "sha256": "4fd6c4846b67e6c3e650511fb7b93a37f2282f230dc66ee8d0dbe338e38406ac"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-skip-0.svg",
+            "sha256": "d03adec122cdc979b7b9535f55ae21a99131ca0401e14141ca59ba5560424b5f"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-skip-25.png",
+            "sha256": "e9b5b54eab1235f286a00c330303c4070308f12bbeac7732c0f08d0e22eda9af"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-skip-25.svg",
+            "sha256": "11d634596a8aa19caf0883eedd1037e27877f561e7441ea2e551f6ab713cc49c"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-skip-50.png",
+            "sha256": "62cc8c846b8c52d0b89897a0520a33e501a4512a9ca4b2fe4ffa9e97eab69918"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-skip-50.svg",
+            "sha256": "90474079be6596eb3ce49ba8632a0fcccd3804a85e1cedaacaa968f9f261d952"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-skip-75.png",
+            "sha256": "8861148cd07fef575630e817b97fc8020e2d8ad344d77c249fdb443cf6cccc06"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-skip-75.svg",
+            "sha256": "f2aab91e32ac35741b36ef2a8aa8ddfcfdd3169de951759484aaf4325fb24de3"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-skip-100.png",
+            "sha256": "5c7200facf9a5faf2426299135bbcc4775da50a703748c3ea917531be3779c1a"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/classifier-comparison-skip-100.svg",
+            "sha256": "20ea37ce2871dce00dd390bed9fbe363656619a9df136ac604214796ac068e6d"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-skip-repeat.png",
+            "sha256": "62cc8c846b8c52d0b89897a0520a33e501a4512a9ca4b2fe4ffa9e97eab69918"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "classifier-comparison",
+          "from": "eval-roc",
+          "towards": "eval-pr",
+          "interruptedAtPercent": 50,
+          "retarget": "eval-threshold",
+          "observation": "ROC→PR 走到 50% 时改选阈值图；新过渡 0% 保留已经显示的曲线和中间帧提示，50% 附近仍明显折叠拥挤，100% 恢复正确阈值曲线。待专项优化。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-0.png",
+                "sha256": "01c93e662fc90332c22ee18f706b764c7188a69cfe8a30bacecc11272d3b86a1"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-25.png",
+                "sha256": "bbdf98fca787bdc47d556d06dd6c980196459cce4ebf97843ddac73bde0e08c9"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-50.png",
+                "sha256": "143c514c0ce19b156dedbcf5dc9670812a1728ca0537a8a19440615c6189ace2"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-75.png",
+                "sha256": "c9877e2a6755c1221834c0d5d7c9e76cb8856f6dadb89fa2f645b6bbcba3177d"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/classifier-comparison-interrupt-100.png",
+                "sha256": "fafa3155d21ba75efa96d632e76481d5fea0077ddfb8ffab840e117992a81dc8"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:probability-reliability:forward",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "19961406fc29c679e519a6ca5d1a7000d9412667ac9dd39964cb2e3d6d46aa62",
+      "from": "eval-roc",
+      "to": "eval-pr",
+      "recipe": "analysis-threshold",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；1 个模型、120 条概率预测，得分在 [0,1]，同一正类定义；校准采用 6 个等宽概率箱，保留真实箱内样本数。",
+      "observations": "一模型从 ROC 到 PR 的五个位置已看；曲线由递增轮廓转为精确率轮廓，模型身份保持，说明明确 AP 与 ROC AUC 不相等。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/probability-reliability-forward.html",
+        "sha256": "d3925743b81ecf95d9a21c36dcc07d80282b5dd1e069674e8d66790dc3534507"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-forward-0.png",
+            "sha256": "16263a1ef6a30692e695119559995061d3a0f60285736fb56ea5488f3c9d196e"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-forward-0.svg",
+            "sha256": "c709039d4217731cbcfe8309ecd9a23f63889de14b76617f2f424f2fb0208e6a"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-forward-25.png",
+            "sha256": "97b0599ae7775942d29004716952c28a3575afb1a2a97017b7873ea1b823e592"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-forward-25.svg",
+            "sha256": "98b2d97fa3f45c6841fed1a7fcf192c7f5e39324b33bf71ab6eb9192f62fa00f"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-forward-50.png",
+            "sha256": "89e661300facd12205949c359c26313a448074f16bdb14302dcbcc8573adb845"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-forward-50.svg",
+            "sha256": "800440de3d07f73a6b0f1f520102c519e34c3419e0dc15a97ca4d03503eb37e3"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-forward-75.png",
+            "sha256": "5aa829ac399f3c56196816760d56848c140ff18e574b83ca7f1709ddbb53ee45"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-forward-75.svg",
+            "sha256": "e8a18fbda0e985724151a1b64de2019d8edc28373dd6bc3e79fb379a3e8f811b"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-forward-100.png",
+            "sha256": "1381ea9dd0285543774fc3e328837199ac0ac0655e17d11a26e86e1b93a6c065"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-forward-100.svg",
+            "sha256": "d02e1acdc8dfb6ed540942a1587b34d6cc97f57b14c5f5020e8e2ebeb00bd65c"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-forward-repeat.png",
+            "sha256": "89e661300facd12205949c359c26313a448074f16bdb14302dcbcc8573adb845"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "probability-reliability",
+          "from": "eval-roc",
+          "towards": "eval-pr",
+          "interruptedAtPercent": 50,
+          "retarget": "eval-calibration",
+          "observation": "ROC→PR 走到 50% 时改选校准图；从已显示轮廓接续，旧曲线收起后概率箱展开，终点保持真实箱数与样本数。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-0.png",
+                "sha256": "9998d876d15dc2a1ee87f93911f6b3ee6e58a99eaed013361630ca80bc96d3f2"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-25.png",
+                "sha256": "174e1d031b0eeda89516da53af377fb87473b87878d692c9814e6eaad797a236"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-50.png",
+                "sha256": "bae7434fa51ea49069b98d1b1c2e35f6aa1fae96dfcf651821fe6fe4f5e8d0a0"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-75.png",
+                "sha256": "8528a4b271dc4d5817b6b174058c9c234841885244b7c8029bf0dd915c3061f3"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-100.png",
+                "sha256": "717cb735d04db8269a262c0af0ea2d485df787f528bbffe3201e597bd60e2d2c"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:probability-reliability:reverse",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "19961406fc29c679e519a6ca5d1a7000d9412667ac9dd39964cb2e3d6d46aa62",
+      "from": "eval-pr",
+      "to": "eval-roc",
+      "recipe": "analysis-threshold",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；1 个模型、120 条概率预测，得分在 [0,1]，同一正类定义；校准采用 6 个等宽概率箱，保留真实箱内样本数。",
+      "observations": "逆向恢复 ROC 的轴、正类与曲线；逐帧和重复定位未出现残留标注。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/probability-reliability-reverse.html",
+        "sha256": "7e47a937bd849963c03a68cf2da6a53b12e95e252ae3f0bc22a379bebf4cd14a"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-reverse-0.png",
+            "sha256": "0fdb657da8d68d46ab23ba23060a73394d2b33ff7403e3fed8e977531e976b05"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-reverse-0.svg",
+            "sha256": "a58f0f3ca7937c94353f15f4b5cb9cb6c2d1b6e85b92aff68542c9eeb95105b1"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-reverse-25.png",
+            "sha256": "7b432f373046a988073b99b14def131409b54eb97e491408a884b415b81c83eb"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-reverse-25.svg",
+            "sha256": "47832a8a8cd868d0a6c7b9ffe2935c5f8e62a57711c9cda5b820dfe2c24431f7"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-reverse-50.png",
+            "sha256": "008a1d1c207d20058d0f50092bc1b522e954ec86b95620119c39c32a0b56eb4d"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-reverse-50.svg",
+            "sha256": "ac10d61c0d3c76c2238256f3e78829ac21aad16935b2b7d01bfa94bbdf6913d7"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-reverse-75.png",
+            "sha256": "5e26b13f5c72a84e68aee7eda26e314a959d73f23f4b04fca85ee83d36b34f8a"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-reverse-75.svg",
+            "sha256": "2b00e96b314989b8f0fb808eb79bb2c3d3960be2ef10a41d40e7dea4d67f2dbe"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-reverse-100.png",
+            "sha256": "f495e4f627ba8c06b7951a268a35ebd84310a40b59baddaed826d892c70db852"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-reverse-100.svg",
+            "sha256": "85c8bfc2c83ed71ba17fc8d2693b7980836e5b42d126ec352611c82c5ac200b5"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-reverse-repeat.png",
+            "sha256": "008a1d1c207d20058d0f50092bc1b522e954ec86b95620119c39c32a0b56eb4d"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "probability-reliability",
+          "from": "eval-roc",
+          "towards": "eval-pr",
+          "interruptedAtPercent": 50,
+          "retarget": "eval-calibration",
+          "observation": "ROC→PR 走到 50% 时改选校准图；从已显示轮廓接续，旧曲线收起后概率箱展开，终点保持真实箱数与样本数。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-0.png",
+                "sha256": "9998d876d15dc2a1ee87f93911f6b3ee6e58a99eaed013361630ca80bc96d3f2"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-25.png",
+                "sha256": "174e1d031b0eeda89516da53af377fb87473b87878d692c9814e6eaad797a236"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-50.png",
+                "sha256": "bae7434fa51ea49069b98d1b1c2e35f6aa1fae96dfcf651821fe6fe4f5e8d0a0"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-75.png",
+                "sha256": "8528a4b271dc4d5817b6b174058c9c234841885244b7c8029bf0dd915c3061f3"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-100.png",
+                "sha256": "717cb735d04db8269a262c0af0ea2d485df787f528bbffe3201e597bd60e2d2c"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:probability-reliability:skip",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "19961406fc29c679e519a6ca5d1a7000d9412667ac9dd39964cb2e3d6d46aa62",
+      "from": "eval-roc",
+      "to": "eval-calibration",
+      "recipe": "analysis-calibration",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；1 个模型、120 条概率预测，得分在 [0,1]，同一正类定义；校准采用 6 个等宽概率箱，保留真实箱内样本数。",
+      "observations": "阈值曲线收起，再展开独立的概率分箱。分箱样本数 18、21、21、22、21、17 合计 120；这属于派生统计结构重建，不声称阈值与概率箱一一对应。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/probability-reliability-skip.html",
+        "sha256": "ce3ed04c61532fd40ee07e855d0ce0eb0bec1147f8df49947acb059d376b70b5"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-skip-0.png",
+            "sha256": "586073b13bab3d9268d8d2e5dc2b1d24bb05110ffb6996befb593a0bd2d5e5b9"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-skip-0.svg",
+            "sha256": "1190573ae57e476ccd43e623170c0714af7f00c9ce905f48625440750d7d374a"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-skip-25.png",
+            "sha256": "bb673f8edaaa36819df9130122d99dec5cbfd389eea65503b13c95edcf609386"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-skip-25.svg",
+            "sha256": "48b36938e590893465e80f8e6df65e45addf0e5ebd31ce10ea6b053a6604c739"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-skip-50.png",
+            "sha256": "cd738b7305798090178fed499586b5f346d69b2eb9914561a0fe1989a0b13b82"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-skip-50.svg",
+            "sha256": "09a090aa3414bdd8e1f0ec87a68046050293a13034e16ec91d061d777a844469"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-skip-75.png",
+            "sha256": "29ea7c54f693328c3d25a6ec0d33370c7c7c41e8d278114c420d2a5e6f806ee2"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-skip-75.svg",
+            "sha256": "4b6cb9e8d94f4112db3221689a765843d947d0afc96885f04a2eeb40c198587a"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-skip-100.png",
+            "sha256": "13929f311c394a3d48c60de8ee63209feab26cb312a7655c8abb2ebf5bcdddcd"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/probability-reliability-skip-100.svg",
+            "sha256": "4f9f6b4f5874485a3554fb78f7787adadac57385e08d61331b81d287bbbf1d38"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/probability-reliability-skip-repeat.png",
+            "sha256": "cd738b7305798090178fed499586b5f346d69b2eb9914561a0fe1989a0b13b82"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "probability-reliability",
+          "from": "eval-roc",
+          "towards": "eval-pr",
+          "interruptedAtPercent": 50,
+          "retarget": "eval-calibration",
+          "observation": "ROC→PR 走到 50% 时改选校准图；从已显示轮廓接续，旧曲线收起后概率箱展开，终点保持真实箱数与样本数。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-0.png",
+                "sha256": "9998d876d15dc2a1ee87f93911f6b3ee6e58a99eaed013361630ca80bc96d3f2"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-25.png",
+                "sha256": "174e1d031b0eeda89516da53af377fb87473b87878d692c9814e6eaad797a236"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-50.png",
+                "sha256": "bae7434fa51ea49069b98d1b1c2e35f6aa1fae96dfcf651821fe6fe4f5e8d0a0"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-75.png",
+                "sha256": "8528a4b271dc4d5817b6b174058c9c234841885244b7c8029bf0dd915c3061f3"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/probability-reliability-interrupt-100.png",
+                "sha256": "717cb735d04db8269a262c0af0ea2d485df787f528bbffe3201e597bd60e2d2c"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:correlation-exploration:forward",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "82b102378e3decb67d9546045c28e0f6a804863a822a0bb1889d7e3fc4ee11fd",
+      "from": "corr-heatmap",
+      "to": "corr-bubbles",
+      "recipe": "analysis-correlation",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；5 个变量 × 36 个完整样本，共 180 行；无常量变量，Pearson 色标和排序横轴固定 −1 到 +1。",
+      "observations": "方格逐渐变为圆，变量对、正负颜色和固定色标保持；小相关值 0.0091 的显示为 0.01，未被显示成 0。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/correlation-exploration-forward.html",
+        "sha256": "6d25c8e443edf238c6e81555357187fffbd5595f9d0aab79a3f2210db77c0773"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-forward-0.png",
+            "sha256": "08738dea3b4f7a511178b74b67195475bfb5eb4ee7d16b351e39a9efd8e1bf59"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-forward-0.svg",
+            "sha256": "84cb2a593dea6f9fbb34b0b9f96c89aacc7216289b208aa05ec247069f875fe1"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-forward-25.png",
+            "sha256": "4515439483c4873d3b18699e33e2bd7a5631e55675c1992a3344609723e13807"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-forward-25.svg",
+            "sha256": "8bba716ea4f6229a79b23ed3870736e72c71035d9640beb52c03b39d5f85140a"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-forward-50.png",
+            "sha256": "f20e71e95518047d12ec91bd50b30839efffd368b5cc1f79fe6910415d48cfc6"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-forward-50.svg",
+            "sha256": "cd7bcd7fd87b0ebb0782d9b4a96bbe68f58af096869f58299c2be1e0d4829ea0"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-forward-75.png",
+            "sha256": "be7cef1c9731ed4893a68da456637977d386e2603db050c939b5a927df73f253"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-forward-75.svg",
+            "sha256": "e44f511cab015a008a443a0ad9586e7883331956b6c8699bfea8636cd268aaf5"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-forward-100.png",
+            "sha256": "cdff7761a3d49c2ec3c505502549c904c2b0ef8267de04ea580cd1e7a373b254"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-forward-100.svg",
+            "sha256": "53383f78ee7c29ebe0b8fc966cb59471983d79759686c2d2d62ad13ee0fbe13f"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-forward-repeat.png",
+            "sha256": "f20e71e95518047d12ec91bd50b30839efffd368b5cc1f79fe6910415d48cfc6"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "correlation-exploration",
+          "from": "corr-heatmap",
+          "towards": "corr-triangle",
+          "interruptedAtPercent": 50,
+          "retarget": "corr-pairs",
+          "observation": "热图→下三角走到 50% 时改选变量对排序；中途有图元重叠，终点十个变量对各出现一次，没有把对称镜像算作新变量对。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-0.png",
+                "sha256": "c06a0714e076acc3d6282e790e1a4feed01ddaeda73885f7a94e52bf7fbae80e"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-25.png",
+                "sha256": "d3e547a5549db9f37b37116e870a0424375c2d6c3da4e262e79e5fd477729786"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-50.png",
+                "sha256": "6decdd986b83292a2abfb7a1fbb4bde787ba3ab277dc6c1710375ab18d33f3d9"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-75.png",
+                "sha256": "08aec86a06c21acf24d115f5c20e836146168795686f059bd214b81e37ff32ca"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-100.png",
+                "sha256": "d95456f996aab294f0fa084ce0d13c2210fed1e7ee888cc9bf395885d139938c"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:correlation-exploration:reverse",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "82b102378e3decb67d9546045c28e0f6a804863a822a0bb1889d7e3fc4ee11fd",
+      "from": "corr-bubbles",
+      "to": "corr-heatmap",
+      "recipe": "analysis-correlation",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；5 个变量 × 36 个完整样本，共 180 行；无常量变量，Pearson 色标和排序横轴固定 −1 到 +1。",
+      "observations": "圆恢复矩阵方格，五个变量的轴标签和对称系数恢复；数值顺序与前向起点一致。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/correlation-exploration-reverse.html",
+        "sha256": "4604d5a60c11e740422979eda8bfc6336933b2fc0424d0ea654fe142497bdff5"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-reverse-0.png",
+            "sha256": "fa89c1118752ce06f9ee130e9cee293fb62dcf1e0949b239179523d4853f3400"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-reverse-0.svg",
+            "sha256": "740b812d50ae8ee67a3d0eaa4821138698d0cf88334954c7cc366a533b2d17d0"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-reverse-25.png",
+            "sha256": "7e5378ff0b4f8985ac33c0eb282f18e53b092ccbbaa945e57ec5faf16babc3ff"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-reverse-25.svg",
+            "sha256": "1b66c4cf2313bcfee34b4b5200112e5f86abe424151917a1bdcc641e18dff5a9"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-reverse-50.png",
+            "sha256": "f16761675e77dd09b780972bcdc3de040563977402a0a6eb67f36c8e736b2789"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-reverse-50.svg",
+            "sha256": "d4d917fa5ad3255f0e2f9a0a7795abc6d5af536aac4c7d2d0aeed82ec3d1cd4c"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-reverse-75.png",
+            "sha256": "d0303c1b5c7ef9d9d499b896251b5565bcdfd80170b9347a5200f9e647b7d8ad"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-reverse-75.svg",
+            "sha256": "70cc98eaba1d72ed12c74065c509867a3d8787ed4a2722194154dc18ab985a50"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-reverse-100.png",
+            "sha256": "87425e99bb9e42e5c38d0d8af60acbb18f584396a4b4445969475c74628503bc"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-reverse-100.svg",
+            "sha256": "1c64667edc4d5b5eed9c3c0b0d1ef399733af7b47f98baf3834f7b0dc70d8da5"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-reverse-repeat.png",
+            "sha256": "f16761675e77dd09b780972bcdc3de040563977402a0a6eb67f36c8e736b2789"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "correlation-exploration",
+          "from": "corr-heatmap",
+          "towards": "corr-triangle",
+          "interruptedAtPercent": 50,
+          "retarget": "corr-pairs",
+          "observation": "热图→下三角走到 50% 时改选变量对排序；中途有图元重叠，终点十个变量对各出现一次，没有把对称镜像算作新变量对。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-0.png",
+                "sha256": "c06a0714e076acc3d6282e790e1a4feed01ddaeda73885f7a94e52bf7fbae80e"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-25.png",
+                "sha256": "d3e547a5549db9f37b37116e870a0424375c2d6c3da4e262e79e5fd477729786"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-50.png",
+                "sha256": "6decdd986b83292a2abfb7a1fbb4bde787ba3ab277dc6c1710375ab18d33f3d9"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-75.png",
+                "sha256": "08aec86a06c21acf24d115f5c20e836146168795686f059bd214b81e37ff32ca"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-100.png",
+                "sha256": "d95456f996aab294f0fa084ce0d13c2210fed1e7ee888cc9bf395885d139938c"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "entities-20260910:correlation-exploration:skip",
+      "engineSHA256": "4b64d3bc17925a564a8edc844f8f92a4e5f351adb14a332816fc2b90afd9925e",
+      "fixtureSHA256": "82b102378e3decb67d9546045c28e0f6a804863a822a0bb1889d7e3fc4ee11fd",
+      "from": "corr-heatmap",
+      "to": "corr-pairs",
+      "recipe": "analysis-correlation",
+      "mode": "morph",
+      "status": "reviewed-for-fixture",
+      "verdict": "reviewed-for-fixture",
+      "reviewedAt": "2026-09-10T09:05:52.367160+00:00",
+      "conditions": "合成示例；5 个变量 × 36 个完整样本，共 180 行；无常量变量，Pearson 色标和排序横轴固定 −1 到 +1。",
+      "observations": "25%、50%、75% 从矩阵向条形排序展开时存在临时重叠，过程中不读数；终点十个无序变量对各出现一次，按 |r| 排列，正负方向保持。",
+      "browser": {
+        "surface": "Codex in-app browser / Chromium",
+        "exactVersion": "not exposed by the browser tool",
+        "viewportCSS": [
+          1280,
+          720
+        ],
+        "playerViewportCSS": [
+          1106,
+          648
+        ],
+        "background": "light",
+        "reviewMethod": "Actual exported production player operated through the QA page controls; screenshots inspected. A controlled requestAnimationFrame clock is confined to QA interruption fixtures."
+      },
+      "exportFile": {
+        "file": "output/forma-audit-entities-20260910/works/correlation-exploration-skip.html",
+        "sha256": "5fb72c4da9a182aaf4ffd024caedd3700756d16462920cea1089a6abc25cfe99"
+      },
+      "checkpoints": [
+        {
+          "percent": 0,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-skip-0.png",
+            "sha256": "01d0212f5bfce23d542a317c613920933e4f4c5e25a4ca062f74fc4d6c27777b"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-skip-0.svg",
+            "sha256": "7cb787be0a6bb8f73a92470039ff3165f9477c663e4c9f73e8125b103f351767"
+          }
+        },
+        {
+          "percent": 25,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-skip-25.png",
+            "sha256": "6a2dad831cf96b0196eeef928a5c58fb32944590429ebbb9ba9d3830b0de6e2b"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-skip-25.svg",
+            "sha256": "7392213c814b95b7e1d26428b643d4188c74f133af5e02e10e02726024b86f7e"
+          }
+        },
+        {
+          "percent": 50,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-skip-50.png",
+            "sha256": "7cb888074ff8329094ae7c473ecd1c3e46439b4af3b15a582bb85c087f14a10a"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-skip-50.svg",
+            "sha256": "53cee0c1d5ac981c5b85d5f3c4cb43e31b61508e63f9d861f966d2f871183e89"
+          }
+        },
+        {
+          "percent": 75,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-skip-75.png",
+            "sha256": "dba4410f060fd72e05858921d8167995111194137b8666b6d068e9e681756a39"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-skip-75.svg",
+            "sha256": "dc6dbbd4ef4a043efe0a9ba2cf3efb122f9fde3b41f3eabab2f2e7c296860cd3"
+          }
+        },
+        {
+          "percent": 100,
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-skip-100.png",
+            "sha256": "edec91d52c77ca0f1a3e809fbab4d34c30d93ffbd61e735ee15e162437c4f5b5"
+          },
+          "exportSVG": {
+            "file": "output/forma-audit-entities-20260910/frames/correlation-exploration-skip-100.svg",
+            "sha256": "d628c392a504c12317870eb263b314e759dc9c32054e7d586aa23676dd5a84e8"
+          }
+        }
+      ],
+      "actions": {
+        "repeatSeek": {
+          "sequencePercent": [
+            0,
+            25,
+            50,
+            75,
+            100,
+            100,
+            50
+          ],
+          "screenshot": {
+            "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-skip-repeat.png",
+            "sha256": "7cb888074ff8329094ae7c473ecd1c3e46439b4af3b15a582bb85c087f14a10a"
+          },
+          "observation": "实际操作重复定位；图表可见区域与首次 50% 截图逐像素相同，见 repeat-pixel-checks.json。"
+        },
+        "interrupt": {
+          "scenario": "correlation-exploration",
+          "from": "corr-heatmap",
+          "towards": "corr-triangle",
+          "interruptedAtPercent": 50,
+          "retarget": "corr-pairs",
+          "observation": "热图→下三角走到 50% 时改选变量对排序；中途有图元重叠，终点十个变量对各出现一次，没有把对称镜像算作新变量对。",
+          "checkpoints": [
+            {
+              "percent": 0,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-0.png",
+                "sha256": "c06a0714e076acc3d6282e790e1a4feed01ddaeda73885f7a94e52bf7fbae80e"
+              }
+            },
+            {
+              "percent": 25,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-25.png",
+                "sha256": "d3e547a5549db9f37b37116e870a0424375c2d6c3da4e262e79e5fd477729786"
+              }
+            },
+            {
+              "percent": 50,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-50.png",
+                "sha256": "6decdd986b83292a2abfb7a1fbb4bde787ba3ab277dc6c1710375ab18d33f3d9"
+              }
+            },
+            {
+              "percent": 75,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-75.png",
+                "sha256": "08aec86a06c21acf24d115f5c20e836146168795686f059bd214b81e37ff32ca"
+              }
+            },
+            {
+              "percent": 100,
+              "screenshot": {
+                "file": "output/forma-audit-entities-20260910/browser/correlation-exploration-interrupt-100.png",
+                "sha256": "d95456f996aab294f0fa084ce0d13c2210fed1e7ee888cc9bf395885d139938c"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "FORMA Charts"
+  short_description: "Choose, configure and export charts in FORMA"
+  default_prompt: "Use $forma-charts to choose a suitable chart for my data, configure it in FORMA and deliver the checked export."

@@ -1,0 +1,47 @@
+/* Language controls share the quiet, compact navigation style. */
+.topbar .language-control{grid-column:3;justify-self:end;display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:5px;flex-shrink:0;margin-left:auto}
+.language-control button{min-height:30px;min-width:40px;padding:5px 9px;border-radius:3px;font:500 12px var(--sans);color:var(--muted);transition:background .16s,color .16s,box-shadow .16s}
+.language-control button[aria-pressed=true]{background:var(--paper);color:var(--fg);box-shadow:0 1px 3px #26262612}
+.language-control button:hover{background:#e6e3dc;color:var(--fg)}
+.language-control button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.language-control button:active{transform:translateY(1px)}
+.language-control button:disabled{cursor:wait;opacity:.6}
+html[lang=en] .brand-cn{display:none}
+html[lang=en] .card-title-button h2{font-family:var(--sans);font-size:21px;line-height:1.35;letter-spacing:-.35px}
+html[lang=en] .card-eyebrow>span:nth-child(2){display:none}
+html[lang=en] .card-eyebrow>.mono{border-right:0;padding-right:0}
+html[lang=en] .sidebar-families button,html[lang=en] .sidebar-categories button,html[lang=en] .sidebar-motion button{line-height:1.4;gap:8px}
+html[lang=en] .button{line-height:1.4}
+html[lang=en] .we-context{height:auto;min-height:41px;padding-block:8px;flex-wrap:wrap}
+html[lang=en] .we-context>div{flex-wrap:wrap;row-gap:8px}
+html[lang=en] .we-header{min-height:70px;height:auto;padding-block:9px;gap:12px}
+html[lang=en] .we-identity input{width:190px}
+html[lang=en] .we-actions .button{padding-inline:10px}
+html[lang=en] .we-mode>button{padding-inline:10px}
+html[lang=en] .we-inspector-tabs{gap:16px;padding-inline:16px}
+html[lang=en] .dw-sheet-toolbar{flex-wrap:wrap}
+html[lang=en] .help-introduction p,html[lang=en] .assist-body{line-height:1.75}
+html[lang=en] .help-field-table th,html[lang=en] .help-field-table td{overflow-wrap:anywhere}
+html[lang=en] .mg-group-tabs button{white-space:nowrap}
+html[lang=en] .mg-detail{overflow-wrap:break-word}
+@media(max-width:1100px){html[lang=en] .we-header{flex-wrap:wrap}html[lang=en] .we-identity{min-width:180px}html[lang=en] .we-actions{flex:none}html[lang=en] .we-save-row{flex-wrap:wrap;gap:4px}}
+@media(max-width:760px){.topbar .language-control{margin-left:auto}.language-control button{min-width:42px;min-height:34px}.topbar nav{overflow-x:auto;justify-content:flex-start!important}.topbar nav a{white-space:nowrap}html[lang=en] .we-header{gap:9px}html[lang=en] .we-mode{order:3}html[lang=en] .we-context>div:last-child a{display:none}html[lang=en] .we-inspector-tabs{gap:13px}html[lang=en] .we-actions .button{font-size:11px;padding-inline:8px}html[lang=en] .card-title-button h2{font-size:21px}html[lang=en] .mg-pair-selectors{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.language-control button{transition:none}}
+@media(max-width:640px){
+  html[lang=en] .library-toolbar .palette-picker{display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;width:100%;padding-bottom:3px;scrollbar-width:thin}
+  html[lang=en] .library-toolbar .palette-button{flex:0 0 auto;white-space:nowrap;min-height:32px;padding-inline:7px}
+  html[lang=en] .library-toolbar .appearance-row{row-gap:8px}
+}
+@media(max-width:760px){
+  html[lang=en] .we-context{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px}
+  html[lang=en] .we-context>div:last-child{align-self:start}
+  html[lang=en] .we-context button{min-height:28px}
+  html[lang=en] .we-inspector-tabs{gap:12px;padding-inline:12px}
+}
+
+.topbar-utilities{margin-left:auto;grid-column:3;justify-self:end;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-feedback{display:grid;place-items:center;width:36px;height:36px;border-radius:4px;color:var(--muted)}
+.topbar-feedback:hover{background:var(--paper);color:var(--fg)}
+.topbar-feedback:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.topbar-utilities .language-control{margin:0}
+@media(max-width:760px){.topbar-utilities{gap:5px}.topbar-feedback{width:32px;height:34px}}

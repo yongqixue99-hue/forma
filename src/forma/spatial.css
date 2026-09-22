@@ -1,0 +1,10 @@
+.spatial-toolbar{display:flex;align-items:center;gap:18px;margin:0 28px 8px;color:var(--muted,#79756e);font-size:10px;flex-shrink:0}
+.spatial-toolbar>div{display:flex;gap:2px;padding:3px;border:1px solid var(--line,#d8d4cc);border-radius:3px}
+.spatial-toolbar button{font:inherit;padding:5px 13px;border:0;background:transparent;color:inherit;cursor:pointer;border-radius:2px}
+.spatial-toolbar button[aria-pressed=true]{background:var(--paper,#f8f7f4);color:var(--ink,#262626);box-shadow:0 1px 3px #2626260a}
+.spatial-toolbar button:hover{color:var(--ink,#262626)}
+.spatial-projection{margin-left:auto;font-size:9px;letter-spacing:.6px}
+.axis-fields{display:grid;grid-template-columns:1fr;gap:0}
+#studio-chart:has([data-spatial-renderer]){isolation:isolate}
+#studio-chart>svg:has([data-spatial-renderer]):focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+@media(max-width:760px){.spatial-toolbar{margin:0 17px 10px;gap:12px;font-size:9px}.spatial-toolbar button{padding:7px 11px}.spatial-projection{display:none}}
