@@ -11,9 +11,10 @@ async function transaction(mode,fn){const db=await open();try{return await new P
  });}finally{db.close();}}
 
 export async function saveLocaleSession(value){
- const id=crypto.randomUUID(),at=Date.now(),payload=structuredClone(value),file=payload?.editor?.workspace?.importer?.file;
+ const id=crypto.randomUUID(),at=Date.now(),file=value?.editor?.workspace?.importer?.file,payload=structuredClone(value);
  // WebKit can stall an IndexedDB transaction containing a live File. Store its
  // bytes instead, and rebuild the File only when the importer is resumed.
+ // Read metadata from the original: some runtimes clone a File as a plain Blob.
  if(file instanceof Blob)payload.editor.workspace.importer.file={name:file.name,type:file.type,lastModified:file.lastModified,bytes:await file.arrayBuffer()};
  await transaction('readwrite',store=>{const r=store.openCursor();r.onsuccess=()=>{const c=r.result;if(c){if(at-c.value.at>86400000)c.delete();c.continue();}};store.put({id,at,value:payload});});
  // If this fails, do not reload: the caller still has its entire editing session.

@@ -57,9 +57,10 @@ test('locale checkpoint writes workbook bytes, remains recoverable until acknowl
  globalThis.indexedDB=new IDBFactory();globalThis.sessionStorage={getItem:k=>entries.get(k)||null,setItem:(k,v)=>entries.set(k,v),removeItem:k=>entries.delete(k)};
  try{
   const {saveLocaleSession,takeLocaleSession,clearLocaleSession}=await import('../../src/forma/locale-session.js');
-  const file=new File([new Uint8Array([80,75,0,9])],'original.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const file=new File([new Uint8Array([80,75,0,9])],'original.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',lastModified:1720000000000});
   await saveLocaleSession({editor:{workspace:{importer:{file,text:'original input'}}}});
   const restored=await takeLocaleSession();assert.equal(restored.editor.workspace.importer.file.name,'original.xlsx');assert.ok(restored.editor.workspace.importer.file.bytes instanceof ArrayBuffer);assert.deepEqual([...new Uint8Array(restored.editor.workspace.importer.file.bytes)],[80,75,0,9]);assert.deepEqual(await takeLocaleSession(),restored);
+  assert.equal(restored.editor.workspace.importer.file.type,file.type);assert.equal(restored.editor.workspace.importer.file.lastModified,file.lastModified);assert.equal(file.name,'original.xlsx');assert.deepEqual([...new Uint8Array(await file.arrayBuffer())],[80,75,0,9]);
   await clearLocaleSession();assert.equal(await takeLocaleSession(),null);
  }finally{for(const [k,v]of Object.entries(previous))if(v===undefined)delete globalThis[k];else globalThis[k]=v;}
 });
