@@ -41,3 +41,20 @@ test('live playback never flashes the target before its first animation frame; r
  chart.setView(work.steps[0].view,{animate:false});assert.equal(chart.spatialLayer.pose.surface,1);
  }finally{f.close();}
 });
+test('repeated world poses preserve face nodes without DOM writes and repaint with the current palette',()=>{
+ const f=fixture('spatial-size-morph');try{const {chart,doc,options,work,win}=f;
+ const frame=chart.setDocument(doc,work.steps[1].view,{...options,manual:true});frame(.37);
+ const layer=chart.spatialLayer,pose=layer.pose,before=picture(chart),nodes=new Map(layer.paths),markColor=chart.markColor;
+ const observer=new win.MutationObserver(()=>{});observer.observe(layer.faces,{attributes:true,childList:true,subtree:true});
+ try{
+   layer.draw(pose,chart.layout);assert.equal(observer.takeRecords().length,0);assert.deepEqual(picture(chart),before);
+   // A frame-local optimization must not retain colors from an earlier palette.
+   chart.markColor=()=>'#123456';layer.draw(pose,chart.layout);const mutations=observer.takeRecords();
+   assert.ok(mutations.some(m=>m.attributeName==='fill'));assert.ok(mutations.every(m=>m.type==='attributes'));
+   assert.notDeepEqual(picture(chart).map(p=>p[2]),before.map(p=>p[2]));
+   assert.deepEqual(picture(chart).map(p=>p.slice(0,2)),before.map(p=>p.slice(0,2)));
+   chart.markColor=markColor;layer.draw(pose,chart.layout);assert.deepEqual(picture(chart),before);
+   for(const [key,node]of nodes)assert.equal(layer.paths.get(key),node);
+ }finally{chart.markColor=markColor;observer.disconnect();}
+ }finally{f.close();}
+});

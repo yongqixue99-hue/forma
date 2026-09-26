@@ -84,7 +84,7 @@ export function openDataImporter(original,{onApply,isCurrent=()=>true,snapshot,a
   });
   dialog.addEventListener('click',async e=>{const button=e.target.closest('[data-di]');if(!button)return;const action=button.dataset.di;try{
     problem='';if(action==='file')$('#di-file').click();
-    else if(action==='paste'){requestSerial++;busy=false;session?.close();session=null;source=null;fileName='';candidate=null;text='';render();}
+    else if(action==='paste'){requestSerial++;busy=false;session?.close();session=null;selectedFile=null;source=null;fileName='';candidate=null;text='';render();}
     else if(action==='read-paste'){reset(textSource(parseTable(text)));render();}
     else if(action==='range')await selectRange();
     else if(action==='source'||action==='back'){stage=action==='back'&&stage==='preview'?'mapping':'source';cellErrors=[];page=0;render();}
@@ -100,7 +100,12 @@ export function openDataImporter(original,{onApply,isCurrent=()=>true,snapshot,a
     if(!saved)return;
     ({stage,source,baseline,header,mapping,idColumn,page,text,fileName,sheet,range,candidate,cellErrors,target,transformation,measures,formulaAck}=structuredClone(saved));
     Object.assign(metadata,saved.metadata);selectedFile=saved.file?.bytes?new File([saved.file.bytes],saved.file.name,{type:saved.file.type,lastModified:saved.file.lastModified}):saved.file;problem='';render();restoreForm(dialog,saved.form);
-    if(selectedFile&&/\.xlsx$/i.test(selectedFile.name)){busy=true;render();try{session=await readWorkbook(selectedFile);}catch(e){message(e.message);}finally{busy=false;if(!closed){render();restoreForm(dialog,saved.form);}}}
+    if(selectedFile&&/\.xlsx$/i.test(selectedFile.name)){
+      const serial=++requestSerial;busy=true;render();
+      try{const next=await readWorkbook(selectedFile);if(closed||serial!==requestSerial){next.close();return;}session=next;}
+      catch(e){if(!closed&&serial===requestSerial)message(e.message);}
+      finally{if(!closed&&serial===requestSerial){busy=false;render();restoreForm(dialog,saved.form);}}
+    }
   }
   render();dialog.show();const ready=restore(resume);
   return {dialog,close,loadFile,ready,captureSession(){if(closed)return null;if(busy)throw Error(uiText('表格正在读取，请完成后再切换语言。'));return structuredClone({current,stage,source,baseline,header,mapping,idColumn,page,text,fileName,sheet,range,candidate,cellErrors,target,transformation,measures,formulaAck,metadata,file:selectedFile,form:captureForm(dialog)});}};

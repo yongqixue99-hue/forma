@@ -22,6 +22,7 @@ const openExportPanel=async(...args)=>(await import('./export-panel.js')).openEx
 import { spatialViews } from './spatial-charts.js';
 import { filterCatalog, facetCounts } from './library-filter.js';
 import {libraryCatalog, motionFilters, motionCoverage} from './library-capabilities.js';
+import {renderPreviewFrame} from './library-preview-frame.js';
 import { mountLibraryTools } from './library-tools.js';
 import { captureSurface, animateSurface } from './transitions.js';
 import {newWork,cleanWork,stepReport,morphReady} from './work-model.js';
@@ -230,7 +231,7 @@ function addPreview(host,doc,options){
   const entry={scene:null,visible:false};
   entry.observer=new IntersectionObserver(es=>{
     entry.visible=es[0].isIntersecting;
-    if(entry.visible&&!entry.scene){entry.scene=new ChartScene(host,doc,{...options,compact:host.clientWidth<550,progress:1});entry.scene.render(state.playing?Math.min(1,((performance.now()-galleryStart)/1000%11)/8):1);}
+    if(entry.visible&&!entry.scene){entry.scene=new ChartScene(host,doc,{...options,compact:host.clientWidth<550,progress:1});renderPreviewFrame(entry.scene,state.playing?Math.min(1,((performance.now()-galleryStart)/1000%11)/8):1);}
     else if(!entry.visible&&entry.scene){entry.scene.destroy();entry.scene=null;}
   },{rootMargin:'180px'});entry.observer.observe(host);previews.push(entry);
 }
@@ -409,7 +410,7 @@ document.addEventListener('click',async event=>{
   else if(a==='favorite'){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);writeStore('forma.favorites',[...state.favorites]);action.classList.toggle('hearted',state.favorites.has(id));action.setAttribute('aria-pressed',state.favorites.has(id));action.setAttribute('aria-label',`${state.favorites.has(id)?uiText('取消收藏'):uiText('收藏')}${findTemplate(id).name}`);if(state.onlyFavorites&&state.view==='library')renderGrid();else if(state.view==='library')updateLibraryFilters();}
   else if(a==='favorites'){state.onlyFavorites=!state.onlyFavorites;action.classList.toggle('active',state.onlyFavorites);action.setAttribute('aria-pressed',state.onlyFavorites);renderGrid();}
   else if(a==='reset-filters'){state.goal='all';state.category='all';state.family='all';state.edition='all';state.motion='all';state.query='';state.onlyFavorites=false;renderView();}
-  else if(a==='gallery-play'){if(state.playing){frozenTime=8;state.playing=false;previews.forEach(p=>p.scene?.render(1));}else{galleryStart=performance.now();frozenTime=0;state.playing=true;previews.forEach(p=>p.scene?.render(0));}action.innerHTML=`${icon(state.playing?'Pause':'Play',13)}<span>${state.playing?uiText('静态看图'):uiText('播放动效')}</span>`;}
+  else if(a==='gallery-play'){if(state.playing){frozenTime=8;state.playing=false;previews.forEach(p=>renderPreviewFrame(p.scene,1));}else{galleryStart=performance.now();frozenTime=0;state.playing=true;previews.forEach(p=>renderPreviewFrame(p.scene,0));}action.innerHTML=`${icon(state.playing?'Pause':'Play',13)}<span>${state.playing?uiText('静态看图'):uiText('播放动效')}</span>`;}
   else if(a==='studio-tab'){modal.tab=id;renderSidebar();}
   else if(a==='studio-settings'){modal.tab='style';renderSidebar();if(matchMedia('(max-width:760px)').matches)$('.studio-sidebar').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
   else if(a==='copy-agent'){await navigator.clipboard.writeText(agentBrief(modal.doc,modal.options));toast(uiText('已复制 Agent 制作说明书。'));}
@@ -480,11 +481,11 @@ let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);
 function tick(now){
   if(!document.hidden){
     if(modal&&modal.playing){modal.p=Math.min(1,modal.p+Math.min(100,now-modal.last)/1000/modal.options.duration);if(modal.p>=1)modal.playing=false;modalScene?.render(modal.p);updatePlayback();}
-    else if(!modal&&state.playing){const elapsed=(now-galleryStart)/1000;const progress=Math.min(1,(elapsed%11)/8);for(const p of previews)if(p.visible)p.scene?.render(progress);}
+    else if(!modal&&state.playing){const elapsed=(now-galleryStart)/1000;const progress=Math.min(1,(elapsed%11)/8);for(const p of previews)if(p.visible)renderPreviewFrame(p.scene,progress);}
   }
   if(modal)modal.last=now;lastTime=now;requestAnimationFrame(tick);
 }
-matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches){state.playing=false;previews.forEach(p=>p.scene?.render(1));if(modal){modal.playing=false;modal.p=1;modalScene?.render(1);updatePlayback();}if($('#gallery-play'))$('#gallery-play').innerHTML=uiMarkup`${icon('Play',13)}<span>播放动效</span>`;}});
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches){state.playing=false;previews.forEach(p=>renderPreviewFrame(p.scene,1));if(modal){modal.playing=false;modal.p=1;modalScene?.render(1);updatePlayback();}if($('#gallery-play'))$('#gallery-play').innerHTML=uiMarkup`${icon('Play',13)}<span>播放动效</span>`;}});
 window.Forma=Forma;
 setPaletteCSS();
 $('#main').innerHTML=uiText('<p class="route-loading" role="status">正在读取本地作品…</p>');

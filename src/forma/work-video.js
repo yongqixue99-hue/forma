@@ -53,8 +53,10 @@ export async function encodeWorkMP4(value,settings={}, {signal,onProgress=()=>{}
   // Snapshot before the first await; editing the work during export is safe.
   const plan=workVideoPlan(value,settings);abort(signal);
   const {Output,Mp4OutputFormat,BufferTarget,CanvasSource,Quality,canEncodeVideo}=await import('mediabunny');
-  if(!globalThis.VideoEncoder||!await canEncodeVideo('avc',{width:plan.width,height:plan.height}))throw new Error(uiText('当前浏览器不支持此尺寸的 MP4 编码。可降低尺寸重试，或在新版 Chrome / Edge 中打开网站；互动网页 HTML 也会保留完整动画。'));
   abort(signal);
+  const supported=!!globalThis.VideoEncoder&&await canEncodeVideo('avc',{width:plan.width,height:plan.height});
+  abort(signal);
+  if(!supported)throw new Error(uiText('当前浏览器不支持此尺寸的 MP4 编码。可降低尺寸重试，或在新版 Chrome / Edge 中打开网站；互动网页 HTML 也会保留完整动画。'));
   const canvas=document.createElement('canvas');canvas.width=plan.width;canvas.height=plan.height;
   const renderer=createWorkExportRenderer(plan.timeline.work,plan),output=new Output({format:new Mp4OutputFormat({fastStart:'in-memory'}),target:new BufferTarget()});
   const source=new CanvasSource(canvas,{codec:'avc',quality:new Quality({bitrate:Math.round(Math.min(16000000,Math.max(3500000,plan.width*plan.height*plan.fps*.14)))}),keyFrameInterval:2});

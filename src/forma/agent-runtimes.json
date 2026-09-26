@@ -8,10 +8,10 @@
       "bytes": 1394407
     },
     "work": {
-      "path": "/forma/agent-runtimes/work-34606e12a76a968bdca25842243e4ae67481b1c21d2f35f7cc457fdea668b95c.js",
-      "sha256": "34606e12a76a968bdca25842243e4ae67481b1c21d2f35f7cc457fdea668b95c",
-      "integrity": "sha384-uLsOmUiw0ljp1762rIC2Rv79mW60t31xiLDBhUbXMjfKYLKPj6kSH2bq72BUm4TU",
-      "bytes": 1776873
+      "path": "/forma/agent-runtimes/work-427b52c39aedff44d6ffbb4fbc268b5942aa797a3036598e0de879a7b2252501.js",
+      "sha256": "427b52c39aedff44d6ffbb4fbc268b5942aa797a3036598e0de879a7b2252501",
+      "integrity": "sha384-9JPSBA08xitFaOI3UPWxsEdcI0UrgogZ+7OP82pSK9szavy/hNJXWFBSQPJcS8hR",
+      "bytes": 1776962
     },
     "sequence": {
       "path": "/forma/agent-runtimes/sequence-75358f78e1fd639b90cce8d6c909d3cbe2351a5d14ee547f528d3681d6c61e7d.js",

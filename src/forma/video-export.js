@@ -26,9 +26,17 @@ export async function videoSupport(settings) {
 
 export async function encodeMP4(doc, options = {}, { signal, onProgress = () => {} } = {}) {
   const plan=videoPlan(options);abort(signal);
+  // Match whole-work export: later edits must not change the frames being encoded.
+  doc=structuredClone(doc);
+  // Export controls and the interactive 3D callback are not rendering data.
+  const renderOptions={...options};
+  for(const key of ['signal','onProgress','onCameraChange'])delete renderOptions[key];
+  options=structuredClone(renderOptions);
   const {Output,Mp4OutputFormat,BufferTarget,CanvasSource,Quality,canEncodeVideo}=await loadEncoder();
-  if(!globalThis.VideoEncoder || !await canEncodeVideo('avc',{width:plan.width,height:plan.height})) throw new Error(uiText('当前浏览器不支持此尺寸的 MP4 编码。请在新版 Chrome / Edge 中打开网站，或导出 HTML 动效。'));
   abort(signal);
+  const supported=!!globalThis.VideoEncoder&&await canEncodeVideo('avc',{width:plan.width,height:plan.height});
+  abort(signal);
+  if(!supported)throw new Error(uiText('当前浏览器不支持此尺寸的 MP4 编码。请在新版 Chrome / Edge 中打开网站，或导出 HTML 动效。'));
   const canvas=document.createElement('canvas');canvas.width=plan.width;canvas.height=plan.height;
   const renderer=createExportScene(doc,{...options,transparent:false});
   const output=new Output({format:new Mp4OutputFormat({fastStart:'in-memory'}),target:new BufferTarget()});
