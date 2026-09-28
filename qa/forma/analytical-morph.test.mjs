@@ -19,8 +19,8 @@ const mapped=id=>scientificDocument({doc:getExample(id)});
 const finite=layout=>{const keys=new Set();for(const m of layout.marks){assert.equal(m.points.length,128);assert.ok(m.points.every(p=>p.every(Number.isFinite)),`${layout.view}/${m.key}`);assert.ok(!keys.has(m.key),m.key);keys.add(m.key);}};
 function familyWork(family){const doc=getExample({univariate:'histogram',evaluation:'calibration',correlation:'correlation'}[family]);return newWork(analyticalViews.filter(v=>analyticalFamily(v.id)===family).map(v=>({doc,view:v.id,dataGroup:'test:analysis'})));}
 
-test('three batches expose twelve views and six native adapters with full editable source documents',()=>{
-  assert.equal(analyticalViews.length,12);assert.equal(Object.keys(analyticalViewMap).length,6);assert.equal(analyticalPresets.length,6);
+test('three batches expose fourteen views and eight native adapters with full editable source documents',()=>{
+  assert.equal(analyticalViews.length,14);assert.equal(Object.keys(analyticalViewMap).length,8);assert.equal(analyticalPresets.length,7);
   for(const v of analyticalViews){assert.equal(viewName(v.id),v.name);assert.match(viewIcon(v.id),/<path|<circle/);}
   for(const template of Object.keys(analyticalViewMap)){
     const doc=getExample(template),step=makeStep({doc}),d=scientificDocument(step);assert.equal(morphReady(step),true,template);assert.deepEqual(payload(step.doc),payload(doc));assert.equal(d.data.length,doc.data.length);assert.equal(new Set(d.data.map(r=>r.label)).size,d.data.length);
@@ -75,13 +75,17 @@ test('correlation signs, fixed scale, unique pairs, circle areas and constant va
   const real=layoutScientific(mapped('correlation'),'corr-bubbles');const sizes=real.marks.filter(m=>m.role==='pair'&&m.tone);const area=m=>(Math.max(...m.points.map(p=>p[0]))-Math.min(...m.points.map(p=>p[0])))**2;for(const m of sizes)near(area(m)/area(sizes[0]),Math.abs(m.tone/sizes[0].tone));
 });
 
-test('all 36 ordered within-family directions retain nodes and deterministic backward seeking',()=>{
-  const win=new Window();let n=0;
+test('all 54 ordered within-family directions retain nodes and deterministic backward seeking',async()=>{
+  let n=0;
   for(const family of ['univariate','evaluation','correlation']){const w=familyWork(family);for(const a of w.steps)for(const b of w.steps){if(a===b)continue;n++;const plan=transitionPlan(a,b,{steps:w.steps});assert.equal(plan.mode,'morph',`${a.view}->${b.view}`);
-    const chart=new ScientificMorphChart(win.document.createElement('div'),scientificDocument(a),{view:a.view,width:740,height:420,domain:stepDomain(a,w.steps)}),nodes=new Map([...chart.nodes].map(([k,n])=>[k,n.shape]));
+    // Each direction is independent. Close its simulated page before the next
+    // one so Happy DOM finishes releasing detached SVG trees and async tasks.
+    const win=new Window();let chart;
+    try{chart=new ScientificMorphChart(win.document.createElement('div'),scientificDocument(a),{view:a.view,width:740,height:420,domain:stepDomain(a,w.steps)});const nodes=new Map([...chart.nodes].map(([k,n])=>[k,n.shape]));
     const seek=chart.setDocument(scientificDocument(b),b.view,{manual:true,effect:plan.effect,recipe:plan.recipe,domain:stepDomain(b,w.steps)});seek(.38);const middle=structuredClone([...chart.current]);seek(1);seek(.38);assert.deepEqual([...chart.current],middle);seek(0);seek(1);
-    chart.layout.marks.forEach(m=>assert.deepEqual(chart.current.get(m.key),m.points));for(const [k,node]of nodes)assert.equal(chart.nodes.get(k).shape,node);chart.destroy();
-  }}assert.equal(n,36);win.happyDOM.close();
+    chart.layout.marks.forEach(m=>assert.deepEqual(chart.current.get(m.key),m.points));for(const [k,node]of nodes)assert.equal(chart.nodes.get(k).shape,node);
+    }finally{chart?.destroy();await win.happyDOM.close();}
+  }}assert.equal(n,54);
 });
 
 test('independent cohorts, changed truth, variable sets and incompatible schemas fall back to native entrance',()=>{
@@ -92,19 +96,19 @@ test('independent cohorts, changed truth, variable sets and incompatible schemas
   const different=familyWork('evaluation');different.steps[1].doc.data.forEach(r=>r.score+=.00001);const plan=transitionPlan(different.steps[0],different.steps[1]);assert.equal(plan.effect,'entrance');assert.match(plan.reason,/对应阈值/);
 });
 
-test('six presets use the same deterministic frame engine for native entry, SVG and a full Agent manual',t=>{
-  const win=new Window(),previous=new Map();for(const [k,value]of Object.entries({document:win.document,XMLSerializer:win.XMLSerializer})){previous.set(k,Object.getOwnPropertyDescriptor(globalThis,k));Object.defineProperty(globalThis,k,{value,configurable:true,writable:true});}t.after(()=>{for(const [k,d]of previous){if(d)Object.defineProperty(globalThis,k,d);else delete globalThis[k];}win.happyDOM.close();});
+test('seven presets use the same deterministic frame engine for native entry, SVG and a full Agent manual',t=>{
+  const win=new Window(),previous=new Map();for(const [k,value]of Object.entries({document:win.document,XMLSerializer:win.XMLSerializer})){previous.set(k,Object.getOwnPropertyDescriptor(globalThis,k));Object.defineProperty(globalThis,k,{value,configurable:true,writable:true});}t.after(async()=>{for(const [k,d]of previous){if(d)Object.defineProperty(globalThis,k,d);else delete globalThis[k];}await win.happyDOM.close();});
   for(const p of analyticalPresets){const w=presetWork(p.id),s=w.steps[0],host=win.document.createElement('div'),renderer=new WorkFrameRenderer(host,w.steps,{width:700,height:410});
     renderer.render({step:s,index:0,phase:'entrance',progress:0});const start=host.innerHTML;renderer.render({step:s,index:0,phase:'entrance',progress:1});assert.notEqual(host.innerHTML,start);
     const svg=stepSVG(s,w.steps);assert.match(svg,/data-science-role/);assert.ok(!/NaN|Infinity/.test(svg.replace(/<style[\s\S]*?<\/style>/g,'')));const manual=workAgentBrief(w);assert.match(manual,s.view.startsWith('uni-')?/ECDF/:s.view.startsWith('eval-')?/普通得分/:/Pearson/);assert.match(manual,/可直接打开的交互 HTML/);renderer.destroy();
   }
 });
 
-test('SVG compression removes only redundant line vertices and keeps matrix values above colored cells',()=>{
+test('SVG compression removes only redundant line vertices and keeps matrix values above colored cells',async()=>{
   const area=points=>Math.abs(points.reduce((s,p,i)=>{const q=points[(i+1)%points.length];return s+p[0]*q[1]-p[1]*q[0];},0)/2);
   for(const points of [rectPoints(20,30,90,50),segment([20,30],[80,140],1.4),circlePoints(40,50,20)]){const compressed=compactContour(points);near(area(points),area(compressed));for(const axis of [0,1]){near(Math.min(...points.map(p=>p[axis])),Math.min(...compressed.map(p=>p[axis])));near(Math.max(...points.map(p=>p[axis])),Math.max(...compressed.map(p=>p[axis])));}}
   assert.ok(compactContour(rectPoints(0,0,100,100)).length<=8);assert.equal(compactContour(Array.from({length:128},()=>[0,0])).length,1);
-  const win=new Window(),chart=new ScientificMorphChart(win.document.createElement('div'),mapped('correlation'),{view:'corr-heatmap',width:800,height:430});assert.ok(chart.labelLayer.querySelectorAll('text').length>=9);assert.match(chart.labelLayer.textContent,/1.00/);chart.render(0);assert.equal(chart.labelLayer.getAttribute('opacity'),'0');chart.render(1);assert.equal(chart.labelLayer.getAttribute('opacity'),'1');chart.destroy();win.happyDOM.close();
+  const win=new Window();let chart;try{chart=new ScientificMorphChart(win.document.createElement('div'),mapped('correlation'),{view:'corr-heatmap',width:800,height:430});assert.ok(chart.labelLayer.querySelectorAll('text').length>=9);assert.match(chart.labelLayer.textContent,/1.00/);chart.render(0);assert.equal(chart.labelLayer.getAttribute('opacity'),'0');chart.render(1);assert.equal(chart.labelLayer.getAttribute('opacity'),'1');}finally{chart?.destroy();await win.happyDOM.close();}
 });
 
 test('maximum source sizes keep every row and valid finite geometry without truncation',()=>{

@@ -1,6 +1,7 @@
 import {getExample} from './catalog.js';
 
 export const analyticalPresets=[
+  {id:'screening-effectiveness',name:'模型筛选效果',category:'regular',description:'ROC 与 PR 的同一批阈值点连续移动到累计增益，再展开提升倍数，比较有限筛选名额下的正类覆盖。',dataNote:'每行填写样本编号、模型、真实 0/1 标签和预测得分；不同模型评估同一批样本。同分整体进入，零筛选时提升未定义，原始记录完整保留。',relation:'同一测试集 · 判别与筛选收益',views:['eval-roc','eval-pr','eval-gains','eval-lift']},
   {id:'duration-distribution',name:'时长与累计占比',category:'regular',description:'同一批时长从等宽直方图展开为频数折线，再比较累计柱和精确的经验分布。',dataNote:'每行填写唯一编号与一次真实时长，不提前汇总频数。分箱边界共用，累计曲线保留每个实际观测值和并列值。',relation:'同一批观测 · 分箱与累计',views:['uni-histogram','uni-frequency','uni-cumulative','uni-ecdf']},
   {id:'assay-distribution',name:'实验测量分布',category:'research',description:'从测量值的累计比例回看频数分布，识别集中区间和长尾，再检查箱上界的累计占比。',dataNote:'填写每份样本的原始测量与单位。ECDF 不使用平滑和分箱；切换直方图时保留全部样本与共同范围。',relation:'同一批实验样本 · 精确与分箱分布',views:['uni-ecdf','uni-histogram','uni-frequency','uni-cumulative']},
   {id:'classifier-comparison',name:'模型判别与阈值',category:'research',description:'比较同一测试集的 ROC 和 PR，再展开得分阈值，查看检出率与误报率的取舍。',dataNote:'每行填写模型、样本编号、真实标签和得分。不同模型必须评估同一批样本；得分越大越可能属于正类，同分一起处理。',relation:'同一测试集 · 同阈值点对应',views:['eval-roc','eval-pr','eval-threshold']},
@@ -12,6 +13,7 @@ export const analyticalPresets=[
 export function analyticalRecords(id,palette='ink'){
   const preset=analyticalPresets.find(p=>p.id===id);if(!preset)return null;
   let doc;
+  if(id==='screening-effectiveness')doc={...getExample('cumulativegains'),title:'有限名额的筛选效果',subtitle:'同一测试集 · 阈值点保持对应 · 同分整体进入'};
   if(id==='duration-distribution')doc={...getExample('histogram'),title:'用户阅读时长',subtitle:'原始时长 · 频数与累计占比',unit:'分钟'};
   if(id==='assay-distribution')doc={...getExample('histogram'),title:'样本测量值分布',subtitle:'120 份原始测量 · 等宽分箱与精确 ECDF',unit:'mg/L',binCount:10,data:Array.from({length:120},(_,i)=>({label:`S${i+1}`,value:Math.round((18+Math.sin(i*2.399)*4+Math.cos(i*.43)*2+(i%17===0?9:0))*10)/10}))};
   if(id==='classifier-comparison')doc={...getExample('roc'),title:'两个模型的分类表现',subtitle:'同一测试集 · 正类标签保持一致'};

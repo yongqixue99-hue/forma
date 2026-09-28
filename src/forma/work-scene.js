@@ -32,8 +32,8 @@ export function workColorMap(step,steps){
   const colors=new Map();
   for(const s of relatedSteps(step,steps)){
     const doc=stepMorphDocument(s),rows=doc?.data||[];
-    const keys=['samples','spatial'].includes(doc?.family)
-      ? [...new Set(rows.map(r=>r.group))].map(group=>populationId(doc.family==='samples'?'sample-group':'exploratory-group',rows.filter(r=>r.group===group)))
+    const keys=['samples','spatial','distribution','frequency-response'].includes(doc?.family)
+      ? [...new Set(rows.map(r=>r.group))].map(group=>populationId(doc.family==='spatial'?'exploratory-group':'sample-group',rows.filter(r=>r.group===group)))
       : doc?.family==='evaluation'?rows.map(r=>entityKey(r,'model')):rows.map(r=>r.parent?entityKey(r,'parent'):r.series?entityKey(r,'series'):r.group||recordId(r));
     for(const key of keys)if(!colors.has(key))colors.set(key,colors.size);
   }

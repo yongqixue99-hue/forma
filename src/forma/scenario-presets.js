@@ -1,3 +1,5 @@
+import {distributionPresets,distributionRecords} from './distribution-presets.js';
+import {frequencyPresets,frequencyRecords} from './frequency-presets.js';
 import {realPresetDetails,realScenarioRecords} from './real-scenario-data.js';
 import {narrativePresets,narrativeRecords} from './narrative-presets.js';
 import {processPresets,processRecords} from './process-presets.js';
@@ -12,6 +14,9 @@ import {exploratoryPresets,exploratoryRecords} from './exploratory-presets.js';
 import {refinementPresets,refinementRecords} from './refinement-presets.js';
 
 export const scenarioPresets=[
+  ...analyticalPresets.filter(p=>p.id==='screening-effectiveness'),
+  ...distributionPresets,
+  ...frequencyPresets,
   ...publicCases,
   ...narrativePresets,
   ...processPresets,
@@ -19,7 +24,7 @@ export const scenarioPresets=[
   ...refinementPresets,
   ...exploratoryPresets,
   ...diagnosticPresets,
-  ...analyticalPresets,
+  ...analyticalPresets.filter(p=>p.id!=='screening-effectiveness'),
   ...scientificPresets,
   {id:'paired-evaluation',name:'前后测评',description:'同一批对象的前后两次记录，从端点与连线，到成对柱，再查看每个对象的变化量。',dataNote:'三列：对象、前值、后值。名称唯一，前后使用同一单位，保留完整配对。五种图型之间可以任意切换，无需按预设顺序播放。',relation:'同一批对象 · 前后配对',views:['paired-slope','paired-dumbbell','paired-bars','paired-points','paired-change']},
   {id:'paired-study',name:'配对样本观察',description:'保留每个样本的两次测量，再把前值对齐为零，观察每一对的真实变化。',dataNote:'三列：唯一样本、第一次观测、第二次观测。支持最多 50 对，不能把未配对的两组数据按行凑在一起；本图不生成显著性检验。',relation:'20 对合成样本 · 个体变化',views:['paired-points','paired-change']},
@@ -51,6 +56,8 @@ export function morphBaseDocument(doc){
 export function scenarioRecords(id,palette){
   const publicRecords=publicCaseRecords(id,palette);if(publicRecords)return publicRecords;
   palette??='ink';
+  const distribution=distributionRecords(id,palette);if(distribution)return distribution;
+  const frequency=frequencyRecords(id,palette);if(frequency)return frequency;
   const real=realScenarioRecords(id,scenarioPresets.find(p=>p.id===id)?.views,palette);if(real)return real;
   const narrative=narrativeRecords(id,palette);if(narrative)return narrative;
   const process=processRecords(id,palette);if(process)return process;

@@ -1,3 +1,5 @@
+import {distributionViews,distributionFamily,isDistributionView,distributionViewMap,distributionDocument,distributionEligibility,distributionCompatibility,distributionBounds,distributionRecipe,distributionGuide} from './distribution-rules.js';
+import {frequencyViews,frequencyFamily,isFrequencyView,frequencyViewMap,frequencyDocument,frequencyEligibility,frequencyCompatibility,frequencyBounds,frequencyRecipe,frequencyGuide} from './frequency-rules.js';
 import {serialViews,isSerialView,serialViewMap,serialDocument,serialEligibility,serialCompatibility,serialBounds,serialRecipe,serialGuide} from './serial-rules.js';
 import {withRecordIds} from './data-identity.js';
 import {multivariateViews,multivariateFamily,isMultivariateView,multivariateViewMap,multivariateDocument,multivariateEligibility,multivariateCompatibility,multivariateBounds,multivariateRecipe,multivariateGuide} from './multivariate-rules.js';
@@ -32,17 +34,19 @@ export const estimateViews=[
   {id:'estimate-horizontal',name:uiText('横向区间图'),en:'Horizontal intervals',note:uiText('从估计点向输入上下界展开区间；不根据样本量重新计算置信区间。较长的对象名称适合横向排列。')},
   {id:'estimate-vertical',name:uiText('纵向误差区间图'),en:'Vertical intervals',note:uiText('把同一组点估计和输入区间转向纵轴。区间水平、单位与线性或对数尺度均保持不变。')}
 ];
-export const scientificViews=[...serialViews,...observationViews,...sampleViews,...estimateViews,...analyticalViews,...diagnosticViews,...exploratoryViews,...processViews,...multivariateViews];
+export const scientificViews=[...distributionViews,...frequencyViews,...serialViews,...observationViews,...sampleViews,...estimateViews,...analyticalViews,...diagnosticViews,...exploratoryViews,...processViews,...multivariateViews];
 const families=new Map([...observationViews.map(v=>[v.id,'observations']),...sampleViews.map(v=>[v.id,'samples']),...estimateViews.map(v=>[v.id,'estimates'])]);
-export const scientificFamily=view=>(isSerialView(view)?'serial':null)||families.get(view)||analyticalFamily(view)||diagnosticFamily(view)||exploratoryFamily(view)||processFamily(view)||multivariateFamily(view);
-export const isScientificView=view=>isSerialView(view)||families.has(view)||isAnalyticalView(view)||isDiagnosticView(view)||isExploratoryView(view)||isProcessView(view)||isMultivariateView(view);
-export const scientificViewMap={...serialViewMap,...processViewMap,...multivariateViewMap,...exploratoryViewMap,...diagnosticViewMap,...analyticalViewMap,xy:'obs-scatter',scatter:'obs-bubble',regression:'obs-confidence',ridges:'sample-ridge',swarm:'sample-swarm',boxplot:'sample-box',violin:'sample-violin',raincloud:'sample-raincloud',errorbar:'sample-sd',interval:'estimate-horizontal',forest:'estimate-horizontal'};
+export const scientificFamily=view=>(isSerialView(view)?'serial':null)||frequencyFamily(view)||distributionFamily(view)||families.get(view)||analyticalFamily(view)||diagnosticFamily(view)||exploratoryFamily(view)||processFamily(view)||multivariateFamily(view);
+export const isScientificView=view=>isSerialView(view)||isFrequencyView(view)||isDistributionView(view)||families.has(view)||isAnalyticalView(view)||isDiagnosticView(view)||isExploratoryView(view)||isProcessView(view)||isMultivariateView(view);
+export const scientificViewMap={...distributionViewMap,...frequencyViewMap,...serialViewMap,...processViewMap,...multivariateViewMap,...exploratoryViewMap,...diagnosticViewMap,...analyticalViewMap,xy:'obs-scatter',scatter:'obs-bubble',regression:'obs-confidence',ridges:'sample-ridge',swarm:'sample-swarm',boxplot:'sample-box',violin:'sample-violin',raincloud:'sample-raincloud',errorbar:'sample-sd',interval:'estimate-horizontal',forest:'estimate-horizontal'};
 const key=(...parts)=>JSON.stringify(parts),finite=x=>typeof x==='number'&&Number.isFinite(x)&&Math.abs(x)<=1e15,text=x=>typeof x==='string'&&!!x.trim();
 
 export function scientificDocument(step){
   const doc=step?.doc,family=scientificFamily(scientificViewMap[doc?.template]);
   if(!family||!validateDocument(doc,{layout:false}).valid)return null;
   const common={template:doc.template,title:doc.title,subtitle:doc.subtitle||'',unit:doc.unit,source:structuredClone(doc.source),family};
+  if(isFrequencyView(scientificViewMap[doc.template]))return frequencyDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
+  if(isDistributionView(scientificViewMap[doc.template]))return distributionDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isSerialView(scientificViewMap[doc.template]))return serialDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isProcessView(scientificViewMap[doc.template]))return processDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isMultivariateView(scientificViewMap[doc.template]))return multivariateDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
@@ -69,6 +73,8 @@ export function scientificEligibility(doc,view){
   if(!family||doc?.family!==family)return bad(uiText('此图型需要对应的原始样本或区间数据。'));
   if(!text(doc.title)||!text(doc.unit)||!text(doc.source?.name)||!Array.isArray(doc.data)||!doc.data.length)return bad(uiText('请填写标题、单位、来源与原始记录。'));
   const rows=doc.data;
+  if(isFrequencyView(view))return frequencyEligibility(doc,view);
+  if(isDistributionView(view))return distributionEligibility(doc,view);
   if(isSerialView(view))return serialEligibility(doc,view);
   if(isProcessView(view))return processEligibility(doc,view);
   if(isMultivariateView(view))return multivariateEligibility(doc,view);
@@ -97,6 +103,8 @@ export function scientificEligibility(doc,view){
 
 export function scientificCompatibility(a,b){
   if(a?.family!==b?.family)return uiText('图型数据结构不同');
+  if(a.family==='frequency-response')return frequencyCompatibility(a,b);
+  if(a.family==='distribution')return distributionCompatibility(a,b);
   if(a.family==='serial')return serialCompatibility(a,b);
   if(a.family==='process')return processCompatibility(a,b);
   if(a.family==='multivariate')return multivariateCompatibility(a,b);
@@ -109,6 +117,8 @@ export function scientificCompatibility(a,b){
   return '';
 }
 export function scientificBounds(doc,view){
+  if(isFrequencyView(view))return frequencyBounds(doc,view);
+  if(isDistributionView(view))return distributionBounds(doc,view);
   if(isSerialView(view))return serialBounds(doc,view);
   if(isProcessView(view))return processBounds(doc);
   if(isMultivariateView(view))return multivariateBounds(doc);
@@ -127,6 +137,8 @@ export function scientificBounds(doc,view){
   return {value:extent([...doc.data.flatMap(r=>[r.low,r.high]),...(doc.reference===null?[]:[doc.reference])])};
 }
 export function scientificRecipe(from,to){
+  if(isFrequencyView(to))return frequencyRecipe(from,to);
+  if(isDistributionView(to))return distributionRecipe(from,to);
   if(isSerialView(to))return serialRecipe(from,to);
   if(isProcessView(to))return processRecipe(from,to);
   if(isMultivariateView(to))return multivariateRecipe(from,to);
@@ -141,6 +153,8 @@ export function scientificRecipe(from,to){
 }
 
 export function scientificGuide(doc,view){
+  if(isFrequencyView(view))return frequencyGuide(doc,view);
+  if(isDistributionView(view))return distributionGuide(doc,view);
   if(isSerialView(view))return serialGuide(doc,view);
   if(isProcessView(view))return processGuide(doc,view);
   if(isMultivariateView(view))return multivariateGuide(doc,view);

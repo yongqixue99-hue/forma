@@ -13,15 +13,15 @@ import {workAgentBrief,stepSVG} from '../../src/forma/work-export.js';
 
 const near=(a,b,t=1e-7)=>assert.ok(Math.abs(a-b)<t,`${a} != ${b}`);
 const mapped=id=>scientificDocument({doc:getExample(id)});
-const finite=layout=>{for(const m of layout.marks){assert.equal(m.points.length,128);assert.ok(m.points.every(p=>p.every(Number.isFinite)),`${layout.view}/${m.key}`);}};
+const finite=layout=>{for(const m of layout.marks){assert.equal(m.points.length,layout.view.startsWith('distribution-')&&m.role==='density'?layout.density.curves[0].points.length*2:128);assert.ok(m.points.every(p=>p.every(Number.isFinite)),`${layout.view}/${m.key}`);}};
 function caseWork(family){
   const doc=getExample(family==='observations'?'scatter':family==='samples'?'errorbar':'interval');
   if(family==='observations')doc.data.forEach(r=>r.group='实验组');
   return newWork(scientificViews.filter(v=>scientificFamily(v.id)===family).map(v=>({doc,view:v.id,dataGroup:'test:family'})));
 }
 
-test('thirty-one native templates map their full schemas; all fifty-seven encodings round-trip without dropping metadata',()=>{
-  assert.equal(Object.keys(scientificViewMap).length,31);assert.equal(scientificViews.length,57);scientificViews.forEach(v=>assert.equal(viewName(v.id),v.name));
+test('forty native templates map their full schemas; all sixty-six encodings round-trip without dropping metadata',()=>{
+  assert.equal(Object.keys(scientificViewMap).length,40);assert.equal(scientificViews.length,66);scientificViews.forEach(v=>assert.equal(viewName(v.id),v.name));
   for(const template of Object.keys(scientificViewMap)){
     const doc=getExample(template),s=makeStep({doc}),d=scientificDocument(s);assert.equal(morphReady(s),true,template);assert.equal(d.data.length,doc.data.length);for(const [field,value]of Object.entries(doc))assert.deepEqual(payload(s.doc[field]),payload(value),template+': '+field);d.data.forEach((r,i)=>assert.equal(r.row,i));
     finite(layoutScientific(d,stepView(s),800,410));finite(layoutScientific(d,stepView(s),300,240));

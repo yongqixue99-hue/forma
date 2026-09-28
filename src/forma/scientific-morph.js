@@ -1,3 +1,7 @@
+import {layoutDistribution} from './distribution-morph.js';
+import {isDistributionView} from './distribution-rules.js';
+import {layoutFrequency} from './frequency-morph.js';
+import {isFrequencyView} from './frequency-rules.js';
 import {SpatialMorphLayer,mixSpatialPose} from './spatial-morph-geometry.js';
 import {labelInk} from './chart-readability.js';
 import {chartTextWidth} from './text-wrap.js';
@@ -124,6 +128,8 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
     return layout;
   }
   const eligible=scientificEligibility(doc,view);if(!eligible.valid)throw new Error(eligible.reason);
+  if(isFrequencyView(view))return layoutFrequency(doc,view,w,h,options);
+  if(isDistributionView(view))return layoutDistribution(doc,view,w,h,options);
   if(isSerialView(view))return layoutSerial(doc,view,w,h,options);
   if(isProcessView(view))return layoutProcess(doc,view,w,h,options);
   if(isMultivariateView(view))return layoutMultivariate(doc,view,w,h,options);

@@ -21,6 +21,7 @@ import './entry-points.css';
 const openExportPanel=async(...args)=>(await import('./export-panel.js')).openExportPanel(...args);
 import { spatialViews } from './spatial-charts.js';
 import { filterCatalog, facetCounts } from './library-filter.js';
+import {orderLibraryCatalog} from './library-order.js';
 import {libraryCatalog, motionFilters, motionCoverage} from './library-capabilities.js';
 import {createLibraryPreviews} from './library-previews.js';
 import { mountLibraryTools } from './library-tools.js';
@@ -44,16 +45,9 @@ import './product-polish.css';
 import './interaction-polish.css';
 import './locale.css';
 
-const atlasOrder=['sunburst','cohort','ledger','histogram','gantt','ecdf','bullet','funnel'];
-const volume4Order=['marimekko','pareto','smallmultiples','violin','correlation','lollipop','slope','range'];
-const volume5Order=['groupedbar','ribbon','heatmap','pyramid','rose','icicle','radar','trajectory'];
-const volume6Order=['surface3d','scatter3d','contour','ternary','hexbin','circlepack','bars3d','donut','difference','dendrogram','trajectory3d','step'];
-const volume8Order=['volcano','regression','errorbar','pca','forest','roc','enrichment','paired','manhattan','upset','blandaltman','precisionrecall','dose','confusion','ma','calibration','residual','scree','learning','metafunnel'];
 for(const item of [...categories,...families,...motionFilters]){item.name=uiText(item.name);if(item.description)item.description=uiText(item.description);}
 for(const p of Object.values(palettes)){p.name=uiText(p.name);p.description=uiText(p.description);}
-const latestEdition=Math.max(...catalog.map(t=>t.edition));
-const volume7Order=['streamgraph','bubble3d','raincloud','directedchord','stackedcolumn','network','polarline','parallelsets','horizon','lines3d','pie','edgebundle','voronoi','qqplot','survival','vectorfield','cycleplot','likert','eventline','gauge'];
-const orderedCatalog=[...libraryCatalog].sort((a,b)=>b.edition-a.edition||(a.edition===8?volume8Order.indexOf(a.id)-volume8Order.indexOf(b.id):a.edition===7?volume7Order.indexOf(a.id)-volume7Order.indexOf(b.id):a.edition===6?volume6Order.indexOf(a.id)-volume6Order.indexOf(b.id):a.edition===5?volume5Order.indexOf(a.id)-volume5Order.indexOf(b.id):a.edition===4?volume4Order.indexOf(a.id)-volume4Order.indexOf(b.id):a.edition===3?atlasOrder.indexOf(a.id)-atlasOrder.indexOf(b.id):Number(a.no)-Number(b.no)));
+const orderedCatalog=orderLibraryCatalog(libraryCatalog);
 const icons={ArrowUpRight,ArrowRight,ArrowLeft,Search,Play,Pause,RotateCcw,SlidersHorizontal,Plus,X,Check,Heart,Download,Code2,FileJson,Image,FileCode,Copy,Grid2x2,Sun,Moon,ChevronDown,BookOpen,Upload,Trash2,CircleHelp,ExternalLink,Save,CheckCircle2,ClipboardPaste,Mail};
 const icon=(name,size=16)=>createElement(icons[name],{width:size,height:size,'stroke-width':1.5,'aria-hidden':'true'}).outerHTML;
 const $=q=>document.querySelector(q);

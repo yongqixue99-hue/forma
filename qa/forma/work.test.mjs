@@ -200,7 +200,7 @@ test('view picker explains incompatible negative and missing data without losing
 test('scenario gallery separates reusable scenes from effect studies and preserves data on use',async t=>{
   const {mountMotionGallery}=await server.ssrLoadModule('/src/forma/motion-gallery.js');
   const host=document.createElement('main');document.body.append(host);let chosen;const gallery=mountMotionGallery(host,{onUse:w=>chosen=w});t.after(()=>{gallery.destroy();host.remove();});
-  assert.equal(host.querySelectorAll('[data-mg-preset]').length,27);assert.equal(host.querySelector('[data-mg-title]').textContent,'冲击之后，经济如何恢复');host.querySelector('[data-mg-preset=monthly]').click();
+  assert.equal(host.querySelectorAll('[data-mg-preset]').length,28);assert.equal(host.querySelector('[data-mg-title]').textContent,'模型筛选效果');host.querySelector('[data-mg-preset=monthly]').click();
   host.querySelector('[data-mg-use]').click();assert.equal(chosen.steps[0].doc.data.length,12);assert.equal(chosen.steps[0].doc.data[4].value,null);
   host.querySelector('[data-mg-group="effects"]').click();assert.equal(host.querySelectorAll('[data-mg-preset]').length,7);assert.ok(host.querySelector('[data-mg-preset="classic"]'));
   host.querySelector('[data-mg-group="scenarios"]').click();host.querySelector('[data-mg-preset="conversion"]').click();assert.match(host.querySelector('[data-mg-data]').textContent,/同一批对象/);
@@ -247,7 +247,7 @@ test('editor catalog combines animation capability with search without changing 
   const visible=()=>[...f.host.querySelectorAll('[data-we-template]')].filter(b=>!b.hidden);
   assert.equal(visible().length,204);
   const toggle=f.host.querySelector('[data-we-morph-only]');toggle.checked=true;toggle.dispatchEvent(new win.Event('change',{bubbles:true}));
-  assert.equal(visible().length,65);assert.equal(f.host.querySelector('[data-we-catalog-count]').textContent,'65 个图表');
+  assert.equal(visible().length,74);assert.equal(f.host.querySelector('[data-we-catalog-count]').textContent,'74 个图表');
   change(f.host,'[data-we-search]','3D');
   assert.equal(visible().length,3);assert.equal(f.host.querySelector('[data-we-catalog-empty]').hidden,true);assert.deepEqual(new Set(visible().map(n=>n.dataset.weTemplate)),new Set(['scatter3d','bubble3d','surface3d']));
   toggle.checked=false;toggle.dispatchEvent(new win.Event('change',{bubbles:true}));
@@ -304,14 +304,14 @@ test('scientific samples preserve all rows through adding, independent editing a
 
 test('research gallery keeps focused presets and A-to-C interval preview without changing the saved sequence',async t=>{
   const {mountMotionGallery}=await server.ssrLoadModule('/src/forma/motion-gallery.js'),host=document.createElement('main');document.body.append(host);let chosen;const gallery=mountMotionGallery(host,{onUse:w=>chosen=w});t.after(()=>{gallery.destroy();host.remove();});
-  host.querySelector('[data-mg-group="research"]').click();assert.equal(host.querySelectorAll('[data-mg-preset]').length,26);assert.ok(host.querySelector('[data-mg-preset="sample-distributions"]'));assert.equal(host.querySelector('[data-mg-preset=monthly]'),null);
+  host.querySelector('[data-mg-group="research"]').click();assert.equal(host.querySelectorAll('[data-mg-preset]').length,29);assert.ok(host.querySelector('[data-mg-preset="sample-distributions"]'));assert.equal(host.querySelector('[data-mg-preset=monthly]'),null);
   host.querySelector('[data-mg-preset="ratio-effects"]').click();change(host,'[data-mg-pair]','2','change');assert.match(host.querySelector('[data-mg-recipe]').textContent,/区间转向/);host.querySelector('[data-mg-use]').click();assert.equal(chosen.steps[0].view,'estimate-points');assert.equal(chosen.steps[2].view,'estimate-vertical');assert.equal(chosen.steps[0].doc.template,'forest');
 });
 
-test('analytical editor reuses all columns, edits each step independently, and retains the four-view picker',async t=>{
+test('analytical editor reuses all columns, edits each step independently, and retains the complete family picker',async t=>{
   for(const [id,view,column,field,value]of [['duration-distribution','uni-ecdf',1,'value',24.6],['probability-reliability','eval-calibration',3,'score',.42],['correlation-exploration','corr-pairs',2,'value',43]]){
     const initial=presetWork(id),f=mount(t,initial),before=structuredClone(initial.steps[0].doc.data);
-    f.host.querySelector('[data-we=add]').click();assert.equal(f.host.querySelectorAll('[data-we-scientific-view]').length,4);
+    f.host.querySelector('[data-we=add]').click();assert.equal(f.host.querySelectorAll('[data-we-scientific-view]').length,id==='probability-reliability'?6:4);
     f.host.querySelector(`[data-we-scientific-view="${view}"]`).click();const work=f.app.getWork(),current=work.steps.find(s=>s.id===work.activeStep);assert.equal(current.view,view);assert.deepEqual(current.doc.data,before);
     change(f.host,`[data-dw-cell="0:${column}"]`,String(value));await settle();const edited=f.app.getWork();assert.equal(edited.steps.find(s=>s.id===edited.activeStep).doc.data[0][field],value);assert.deepEqual(edited.steps[0].doc.data,before);
     assert.equal(workReport(edited).valid,true);assert.match(stepSVG(edited.steps.find(s=>s.id===edited.activeStep),edited.steps),/data-science-role/);f.destroy();

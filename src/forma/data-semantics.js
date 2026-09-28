@@ -1,5 +1,5 @@
 import {uiText,uiMarkup,uiMessage} from './locale.js';
-const properties={maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
+const properties={maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
 export function semanticChanges(before,after){
   const display=(doc,key)=>key==='variableUnits'?Object.fromEntries(Object.entries(doc.variableUnits||{}).map(([id,unit])=>[doc.entities?.items.find(v=>v.id===id)?.name||id,unit])):doc[key];
   const changes=Object.entries(properties).flatMap(([key,label])=>JSON.stringify(before[key])===JSON.stringify(after[key])?[]:[{key,label,before:display(before,key),after:display(after,key)}]);
@@ -21,6 +21,11 @@ export function semanticValue(value){
   return String(value);
 }
 export function encodingMeaning(view){
+  if(view==='distribution-sina')return uiText('数值轴保留原值；另一方向仅按密度抖动');
+  if(view==='distribution-boxen')return uiText('嵌套箱表示尾部分位区间，箱宽不是频数密度');
+  if(view==='distribution-halfeye')return uiText('密度与中央 50%/90% 样本分位区间，不是均值置信区间');
+  if(view==='distribution-quantiledot')return uiText('上方为等概率分位摘要，下方为全部原始观测');
+  if(view?.startsWith('freq-'))return uiText('实心点与外环是同一采样的两种投影；只使用输入的正频率响应');
   if(view?.startsWith('serial-'))return uiText('无量纲系数共用 [-1,1] 轴；ACF 未调整，PACF 使用 Yule–Walker；白噪声参考带不是预测区间');
   if(view?.startsWith('process-'))return uiText('全部输入估计控制限，首项移动极差未定义；控制限不是规格限');
   if(view?.startsWith('multivariate-'))return uiText('同一样本在各变量对中重复呈现；各变量保留原单位与范围，不做标准化');
@@ -35,6 +40,8 @@ export function encodingMeaning(view){
   if(view?.startsWith('spatial-'))return view==='spatial-surface'?uiText('完整网格的原始高度；相邻采样点之间线性连接'):view==='spatial-bubbles'?uiText('正交投影面积与真实 size 成正比；三个坐标保持原值'):view==='spatial-3d'?uiText('正交投影；屏幕距离不能当作三维原始距离'):uiText('只展示选定坐标平面，隐藏维度的数据仍保留');
   if(view==='eval-roc')return uiText('同阈值：假阳性率 FPR 与真阳性率 TPR');
   if(view==='eval-pr')return uiText('同阈值：召回率与精确率；AP 不等于 ROC AUC');
+  if(view==='eval-gains')return uiText('同阈值：已筛选样本比例与已覆盖正类比例');
+  if(view==='eval-lift')return uiText('提升倍数 = 正类覆盖比例 / 筛选比例；零筛选时未定义');
   if(view==='eval-threshold')return uiText('阈值从高到低（严格到宽松）；对应检出率与误报率');
   if(view==='hierarchy-sunburst')return uiText('同层扇区角度表示份额；不同环的面积不可直接比较');
   if(view==='hierarchy-icicle')return uiText('同层宽度表示份额；上层为子项合计');
@@ -57,5 +64,5 @@ export function encodingMeaning(view){
 export function frameMeaning(view,{progress=1,mode,fromView}={}){
   if(mode==='morph'&&progress>0&&progress<1&&fromView==='series-rank'&&view!=='series-rank')return uiText('变形中，请在停稳后读数。由名次返回原值，名次差不表示数值差。');
   const meaning=encodingMeaning(view);
-  return mode==='morph'&&progress>0&&progress<1&&/^(eval|corr|hierarchy|sample|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
+  return mode==='morph'&&progress>0&&progress<1&&/^(eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
 }

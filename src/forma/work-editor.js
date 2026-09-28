@@ -22,6 +22,7 @@ import {scientificViews,scientificFamily,scientificDocument,scientificEligibilit
 import {createElement,Plus,X,Copy,Save,Download,Play,Table2,ChevronDown,FolderOpen,ArrowLeft,ArrowRight,Trash2,Check,Search,Settings2,PanelRightClose} from 'lucide';
 import {catalog,getExample,findTemplate} from './catalog.js';
 import {libraryCatalog} from './library-capabilities.js';
+import {orderLibraryCatalog} from './library-order.js';
 import {filterCatalog} from './library-filter.js';
 import {morphViews} from './morph.js';
 import {seriesViews,seriesDocument,seriesEligibility,isSeriesView} from './series-rules.js';
@@ -320,7 +321,7 @@ export function mountWorkEditor(host,{initial,getSources=()=>[],palette='ink',to
     }else if(pickerTab==='sources'){
       panelSources=sources();body.innerHTML=panelSources.length?`<div class="we-source-list">${panelSources.map((s,i)=>uiMarkup`<button data-we-source-index="${i}">${stepIcon(s)}<span><strong>${esc(s.doc.title)}</strong><small>${esc(s.group||uiText('已有图表'))} · ${esc(stepName(s))} · ${s.rows??s.doc.data.length} 行</small></span>${icon('Plus',13)}</button>`).join('')}</div>`:uiText('<p>还没有其他已编辑图表。可以从「图表库」选择模板，填入新的数据。</p>');
     }else{
-      body.innerHTML=uiMarkup`<label class="we-picker-search">${icon('Search')}<input data-we-search placeholder="搜索图型，如柱状、折线、科研" aria-label="搜索可添加图表"></label><div class="we-catalog-tools"><label title="按模板的连续变形能力筛选；各步是否对应，仍由实际数据决定。"><input type="checkbox" data-we-morph-only>只看可连续变形</label><span data-we-catalog-count role="status"></span></div><div class="we-catalog-list">${[...libraryCatalog].sort((a,b)=>b.edition-a.edition).map(t=>{const ready=t.motion==='morph';return uiMarkup`<button data-we-template="${t.id}" title="${ready?uiText('此模板可连续形变；实际取决于数据对应、单位和填写范围。'):uiText('此模板保留原生入场动画。')}"><span>${t.no}</span><strong>${esc(t.name)}</strong><small class="we-compat" data-ready="${ready}">${ready?uiText('可连续变形'):uiText('原生入场')} · ${t.fields.length} 列</small>${icon('Plus',12)}</button>`;}).join('')}</div><p class="we-catalog-empty" data-we-catalog-empty hidden>没有匹配的图表，试试其他关键词或取消动效筛选。</p>`;
+      body.innerHTML=uiMarkup`<label class="we-picker-search">${icon('Search')}<input data-we-search placeholder="搜索图型，如柱状、折线、科研" aria-label="搜索可添加图表"></label><div class="we-catalog-tools"><label title="按模板的连续变形能力筛选；各步是否对应，仍由实际数据决定。"><input type="checkbox" data-we-morph-only>只看可连续变形</label><span data-we-catalog-count role="status"></span></div><div class="we-catalog-list">${orderLibraryCatalog(libraryCatalog).map(t=>{const ready=t.motion==='morph';return uiMarkup`<button data-we-template="${t.id}" title="${ready?uiText('此模板可连续形变；实际取决于数据对应、单位和填写范围。'):uiText('此模板保留原生入场动画。')}"><span>${t.no}</span><strong>${esc(t.name)}</strong><small class="we-compat" data-ready="${ready}">${ready?uiText('可连续变形'):uiText('原生入场')} · ${t.fields.length} 列</small>${icon('Plus',12)}</button>`;}).join('')}</div><p class="we-catalog-empty" data-we-catalog-empty hidden>没有匹配的图表，试试其他关键词或取消动效筛选。</p>`;
       filterPickerCatalog();
     }
   }

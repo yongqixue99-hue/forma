@@ -14,11 +14,11 @@ import {scenarioPresets,morphBaseDocument} from '../../src/forma/scenario-preset
 import {presetWork,morphDocument,stepView,stepDomain,transitionPlan,makeStep,newWork,cleanWork,workReport} from '../../src/forma/work-model.js';
 
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
-const finite=layout=>{for(const m of layout.marks){assert.equal(m.points.length,layout.view==='unit'&&m.value?m.value*20:128);assert.ok(m.points.every(p=>p.every(Number.isFinite)),`${layout.view}/${m.key}`);}};
+const finite=layout=>{for(const m of layout.marks){assert.equal(m.points.length,layout.view==='unit'&&m.value?m.value*20:layout.view.startsWith('distribution-')&&m.role==='density'?layout.density.curves[0].points.length*2:128);assert.ok(m.points.every(p=>p.every(Number.isFinite)),`${layout.view}/${m.key}`);}};
 const doc=values=>({...structuredClone(morphExample),data:values.map((value,i)=>({label:`项目${i+1}`,value}))});
 
 test('scenario presets own suitable independent data and remain valid in every step',()=>{
-  assert.equal(scenarioPresets.length,53);
+  assert.equal(scenarioPresets.length,57);
   const data=[];
   for(const p of scenarioPresets){const work=presetWork(p.id);assert.equal(workReport(work).valid,true,p.id);data.push(JSON.stringify(work.steps[0].doc.data));
     for(const step of work.steps)finite(isScientificView(stepView(step))?layoutScientific(scientificDocument(step),stepView(step),380,260):isPairedView(stepView(step))?layoutPaired(relationalDocument(step),stepView(step),380,260):isHierarchyView(stepView(step))?layoutHierarchy(relationalDocument(step),stepView(step),380,260):isSeriesView(stepView(step))?layoutSeries(seriesDocument(step),stepView(step),380,260):layoutMorph(morphDocument(step),stepView(step),380,260));

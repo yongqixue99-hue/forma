@@ -52,26 +52,27 @@ export function layoutEvaluation(doc,view,w=800,h=440,{domain}={}){
   // Bare layout fixtures may lack the persisted registry; production documents
   // are migrated before rendering and use their explicit entity references.
   if(models.length!==observed.length)models.splice(0,models.length,...observed);
-  const pr=view==='eval-pr',threshold=view==='eval-threshold',calibration=view==='eval-calibration',plot={x:57,y:76,w:w-87,h:h-129},layout=base(doc,view,w,h,plot),bottom=plot.y+plot.h;
+  const gains=view==='eval-gains',lift=view==='eval-lift',ranking=gains||lift,pr=view==='eval-pr',threshold=view==='eval-threshold',calibration=view==='eval-calibration',plot={x:57,y:76,w:w-87,h:h-129},layout=base(doc,view,w,h,plot),bottom=plot.y+plot.h;
   // Sweep from strict to permissive, matching ROC/PR's threshold order.
   // The scale still contains raw scores; ticks explicitly show the descending axis.
-  const scoreDomain=domain?.score||(doc.probability?[0,1]:extent(doc.data,r=>r.score)),score=scaleLinear(scoreDomain[0]===scoreDomain[1]?padded(scoreDomain):scoreDomain,[plot.x+plot.w,plot.x]),x=threshold?score:scaleLinear([0,1],[plot.x,plot.x+plot.w]),y=scaleLinear([0,1],[bottom,plot.y]);
-  if(threshold)axis(layout,x,true,{title:uiText('得分阈值 ≥ t · 高 → 低（严格 → 宽松）')});else probabilityAxis(layout,x,true,calibration?uiText('箱内平均预测概率'):pr?uiText('召回率 Recall'):uiText('假阳性率 FPR'));
-  probabilityAxis(layout,y,false,calibration?uiText('实际正类比例'):pr?uiText('精确率 Precision'):threshold?uiText('检出率 TPR / 误报率 FPR'):uiText('真阳性率 TPR'));
+  const scoreDomain=domain?.score||(doc.probability?[0,1]:extent(doc.data,r=>r.score)),score=scaleLinear(scoreDomain[0]===scoreDomain[1]?padded(scoreDomain):scoreDomain,[plot.x+plot.w,plot.x]),x=threshold?score:scaleLinear([0,1],[plot.x,plot.x+plot.w]),y=scaleLinear(lift?(domain?.lift||[0,Math.max(...models.map(id=>{const rows=doc.data.filter(r=>entityKey(r,'model')===id);return rows.length/rows.filter(r=>r.actual===1).length;}))]):[0,1],[bottom,plot.y]);
+  if(threshold)axis(layout,x,true,{title:uiText('得分阈值 ≥ t · 高 → 低（严格 → 宽松）')});else probabilityAxis(layout,x,true,ranking?uiText('已筛选样本占比'):calibration?uiText('箱内平均预测概率'):pr?uiText('召回率 Recall'):uiText('假阳性率 FPR'));
+  if(lift)axis(layout,y,false,{title:uiText('提升倍数')});else probabilityAxis(layout,y,false,gains?uiText('已覆盖正类占比'):calibration?uiText('实际正类比例'):pr?uiText('精确率 Precision'):threshold?uiText('检出率 TPR / 误报率 FPR'):uiText('真阳性率 TPR'));
   layout.heading=calibration?uiMessage`${doc.bins} 个等宽概率箱`:uiMessage`${doc.positiveLabel} · 阈值共同处理同分样本`;
-  layout.details=threshold?uiText('实线 TPR · 浅线空心点 FPR'):calibration?uiText('空箱保留断点 · n 见提示'):pr?uiText('基准为正类比例 · AP 按召回增量加权'):uiText('AUC 为 ROC 梯形积分');
+  layout.details=lift?uiText('提升 = 覆盖正类比例 ÷ 筛选比例 · 零筛选未定义'):gains?uiText('同分整体进入 · 对角线为随机筛选基准'):threshold?uiText('实线 TPR · 浅线空心点 FPR'):calibration?uiText('空箱保留断点 · n 见提示'):pr?uiText('基准为正类比例 · AP 按召回增量加权'):uiText('AUC 为 ROC 梯形积分');
   layout.groups=models;layout.groupLabels=[];layout.evaluations=[];layout.scales={x,y,score};
   models.forEach((modelId,mi)=>{
     const rows=doc.data.filter(r=>entityKey(r,'model')===modelId),model=rows[0].model,curve=classificationCurve(rows),cal=doc.probability?calibrationBins(rows,doc.bins):Array(doc.bins).fill(null);
     layout.evaluations.push({model,modelId,...curve,bins:cal});
-    layout.groupLabels.push(calibration?model:threshold?model:`${model} · ${pr?'AP':'AUC'} ${formatDecimal((pr?curve.ap:curve.auc),3)}`);
-    const position=p=>threshold?[x(p.threshold===null?score.domain()[1]:p.threshold),y(p.tpr)]:[x(pr?p.recall:p.fpr),y(pr?p.precision:p.tpr)];
+    layout.groupLabels.push(calibration||threshold||ranking?model:`${model} · ${pr?'AP':'AUC'} ${formatDecimal((pr?curve.ap:curve.auc),3)}`);
+    const fraction=p=>(p.tp+p.fp)/curve.n,relativeLift=p=>fraction(p)>0?p.tpr/fraction(p):null;
+    const position=p=>ranking?[x(fraction(p)),y(lift?(relativeLift(p)??0):p.tpr)]:threshold?[x(p.threshold===null?score.domain()[1]:p.threshold),y(p.tpr)]:[x(pr?p.recall:p.fpr),y(pr?p.precision:p.tpr)];
     curve.points.forEach((p,index)=>{
       const at=position(p),previous=curve.points[index-1],a=previous?position(previous):at,b=pr?[a[0],at[1]]:threshold?[at[0],a[1]]:pointMix(a,at,.5),anchor=[score(p.threshold===null?score.domain()[1]:p.threshold),bottom];
-      const common={identity:key('threshold',modelId,p.threshold),group:model,colorIdentity:modelId,index,transitionIndex:index},tip=`${model} · ${p.threshold===null?uiText('尚无预测正类；精确率未定义（绘图端点）'):uiMessage`得分 ≥ ${fmt(p.threshold)}`} · TPR ${fmt(p.tpr*100)}% · FPR ${fmt(p.fpr*100)}% · Precision ${p.threshold===null?uiText('未定义'):`${fmt(p.precision*100)}%`} · n=${curve.n}`;
+      const common={identity:key('threshold',modelId,p.threshold),group:model,colorIdentity:modelId,index,transitionIndex:index},tip=`${model} · ${p.threshold===null?uiText('尚无预测正类；精确率未定义（绘图端点）'):uiMessage`得分 ≥ ${fmt(p.threshold)}`} · TPR ${fmt(p.tpr*100)}% · FPR ${fmt(p.fpr*100)}% · Precision ${p.threshold===null?uiText('未定义'):`${fmt(p.precision*100)}%`} · n=${curve.n}${ranking?uiMessage` · 已筛选 ${fmt(fraction(p)*100)}% · 覆盖正类 ${fmt(p.tpr*100)}% · 提升 ${relativeLift(p)===null?uiText('未定义'):fmt(relativeLift(p))}`:''}`;
       // On the threshold axis rates are step functions: hold the previous
       // rate until the next observed score, then include all tied predictions.
-      const validLink=index>0,opacity=!calibration&&validLink?.9:0;
+      const validLink=index>(lift?1:0),opacity=!calibration&&validLink?.9:0;
       line(layout,common,'threshold-run-a',a,b,anchor,{opacity,width:1.6,derived:true,tooltip:tip});line(layout,common,'threshold-run-b',b,at,anchor,{opacity,width:1.6,derived:true,tooltip:tip});
       dot(layout,common,'threshold-point',at,index===0?0:2,{opacity:!calibration&&index>0?.65:0,entrance:Array.from({length:128},()=>anchor),tooltip:tip,derived:true,recordIds:rows.map(recordId)});
       const f=[score(p.threshold===null?score.domain()[1]:p.threshold),y(p.fpr)],prevF=previous?[score(previous.threshold===null?score.domain()[1]:previous.threshold),y(previous.fpr)]:f;
@@ -89,7 +90,8 @@ export function layoutEvaluation(doc,view,w=800,h=440,{domain}={}){
     });
     if(mi===0&&pr)layout.guides.push({x1:plot.x,x2:plot.x+plot.w,y1:y(curve.prevalence),y2:y(curve.prevalence),major:true,reference:true});
   });
-  if(!threshold&&!pr)layout.guides.push({x1:x(0),y1:y(0),x2:x(1),y2:y(1),major:true,reference:true});
+  if(lift)layout.guides.push({x1:plot.x,x2:plot.x+plot.w,y1:y(1),y2:y(1),major:true,reference:true});
+  if(!threshold&&!pr&&!lift)layout.guides.push({x1:x(0),y1:y(0),x2:x(1),y2:y(1),major:true,reference:true});
   return layout;
 }
 

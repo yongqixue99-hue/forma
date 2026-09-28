@@ -134,6 +134,17 @@ Object.assign(icons,{
   'confusion-columns':'<rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/><path d="M5 14h5M14 8h5"/>'
 });
 const originalViewName=id=>scientificViews.find(v=>v.id===id)?.name||relationalViews.find(v=>v.id===id)?.name||seriesViews.find(v=>v.id===id)?.name||({columns:uiText('柱状图'),line:uiText('折线图'),area:uiText('面积图'),bars:uiText('条形图'),bubbles:uiText('气泡图'),pie:uiText('饼状图'),donut:uiText('环形图'),treemap:uiText('矩形树图'),rose:uiText('玫瑰图'),stacked:uiText('份额带'),lollipop:uiText('棒棒糖图'),dot:uiText('点图'),squares:uiText('比例方块'),semidonut:uiText('半环图'),radialbars:uiText('径向柱图'),radar:uiText('雷达图'),waterfall:uiText('瀑布图'),funnel:uiText('漏斗图'),pareto:uiText('帕累托图'),waffle:uiText('华夫图'),diverging:uiText('发散条形图'),step:uiText('阶梯折线图'),polarline:uiText('极坐标折线图'),unit:uiText('单位堆叠图'),'funnel-bars':uiText('转化漏斗')})[id]||id;
+Object.assign(icons,{
+ 'eval-gains':'<path d="M3 2v18h19M3 20 9 9l6-4 7-3M3 20 22 2"/>',
+ 'eval-lift':'<path d="M3 2v18h19M3 15h19M3 3l5 2 5 5 9 5"/>',
+ 'distribution-sina':'<path d="M3 20h19M7 4h.01M9 7h.01M6 10h.01M11 12h.01M8 16h.01M16 5h.01M18 9h.01M15 13h.01M18 17h.01" stroke-width="2.6"/>',
+ 'distribution-boxen':'<path d="M12 2v18M9 3h6v14H9Zm-3 3h12v8H6Zm-3 2h18v4H3Z"/>',
+ 'distribution-halfeye':'<path d="M2 16h20M4 16c2-1 2-12 7-12s4 11 9 12M5 20h12m-9-2h6v4H8Z"/>',
+ 'distribution-quantiledot':'<path d="M2 21h20M4 18h.01M8 18h.01M12 18h.01M16 18h.01M20 18h.01M8 14h.01M12 14h.01M16 14h.01M12 10h.01M12 6h.01" stroke-width="2.5"/>',
+ 'freq-bode':'<path d="M3 2v8h19M3 13v8h19M4 4h7l5 2 5 3M4 15h5l5 4h7"/>',
+ 'freq-nyquist':'<path d="M2 11h20M12 2v19M18 5c-8-7-18 9-10 13s15-6 6-9"/>',
+ 'freq-nichols':'<path d="M3 2v18h19M5 17c0-13 5-15 9-10s6 6 7 6"/>'
+});
 export const viewName=id=>uiText(originalViewName(id));
 Object.assign(icons,{
  'serial-acf':'<path d="M2 11h20M4 11V3m4 8V6m4 5v5m4-5V8m4 3v2"/>',

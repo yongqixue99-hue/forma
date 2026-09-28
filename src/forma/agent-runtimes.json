@@ -2,28 +2,28 @@
   "version": 1,
   "runtimes": {
     "chart": {
-      "path": "/forma/agent-runtimes/chart-58f32292d05aaa78f24fff734c7d8ad45e4cabaf271bf0fef19cfec2f5a1fcc2.js",
-      "sha256": "58f32292d05aaa78f24fff734c7d8ad45e4cabaf271bf0fef19cfec2f5a1fcc2",
-      "integrity": "sha384-lVPiDkC717yw+uxTJ9HSHZN1yN0dP5XLv2qgK3226P4qMhsSX7yPtmAelaPfjZMg",
-      "bytes": 1749924
+      "path": "/forma/agent-runtimes/chart-9edaaa6ce3f353c1eaf492fb46dfc6c9f032c03e2a55afc37df520dee2884536.js",
+      "sha256": "9edaaa6ce3f353c1eaf492fb46dfc6c9f032c03e2a55afc37df520dee2884536",
+      "integrity": "sha384-/o6BlESun+wzDqC3+GgqQGVxJah3uy8rZdGlxMk2/GJGCT1unJ806qccYngM6Bek",
+      "bytes": 1757823
     },
     "work": {
-      "path": "/forma/agent-runtimes/work-c4176ed071f671519a779c4981879b2228a3002fe115172ff881e9597874d415.js",
-      "sha256": "c4176ed071f671519a779c4981879b2228a3002fe115172ff881e9597874d415",
-      "integrity": "sha384-lQSAM+ZO6DO8S4u/P/MjR+4vCE16BY8wnSJG3R2XpV9KBzkPansV8lt30wmnaNF5",
-      "bytes": 2135840
+      "path": "/forma/agent-runtimes/work-89bda586ff79a908ea6eecf170991c16e61522f8493c50eb5228e305ad899699.js",
+      "sha256": "89bda586ff79a908ea6eecf170991c16e61522f8493c50eb5228e305ad899699",
+      "integrity": "sha384-/Hjk/jd2TzXKrZ56Vxa4tkHLXxIN5qxCWyh2OHDTYkIQb7Ikqy9eJVvAWHuiABGa",
+      "bytes": 2169184
     },
     "sequence": {
-      "path": "/forma/agent-runtimes/sequence-68aeeeb7159b4db6ad1e89894acb937b0a6506d802645dbaae9c7233a4ba1022.js",
-      "sha256": "68aeeeb7159b4db6ad1e89894acb937b0a6506d802645dbaae9c7233a4ba1022",
-      "integrity": "sha384-mqd5/RBNIzEF/zgFxrHdKZNVEUplx8FSdNGKtXUZKNteHQSkx0jrQDnX/i5pILAo",
-      "bytes": 771203
+      "path": "/forma/agent-runtimes/sequence-a620d745c898446c5fe7fd7265171faf8c0bc2f33b22531ee17af28e9c0c245f.js",
+      "sha256": "a620d745c898446c5fe7fd7265171faf8c0bc2f33b22531ee17af28e9c0c245f",
+      "integrity": "sha384-KvJY1XkrB62toQZ30A6RKdx0GFYpavMzwpTP8uvN7PmFIOqq5vEDAkjAfdW5VGK9",
+      "bytes": 783499
     },
     "canvas": {
-      "path": "/forma/agent-runtimes/canvas-84193e9890e689128c12f1eb1c2827b68a1d6397a088fe01a2793b985dc3ecef.js",
-      "sha256": "84193e9890e689128c12f1eb1c2827b68a1d6397a088fe01a2793b985dc3ecef",
-      "integrity": "sha384-JGnoc1OEXigMXZDP4bdcER7+YOzlhoX4YIzfzDiCr0RjYOzSaQzHFRsxl8u24FHC",
-      "bytes": 1711830
+      "path": "/forma/agent-runtimes/canvas-ccdb6b03caf90bf26f140a2fa141d4c1a8a1537934cfe30ab9f554e499397ed3.js",
+      "sha256": "ccdb6b03caf90bf26f140a2fa141d4c1a8a1537934cfe30ab9f554e499397ed3",
+      "integrity": "sha384-2K2QIMWjTFZBtVJfdjdaRhdIFN8wfcmerVjkkcNl66UmE8oUSQ0znHTrhjyt4VKn",
+      "bytes": 1719729
     }
   }
 }
