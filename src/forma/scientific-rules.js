@@ -1,3 +1,5 @@
+import {comparisonViews,comparisonFamily,isComparisonView,comparisonViewMap,comparisonDocument,comparisonEligibility,comparisonCompatibility,comparisonBounds,comparisonRecipe,comparisonGuide} from './comparison-series-rules.js';
+import {networkViews,networkFamily,isNetworkView,networkViewMap,networkDocument,networkEligibility,networkCompatibility,networkBounds,networkRecipe,networkGuide} from './network-series-rules.js';
 import {businessSeriesViews,businessSeriesFamily,isBusinessSeriesView,businessSeriesViewMap,businessSeriesDocument,businessSeriesEligibility,businessSeriesCompatibility,businessSeriesBounds,businessSeriesRecipe,businessSeriesGuide} from './business-series-rules.js';
 import {structuralViews,structuralFamily,isStructuralView,structuralViewMap,structuralDocument,structuralEligibility,structuralCompatibility,structuralBounds,structuralRecipe,structuralGuide} from './structural-series-rules.js';
 import {statisticalViews,statisticalFamily,isStatisticalView,statisticalViewMap,statisticalDocument,statisticalEligibility,statisticalCompatibility,statisticalBounds,statisticalRecipe,statisticalGuide} from './statistical-series-rules.js';
@@ -37,17 +39,19 @@ export const estimateViews=[
   {id:'estimate-horizontal',name:uiText('横向区间图'),en:'Horizontal intervals',note:uiText('从估计点向输入上下界展开区间；不根据样本量重新计算置信区间。较长的对象名称适合横向排列。')},
   {id:'estimate-vertical',name:uiText('纵向误差区间图'),en:'Vertical intervals',note:uiText('把同一组点估计和输入区间转向纵轴。区间水平、单位与线性或对数尺度均保持不变。')}
 ];
-export const scientificViews=[...businessSeriesViews,...structuralViews,...statisticalViews,...distributionViews,...frequencyViews,...serialViews,...observationViews,...sampleViews,...estimateViews,...analyticalViews,...diagnosticViews,...exploratoryViews,...processViews,...multivariateViews];
+export const scientificViews=[...comparisonViews,...networkViews,...businessSeriesViews,...structuralViews,...statisticalViews,...distributionViews,...frequencyViews,...serialViews,...observationViews,...sampleViews,...estimateViews,...analyticalViews,...diagnosticViews,...exploratoryViews,...processViews,...multivariateViews];
 const families=new Map([...observationViews.map(v=>[v.id,'observations']),...sampleViews.map(v=>[v.id,'samples']),...estimateViews.map(v=>[v.id,'estimates'])]);
-export const scientificFamily=view=>businessSeriesFamily(view)||structuralFamily(view)||statisticalFamily(view)||(isSerialView(view)?'serial':null)||frequencyFamily(view)||distributionFamily(view)||families.get(view)||analyticalFamily(view)||diagnosticFamily(view)||exploratoryFamily(view)||processFamily(view)||multivariateFamily(view);
-export const isScientificView=view=>isBusinessSeriesView(view)||isStructuralView(view)||isStatisticalView(view)||isSerialView(view)||isFrequencyView(view)||isDistributionView(view)||families.has(view)||isAnalyticalView(view)||isDiagnosticView(view)||isExploratoryView(view)||isProcessView(view)||isMultivariateView(view);
-export const scientificViewMap={...businessSeriesViewMap,...structuralViewMap,...statisticalViewMap,...distributionViewMap,...frequencyViewMap,...serialViewMap,...processViewMap,...multivariateViewMap,...exploratoryViewMap,...diagnosticViewMap,...analyticalViewMap,xy:'obs-scatter',scatter:'obs-bubble',regression:'obs-confidence',ridges:'sample-ridge',swarm:'sample-swarm',boxplot:'sample-box',violin:'sample-violin',raincloud:'sample-raincloud',errorbar:'sample-sd',interval:'estimate-horizontal',forest:'estimate-horizontal'};
+export const scientificFamily=view=>comparisonFamily(view)||networkFamily(view)||businessSeriesFamily(view)||structuralFamily(view)||statisticalFamily(view)||(isSerialView(view)?'serial':null)||frequencyFamily(view)||distributionFamily(view)||families.get(view)||analyticalFamily(view)||diagnosticFamily(view)||exploratoryFamily(view)||processFamily(view)||multivariateFamily(view);
+export const isScientificView=view=>isComparisonView(view)||isNetworkView(view)||isBusinessSeriesView(view)||isStructuralView(view)||isStatisticalView(view)||isSerialView(view)||isFrequencyView(view)||isDistributionView(view)||families.has(view)||isAnalyticalView(view)||isDiagnosticView(view)||isExploratoryView(view)||isProcessView(view)||isMultivariateView(view);
+export const scientificViewMap={...comparisonViewMap,...networkViewMap,...businessSeriesViewMap,...structuralViewMap,...statisticalViewMap,...distributionViewMap,...frequencyViewMap,...serialViewMap,...processViewMap,...multivariateViewMap,...exploratoryViewMap,...diagnosticViewMap,...analyticalViewMap,xy:'obs-scatter',scatter:'obs-bubble',regression:'obs-confidence',ridges:'sample-ridge',swarm:'sample-swarm',boxplot:'sample-box',violin:'sample-violin',raincloud:'sample-raincloud',errorbar:'sample-sd',interval:'estimate-horizontal',forest:'estimate-horizontal'};
 const key=(...parts)=>JSON.stringify(parts),finite=x=>typeof x==='number'&&Number.isFinite(x)&&Math.abs(x)<=1e15,text=x=>typeof x==='string'&&!!x.trim();
 
 export function scientificDocument(step){
   const doc=step?.doc,family=scientificFamily(scientificViewMap[doc?.template]);
   if(!family||!validateDocument(doc,{layout:false}).valid)return null;
   const common={template:doc.template,title:doc.title,subtitle:doc.subtitle||'',unit:doc.unit,source:structuredClone(doc.source),family};
+  if(isNetworkView(scientificViewMap[doc.template]))return networkDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
+  if(isComparisonView(scientificViewMap[doc.template]))return comparisonDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isStatisticalView(scientificViewMap[doc.template]))return statisticalDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isStructuralView(scientificViewMap[doc.template]))return structuralDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isBusinessSeriesView(scientificViewMap[doc.template]))return businessSeriesDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
@@ -79,6 +83,8 @@ export function scientificEligibility(doc,view){
   if(!family||doc?.family!==family)return bad(uiText('此图型需要对应的原始样本或区间数据。'));
   if(!text(doc.title)||!text(doc.unit)||!text(doc.source?.name)||!Array.isArray(doc.data)||!doc.data.length)return bad(uiText('请填写标题、单位、来源与原始记录。'));
   const rows=doc.data;
+  if(isNetworkView(view))return networkEligibility(doc,view);
+  if(isComparisonView(view))return comparisonEligibility(doc,view);
   if(isStatisticalView(view))return statisticalEligibility(doc,view);
   if(isStructuralView(view))return structuralEligibility(doc,view);
   if(isBusinessSeriesView(view))return businessSeriesEligibility(doc,view);
@@ -112,6 +118,8 @@ export function scientificEligibility(doc,view){
 
 export function scientificCompatibility(a,b){
   if(a?.family!==b?.family)return uiText('图型数据结构不同');
+  if(['network-undirected', 'network-directed'].includes(a.family))return networkCompatibility(a,b);
+  if(['comparison-samples', 'comparison-counts', 'comparison-residuals', 'comparison-spread'].includes(a.family))return comparisonCompatibility(a,b);
   if(['statistical-observations', 'statistical-survival'].includes(a.family))return statisticalCompatibility(a,b);
   if(['matrix-cell', 'contingency', 'hierarchy-tree'].includes(a.family))return structuralCompatibility(a,b);
   if(['business-target', 'business-metrics', 'business-paired'].includes(a.family))return businessSeriesCompatibility(a,b);
@@ -129,6 +137,8 @@ export function scientificCompatibility(a,b){
   return '';
 }
 export function scientificBounds(doc,view){
+  if(isNetworkView(view))return networkBounds(doc,view);
+  if(isComparisonView(view))return comparisonBounds(doc,view);
   if(isStatisticalView(view))return statisticalBounds(doc,view);
   if(isStructuralView(view))return structuralBounds(doc,view);
   if(isBusinessSeriesView(view))return businessSeriesBounds(doc,view);
@@ -152,6 +162,8 @@ export function scientificBounds(doc,view){
   return {value:extent([...doc.data.flatMap(r=>[r.low,r.high]),...(doc.reference===null?[]:[doc.reference])])};
 }
 export function scientificRecipe(from,to){
+  if(isNetworkView(to))return networkRecipe(from,to);
+  if(isComparisonView(to))return comparisonRecipe(from,to);
   if(isStatisticalView(to))return statisticalRecipe(from,to);
   if(isStructuralView(to))return structuralRecipe(from,to);
   if(isBusinessSeriesView(to))return businessSeriesRecipe(from,to);
@@ -171,6 +183,8 @@ export function scientificRecipe(from,to){
 }
 
 export function scientificGuide(doc,view){
+  if(isNetworkView(view))return networkGuide(doc,view);
+  if(isComparisonView(view))return comparisonGuide(doc,view);
   if(isStatisticalView(view))return statisticalGuide(doc,view);
   if(isStructuralView(view))return structuralGuide(doc,view);
   if(isBusinessSeriesView(view))return businessSeriesGuide(doc,view);

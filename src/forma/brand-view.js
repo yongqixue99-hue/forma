@@ -4,7 +4,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 
 // SVG-local CSS also survives serialization into PNG / video frames.
 export function applyChartBrand(svg,options={}){
-  if(!svg)return;const fonts=brandFonts(options);let style=svg.querySelector(':scope > style[data-brand-type]');
+  if(!svg)return;const fonts=brandFonts(options);let style=[...svg.children].find(el=>el.localName==='style'&&el.hasAttribute('data-brand-type'));
   if(!fonts){style?.remove();svg.removeAttribute('data-brand-type');return;}
   const key=options.brand.typography;svg.setAttribute('data-brand-type',key);
   if(!style){style=svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg','style');style.setAttribute('data-brand-type','');svg.prepend(style);}
@@ -18,7 +18,7 @@ function checkedLogo(value){
 export function applyFrameBrand(root,options={},titleSelector='h2'){
   const fonts=brandFonts(options),title=root.querySelector(titleSelector),header=root.querySelector('header');
   root.style.fontFamily=fonts?.body||'';if(title)title.style.fontFamily=fonts?.title||'';
-  if(!header)return;let logo=header.querySelector('[data-brand-logo]'),style=root.querySelector('style[data-brand-frame]');
+  if(!header)return;let logo=header.querySelector('[data-brand-logo]'),style=[...root.children].find(el=>el.localName==='style'&&el.hasAttribute('data-brand-frame'));
   if(!options.brand?.logo){logo?.remove();style?.remove();header.removeAttribute('data-brand-heading');return;}
   const image=checkedLogo(options.brand.logo);header.setAttribute('data-brand-heading','');
   if(!style){style=root.ownerDocument.createElement('style');style.setAttribute('data-brand-frame','');style.textContent='header[data-brand-heading]{display:grid;grid-template-columns:minmax(0,1fr) 96px;column-gap:12px;align-items:center}header[data-brand-heading]>:not([data-brand-logo]){grid-column:1/-1}header[data-brand-heading]>:first-child{grid-column:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}header[data-brand-heading]>[data-brand-logo]{grid-column:2;grid-row:1;width:96px;height:28px;object-fit:contain;object-position:right center}';root.append(style);}

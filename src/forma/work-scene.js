@@ -1,3 +1,5 @@
+import {comparisonColorKeys} from './comparison-series-rules.js';
+import {networkColorKeys} from './network-series-rules.js';
 import {structuralColorKeys} from './structural-series-rules.js';
 import {businessSeriesColorKeys} from './business-series-rules.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
@@ -34,7 +36,7 @@ export function workColorMap(step,steps){
   const colors=new Map();
   for(const s of relatedSteps(step,steps)){
     const doc=stepMorphDocument(s),rows=doc?.data||[];
-    const keys=['matrix-cell','contingency','hierarchy-tree'].includes(doc?.family)?structuralColorKeys(doc):doc?.family?.startsWith('business-')?businessSeriesColorKeys(doc):['samples','spatial','distribution','frequency-response','statistical-observations','statistical-survival'].includes(doc?.family)
+    const keys=doc?.family?.startsWith('comparison-')?comparisonColorKeys(doc):doc?.family?.startsWith('network-')?networkColorKeys(doc):['matrix-cell','contingency','hierarchy-tree'].includes(doc?.family)?structuralColorKeys(doc):doc?.family?.startsWith('business-')?businessSeriesColorKeys(doc):['samples','spatial','distribution','frequency-response','statistical-observations','statistical-survival'].includes(doc?.family)
       ? [...new Set(rows.map(r=>r.group))].map(group=>populationId(doc.family==='spatial'?'exploratory-group':'sample-group',rows.filter(r=>r.group===group)))
       : doc?.family==='evaluation'?rows.map(r=>entityKey(r,'model')):rows.map(r=>r.parent?entityKey(r,'parent'):r.series?entityKey(r,'series'):r.group||recordId(r));
     for(const key of keys)if(!colors.has(key))colors.set(key,colors.size);

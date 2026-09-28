@@ -1,5 +1,5 @@
 import {uiText,uiMarkup,uiMessage} from './locale.js';
-const properties={referenceMean:uiText('参考模型均值'),referenceSD:uiText('参考模型标准差'),alpha:uiText('显著水平参数'),minExceedances:uiText('最少超额样本数'),bandLabels:uiText('定性区间名称'),maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
+const properties={modelName:uiText('外部分析模型'),groupOrder:uiText('分组比较顺序'),referenceMean:uiText('参考模型均值'),referenceSD:uiText('参考模型标准差'),alpha:uiText('显著水平参数'),minExceedances:uiText('最少超额样本数'),bandLabels:uiText('定性区间名称'),maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
 export function semanticChanges(before,after){
   const display=(doc,key)=>key==='variableUnits'?Object.fromEntries(Object.entries(doc.variableUnits||{}).map(([id,unit])=>[doc.entities?.items.find(v=>v.id===id)?.name||id,unit])):doc[key];
   const changes=Object.entries(properties).flatMap(([key,label])=>JSON.stringify(before[key])===JSON.stringify(after[key])?[]:[{key,label,before:display(before,key),after:display(after,key)}]);
@@ -21,6 +21,22 @@ export function semanticValue(value){
   return String(value);
 }
 export function encodingMeaning(view){
+  if(view==='network-chord')return uiText("无向关系宽度表示权重；端点名称不表示方向");
+  if(view==='network-arc')return uiText("弧宽表示关系权重；弧高仅用于布局");
+  if(view==='network-force')return uiText("连线宽度表示权重，节点距离不代表数值差异");
+  if(view==='flow-sankey')return uiText("流带宽度表示原始流量；中间节点遵守输入的流量守恒");
+  if(view==='flow-chord')return uiText("箭头表示从来源到目标；保留每条有向边");
+  if(view==='flow-cycle')return uiText("循环边和净流入保留；总边权不可当作去重总人数");
+  if(view==='compare-qq')return uiText("比较两组分位数，不将两个独立样本按行配对");
+  if(view==='compare-delta')return uiText("纵轴为两组同概率分位数之差；派生点不是新增样本");
+  if(view==='compare-ecdf')return uiText("第二组 CDF 减第一组 CDF；并列值共同计入");
+  if(view==='compare-rootogram')return uiText("根号尺度比较观测与预期计数；预期值来自输入");
+  if(view==='compare-counts')return uiText("保留原始观测与预期计数，不从图形自动拟合模型");
+  if(view==='compare-worm')return uiText("标准化残差减去理论正态分位数；不自动给出检验结论");
+  if(view==='compare-residual-qq')return uiText("输入的标准化残差对照理论正态分位数");
+  if(view==='compare-spreadlevel')return uiText("分组水平与离散度的对数关系；保留全部原始观测");
+  if(view==='compare-group-intervals')return uiText("展示原始分组观测及分布区间；不是均值置信区间");
+
   if(view?.startsWith('target-'))return uiText('原值和目标保持不变；量程与区间只采用输入值');
   if(view?.startsWith('metric-'))return uiText('各指标使用自己的单位和刻度，不跨单位比较长短');
   if(view?.startsWith('paired-')&&['paired-combo','paired-lines','paired-difference'].includes(view))return uiText('同两条序列与真实时间间距；缺失处不连线或填充');
@@ -86,5 +102,5 @@ export function encodingMeaning(view){
 export function frameMeaning(view,{progress=1,mode,fromView}={}){
   if(mode==='morph'&&progress>0&&progress<1&&fromView==='series-rank'&&view!=='series-rank')return uiText('变形中，请在停稳后读数。由名次返回原值，名次差不表示数值差。');
   const meaning=encodingMeaning(view);
-  return mode==='morph'&&progress>0&&progress<1&&/^(stat|structural|target|metric|paired|eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
+  return mode==='morph'&&progress>0&&progress<1&&/^(network|flow|compare|stat|structural|target|metric|paired|eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
 }

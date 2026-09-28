@@ -18,7 +18,7 @@ const finite=layout=>{for(const m of layout.marks){assert.equal(m.points.length,
 const doc=values=>({...structuredClone(morphExample),data:values.map((value,i)=>({label:`项目${i+1}`,value}))});
 
 test('scenario presets own suitable independent data and remain valid in every step',()=>{
-  assert.equal(scenarioPresets.length,68);
+  assert.equal(scenarioPresets.length,75);
   const data=[];
   for(const p of scenarioPresets){const work=presetWork(p.id);assert.equal(workReport(work).valid,true,p.id);data.push(JSON.stringify(work.steps[0].doc.data));
     for(const step of work.steps)finite(isScientificView(stepView(step))?layoutScientific(scientificDocument(step),stepView(step),380,260):isPairedView(stepView(step))?layoutPaired(relationalDocument(step),stepView(step),380,260):isHierarchyView(stepView(step))?layoutHierarchy(relationalDocument(step),stepView(step),380,260):isSeriesView(stepView(step))?layoutSeries(seriesDocument(step),stepView(step),380,260):layoutMorph(morphDocument(step),stepView(step),380,260));

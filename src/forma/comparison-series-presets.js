@@ -1,0 +1,16 @@
+import {getExample} from './catalog.js';
+import {withRecordIds} from './data-identity.js';
+import {comparisonText as t} from './comparison-series-rules.js';
+const preset=(id,name,en,description,english,note,noteEn,views)=>({id,get name(){return t(name,en);},category:'research',get description(){return t(description,english);},get dataNote(){return t(note,noteEn);},get relation(){return t('同一份完整原表 · 比较坐标连续流转','One complete source table · continuous comparison coordinates');},views});
+export const comparisonPresets=[
+ preset('comparison-distribution-story','两组分布的三种差异','Three comparisons of two distributions','从双样本分位对应展开成分位差，再看阈值累计覆盖差；全部原样本始终保留。','Unfold two-sample quantile correspondence into quantile differences, then cumulative threshold differences, retaining every raw observation.','明确 A/C 组顺序；两组样本量不同，不制造配对；Type 7 分位数与右连续经验分布只作描述。','Declare A/C order. Unequal sample sizes remain independent, without invented pairs. Type 7 quantiles and right-continuous empirical CDFs are descriptive.',['compare-qq','compare-delta','compare-ecdf']),
+ preset('comparison-count-model','模型期望与频数失配','Model expectations and count discrepancies','同一批计数从观察／期望端点连续变形成悬挂根图，突显零值与尾部失配。','The same count bins morph from observed/expected endpoints into a hanging rootogram, exposing zero-count and tail discrepancies.','期望来自明确的外部合成模型；不在图内拟合，空心表示期望，实心表示观察。','Expectations come from a declared external synthetic model. No fitting occurs in the chart. Hollow means expected; filled means observed.',['compare-counts','compare-rootogram']),
+ preset('comparison-residual-diagnostic','残差分位与去趋势诊断','Residual quantiles and detrended diagnostics','四组标准残差先对照固定标准正态分位，再移除理论分位趋势以观察偏差。','Four standardized-residual strata compare with fixed standard-normal quantiles, then remove that trend to reveal deviations.','直接使用外部标准残差；不把原始测量当残差，不自动拟合参考分布，不添加未计算的置信包络。','Use external standardized residuals directly. Never treat raw measurements as residuals, refit the reference or add uncomputed confidence envelopes.',['compare-residual-qq','compare-worm']),
+ preset('comparison-spread-story','原始分布与离散度水平','Raw distributions and spread versus level','各组原始点、中位数与四分位距展开为双对数组摘要，原样本留在独立短线带核查。','Grouped raw points, medians and IQRs unfold into log–log group summaries; every observation remains in a separate raw-value strip.','正原值计算 Type 7 中位数和 IQR；OLS 只描述组摘要关系，区间不是均值置信区间。','Positive originals define Type 7 medians and IQRs. OLS only describes group summaries; intervals are not confidence intervals for means.',['compare-group-intervals','compare-spreadlevel'])
+];
+export function comparisonRecords(id,palette='ink'){
+ const preset=comparisonPresets.find(p=>p.id===id);if(!preset)return null;
+ const template={'comparison-distribution-story':'qqcompare','comparison-count-model':'rootogram','comparison-residual-diagnostic':'worm','comparison-spread-story':'spreadlevel'}[id],source=getExample(template);
+ source.title=preset.name;source.subtitle=preset.relation;source.source={name:t('FORMA 比较场景 · 合成数据','FORMA comparison scenario · synthetic data'),type:'demo'};
+ const doc=withRecordIds(source,{legacyNamespace:'scenario:'+id});return preset.views.map(view=>({doc:structuredClone(doc),view,dataGroup:'scenario:'+id,relation:'auto',scale:'shared',options:{palette}}));
+}

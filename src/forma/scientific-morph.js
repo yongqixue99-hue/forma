@@ -1,3 +1,7 @@
+import {layoutComparison} from './comparison-series-morph.js';
+import {isComparisonView} from './comparison-series-rules.js';
+import {layoutNetwork,interpolateNetworkMark} from './network-series-morph.js';
+import {isNetworkView} from './network-series-rules.js';
 import {layoutBusinessSeries} from './business-series-morph.js';
 import {isBusinessSeriesView} from './business-series-rules.js';
 import {layoutStructural} from './structural-series-morph.js';
@@ -134,6 +138,8 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
     return layout;
   }
   const eligible=scientificEligibility(doc,view);if(!eligible.valid)throw new Error(eligible.reason);
+  if(isNetworkView(view))return layoutNetwork(doc,view,w,h,options);
+  if(isComparisonView(view))return layoutComparison(doc,view,w,h,options);
   if(isStatisticalView(view))return layoutStatistical(doc,view,w,h,options);
   if(isStructuralView(view))return layoutStructural(doc,view,w,h,options);
   if(isBusinessSeriesView(view))return layoutBusinessSeries(doc,view,w,h,options);
@@ -216,6 +222,7 @@ export class ScientificMorphChart extends MorphChart{
   }
   interpolateMark(old,next,q,{effect,from}={}){
     if(!old)return null;
+    if(effect==='guided'){const network=interpolateNetworkMark(from||old.points,old,next,q);if(network)return network;}
     const serial=interpolateSerialMark(from||old.points,old,next,q);if(serial)return serial;
     if(effect==='guided'){const process=interpolateProcessMark(from||old.points,old,next,q);if(process)return process;}
     if(effect==='guided'){const matrix=interpolateMatrixCell(from||old.points,old,next,q);if(matrix)return matrix;}
@@ -242,6 +249,7 @@ export class ScientificMorphChart extends MorphChart{
     return interpolateDensityContour(start,end,q);
   }
   interpolateResumedMark(points,mark,q,{old}={}){
+    const network=interpolateNetworkMark(points,old,mark,q);if(network)return network;
     const serial=interpolateSerialMark(points,old,mark,q);if(serial)return serial;
     const process=interpolateProcessMark(points,old,mark,q);if(process)return process;
     const matrix=interpolateMatrixCell(points,old,mark,q);if(matrix)return matrix;

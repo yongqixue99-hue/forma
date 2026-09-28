@@ -32,10 +32,18 @@ function migrateSeriesBindings(options,original,identified){
   return {...options,colorBindings:options.colorBindings.map(b=>({...b,id:ids.get(b.id)||b.id}))};
 }
 
+// Persist the initial comparison direction before table sorting can reorder groups.
+// Existing declarations are user metadata and must never be silently replaced.
+function identifyWorkDocument(doc,options){
+  const identified=withRecordIds(doc,options),family=scientificFamily(scientificViewMap[doc.template]);
+  if(family?.startsWith('comparison-')&&family!=='comparison-counts'&&identified.groupOrder===undefined)identified.groupOrder=[...new Set(identified.data.map(r=>r.group))];
+  return identified;
+}
+
 // A step owns its full chart document. Source charts and other steps are never
 // mutated when that step is edited, even when they started with the same data.
 export function makeStep(record,overrides={}){
-  const identified=withRecordIds(record.doc,{legacyNamespace:record.dataGroup});
+  const identified=identifyWorkDocument(record.doc,{legacyNamespace:record.dataGroup});
   return {id:uuid(),dataGroup:record.dataGroup||uuid(),relation:record.relation||'auto',scale:record.scale||'shared',doc:identified,options:migrateSeriesBindings({palette:'ink',ratio:'wide',duration:8,...clone(record.options||{})},record.doc,identified),
     ...(record.draft?{draft:clone(record.draft)}:{}),...(record.view?{view:record.view}:{}),transition:record.transition||'auto',duration:record.duration||1500,hold:record.hold||2200,...overrides};
 }
@@ -168,7 +176,7 @@ export function cleanWork(value){
     if(s.dataGroup!==undefined&&(typeof s.dataGroup!=='string'||!/^[a-zA-Z0-9:_-]{1,100}$/.test(s.dataGroup)))throw new Error(uiText('数据组标识无效。'));
     if(s.relation!==undefined&&!['auto','related','separate'].includes(s.relation))throw new Error(uiText('数据关系无效。'));
     if(s.scale!==undefined&&!['shared','step'].includes(s.scale))throw new Error(uiText('刻度设置无效。'));
-    const identified=withRecordIds(s.doc,{legacyNamespace:s.dataGroup||`legacy:${value.id}`}),options=removeLegacyPublicNotes(s.doc,migrateSeriesBindings(cleanOptions(s.options),s.doc,identified));
+    const identified=identifyWorkDocument(s.doc,{legacyNamespace:s.dataGroup||`legacy:${value.id}`}),options=removeLegacyPublicNotes(s.doc,migrateSeriesBindings(cleanOptions(s.options),s.doc,identified));
     const result={id:s.id,dataGroup:s.dataGroup||`legacy:${value.id.slice(0,88)}`,relation:s.relation||'auto',scale:s.scale||'shared',doc:identified,options,transition:s.transition,duration:s.duration,hold:s.hold,...(s.view?{view:s.view}:{})};
     if(s.draft)result.draft=createEditorModel(result.doc,s.draft).snapshot;
     return result;

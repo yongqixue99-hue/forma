@@ -27,6 +27,38 @@ function safeDraft(draft,doc){
     draft.cells.every(row=>Array.isArray(row)&&row.length===findTemplate(doc.template).fields.length&&row.every(v=>typeof v==='string'&&v.length<=2000000));
 }
 
+// Group names are labels; the saved comparison direction belongs to populations.
+// Keep membership only in draft/history snapshots so a multi-cell rename can
+// finish after an invalid intermediate state, undo/redo, or session recovery.
+function groupOrderMembers(snapshot,column){
+  const order=snapshot.meta.groupOrder;if(column<0||!Array.isArray(order)||!order.length||new Set(order).size!==order.length)return null;
+  const groups=new Map(order.map(name=>[name,[]])),ids=[];
+  for(const [i,row]of snapshot.cells.entries()){
+    const name=String(row[column]??'').trim(),id=snapshot.rowMeta?.[i]?._id;if(!groups.has(name)||typeof id!=='string'||!id)return null;
+    groups.get(name).push(id);ids.push(id);
+  }
+  if(new Set(ids).size!==ids.length||[...groups.values()].some(rows=>!rows.length))return null;
+  return [...groups.values()].map(rows=>rows.sort());
+}
+function reconcileGroupOrder(current,next,column,original){
+  if(column<0||!Array.isArray(next.meta.groupOrder)){delete next.groupOrderMembers;return;}
+  const sameOrder=JSON.stringify(current.meta.groupOrder)===JSON.stringify(next.meta.groupOrder);
+  let members;
+  if(sameOrder){
+    members=groupOrderMembers(current,column)||current.groupOrderMembers||(JSON.stringify(original.meta.groupOrder)===JSON.stringify(current.meta.groupOrder)?groupOrderMembers(original,column):null);
+    if(!Array.isArray(members)||members.length!==next.meta.groupOrder.length||members.some(rows=>!Array.isArray(rows)||!rows.length||rows.some(id=>typeof id!=='string'))||new Set(members.flat()).size!==members.flat().length)members=null;
+    if(members){
+      const names=new Map(next.cells.map((row,i)=>[next.rowMeta[i]._id,String(row[column]??'').trim()])),ids=members.flat();
+      if(names.size===next.cells.length&&ids.length===names.size&&ids.every(id=>names.has(id))){
+        const renamed=members.map(rows=>[...new Set(rows.map(id=>names.get(id)))]);
+        if(renamed.every(values=>values.length===1&&values[0])&&new Set(renamed.map(values=>values[0])).size===renamed.length)next.meta.groupOrder=renamed.map(values=>values[0]);
+      }
+    }
+  }
+  const complete=groupOrderMembers(next,column);
+  if(complete)next.groupOrderMembers=complete;else if(members)next.groupOrderMembers=members;else delete next.groupOrderMembers;
+}
+
 /** A draft may be incomplete. Only validated documents become renderable/exportable. */
 export function createEditorModel(original, draft, {viewValidation,session}={}) {
   let lastValid=withEditorAxes(withRecordIds(original));
@@ -34,7 +66,7 @@ export function createEditorModel(original, draft, {viewValidation,session}={}) 
   const initial=safeDraft(draft,lastValid)?structuredClone(draft):snapshotOf(lastValid);
   if(lastValid.entities&&!initial.meta.entities)initial.meta.entities=structuredClone(lastValid.entities);
   if(lastValid.template==='splom')for(const key of ['sampleEntities','selectedPair','variableUnits'])if(lastValid[key]!==undefined&&initial.meta[key]===undefined)initial.meta[key]=structuredClone(lastValid[key]);
-  const originalRowMeta=snapshotOf(lastValid).rowMeta;
+  const originalSnapshot=snapshotOf(lastValid),originalRowMeta=originalSnapshot.rowMeta,groupColumn=findTemplate(original.template).fields.findIndex(field=>field[0]==='group');
   initial.rowMeta=initial.cells.map((_,i)=>initial.rowMeta?.[i]||originalRowMeta[i]||{_id:newRecordId()});
   bindEntitySnapshot(initial,findTemplate(original.template).fields);
   const initialIds=initial.rowMeta.map(row=>row?._id);
@@ -63,6 +95,7 @@ export function createEditorModel(original, draft, {viewValidation,session}={}) 
     if(userData&&next.meta.source.type==='public'){next.meta.source={...next.meta.source,type:'user'};next.meta.provenance={...next.meta.provenance,origin:'public',partialEdit:true};}
     next.rowMeta=next.cells.map((_,i)=>next.rowMeta?.[i]||{_id:newRecordId()});
     bindEntitySnapshot(next,findTemplate(original.template).fields);
+    reconcileGroupOrder(current,next,groupColumn,originalSnapshot);
     history.set(next);current=history.value;return review();
   }
   review();

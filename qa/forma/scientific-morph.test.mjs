@@ -21,7 +21,7 @@ function caseWork(family){
 }
 
 test('sixty-six native templates map their full schemas; all ninety-four encodings round-trip without dropping metadata',()=>{
-  assert.equal(Object.keys(scientificViewMap).length,66);assert.equal(scientificViews.length,94);scientificViews.forEach(v=>assert.equal(viewName(v.id),v.name));
+  assert.equal(Object.keys(scientificViewMap).length,78);assert.equal(scientificViews.length,109);scientificViews.forEach(v=>assert.equal(viewName(v.id),v.name));
   for(const template of Object.keys(scientificViewMap)){
     const doc=getExample(template),s=makeStep({doc}),d=scientificDocument(s);assert.equal(morphReady(s),true,template);assert.equal(d.data.length,doc.data.length);for(const [field,value]of Object.entries(doc))assert.deepEqual(payload(s.doc[field]),payload(value),template+': '+field);d.data.forEach((r,i)=>assert.equal(r.inputIndex??r.row,i));
     finite(layoutScientific(d,stepView(s),800,410));finite(layoutScientific(d,stepView(s),300,240));

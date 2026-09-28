@@ -16,6 +16,9 @@ import {morphDocument,stepMorphDocument,morphReady,stepView,transitionPlan,workR
 import {stepName,stepIcon,createStepScene,workColorMap} from './work-scene.js';
 export {stepName,stepIcon,createStepScene} from './work-scene.js';
 
+// Avoid rebuilding accessible headings and controls at animation-frame frequency.
+function updateText(node,value){const text=String(value??'');if(node.textContent!==text)node.textContent=text;}
+
 /** One stage owns one visible chart. Matched data use persistent contour nodes;
  * unrelated documents meet only at the collapsed midpoint. */
 export class WorkStage{
@@ -23,7 +26,8 @@ export class WorkStage{
     this.host=host;this.win=host.ownerDocument.defaultView;this.onComplete=onComplete;this.onPhase=onPhase;this.token=0;this.frame=null;this.step=step;this.steps=steps;this.colorGroups=new Map();
     this.media=this.win.matchMedia?.('(prefers-reduced-motion: reduce)');
     host.innerHTML=uiText('<article class="wp-artboard"><header><span data-wp-type></span><h2 data-wp-title></h2><p data-wp-subtitle></p><p data-wp-meaning role="note"></p></header><div class="wp-graphic"></div><div class="wp-data-legend"></div><footer><span data-wp-source></span><span>数相 / FORMA</span></footer></article>');
-    this.root=host.querySelector('.wp-artboard');this.graphic=host.querySelector('.wp-graphic');this.draw(step);
+    this.root=host.querySelector('.wp-artboard');this.graphic=host.querySelector('.wp-graphic');
+    this.headerNodes=Object.fromEntries(['type','title','subtitle','source','meaning'].map(key=>[key,this.root.querySelector(`[data-wp-${key}]`)]));this.headerNodes.legend=this.root.querySelector('.wp-data-legend');this.draw(step);
     this.resize=new this.win.ResizeObserver(()=>{if(this.timelineAt)this.seek(this.timelineAt);else if(!this.busy)this.draw(this.step);});this.resize.observe(this.graphic);
     this.reduce=()=>{if(this.media.matches&&this.busy){this.stop();this.draw(this.step);this.onComplete(this.step.id);}};this.media?.addEventListener('change',this.reduce);
   }
@@ -36,17 +40,21 @@ export class WorkStage{
     return this.colorGroups.get(key);
   }
   header(step,frame){
+    const {type,title,subtitle,source,meaning:note,legend}=this.headerNodes;
     const t=themeFor(step.options.palette,step.options.dark,step.options.colors);
-    for(const [key,value]of Object.entries({'--wp-paper':t.bg,'--wp-ink':t.fg,'--wp-muted':t.secondary,'--wp-line':t.line}))this.root.style.setProperty(key,value);
-    this.root.querySelector('[data-wp-type]').textContent=stepName(step);
-    this.root.querySelector('[data-wp-title]').textContent=step.doc.title;
-    this.root.querySelector('[data-wp-subtitle]').textContent=step.doc.subtitle||'';
-    this.root.querySelector('[data-wp-source]').textContent=step.doc.source.name;
-    const meaning=frameMeaning(stepView(step),frame),note=this.root.querySelector('[data-wp-meaning]');note.textContent=meaning;note.hidden=!meaning;
-    const candidate=morphReady(step)&&!isSeriesView(stepView(step))?morphDocument(step):null,doc=candidate?.data.length<=12?candidate:null,legend=this.root.querySelector('.wp-data-legend');legend.hidden=!doc;
+    for(const [key,value]of Object.entries({'--wp-paper':t.bg,'--wp-ink':t.fg,'--wp-muted':t.secondary,'--wp-line':t.line}))if(this.root.style.getPropertyValue(key)!==value)this.root.style.setProperty(key,value);
+    updateText(type,stepName(step));
+    updateText(title,step.doc.title);
+    updateText(subtitle,step.doc.subtitle||'');
+    updateText(source,step.doc.source.name);
+    const meaning=frameMeaning(stepView(step),frame);updateText(note,meaning);if(note.hidden!==!meaning)note.hidden=!meaning;
+    // This compact legend represents at most 12 scalar values. Reject other
+    // shapes before their scientific adapters validate/clone entire datasets.
+    const candidate=step.doc.data.length<=12&&!isSeriesView(stepView(step))?morphDocument(step):null,doc=candidate&&morphReady(step)?candidate:null;if(legend.hidden!==!doc)legend.hidden=!doc;
     applyFrameBrand(this.root,step.options);applyChartBrand(this.scene?.svg,step.options);
-    const colors=this.colorMap(step);
-    legend.innerHTML=doc?doc.data.map((r,i)=>`<span><i style="background:${resolveBoundColor(step.options,recordId(r),t.colors[(colors.get(recordId(r))??i)%t.colors.length])}"></i><span title="${esc(r.label)}">${esc(r.label)}</span><b>${format(r.value)}</b></span>`).join(''):'';
+    const colors=doc?this.colorMap(step):null;
+    const markup=doc?doc.data.map((r,i)=>`<span><i style="background:${resolveBoundColor(step.options,recordId(r),t.colors[(colors.get(recordId(r))??i)%t.colors.length])}"></i><span title="${esc(r.label)}">${esc(r.label)}</span><b>${format(r.value)}</b></span>`).join(''):'';
+    if(this.legendMarkup!==markup){legend.innerHTML=markup;this.legendMarkup=markup;}
   }
   draw(step,{progress=1}={}){
     this.timelineRenderer?.destroy();this.timelineRenderer=null;this.timelineAt=null;
@@ -105,7 +113,7 @@ export class WorkStage{
 
 export function mountWorkPlayer(host,value,{onStep=()=>{},onFrame=()=>{},showSteps=true,playbackRate=1,editableTiming=false,onTimingChange=()=>{}}={}){
   let timeline=workTimeline(value);const work=timeline.work;
-  let current=work.steps.find(s=>s.id===work.activeStep)||work.steps[0],time=0,running=false,automatic=false,raf=null,lastTick=null,disposed=false,manualFrame=null,pairTimer=null,displayFrame=null;
+  let current=work.steps.find(s=>s.id===work.activeStep)||work.steps[0],time=0,running=false,automatic=false,raf=null,lastTick=null,disposed=false,manualFrame=null,pairTimer=null,displayFrame=null,playMarkup=null;
   const rates=[.5,1,2,3];let rate=rates.includes(playbackRate)?playbackRate:1;
   const win=host.ownerDocument.defaultView,events=new win.AbortController(),media=win.matchMedia?.('(prefers-reduced-motion: reduce)');
   host.innerHTML=uiMarkup`<section class="wp-player"><div data-wp-stage></div>${showSteps?uiText('<div class="wp-step-strip" role="group" aria-label="点击预览步骤"></div>'):''}<footer class="wp-controls"><div class="wp-clock"><button data-wp-play aria-label="自动播放全部步骤"></button><time data-wp-time></time><div class="wp-scrubber"><div class="wp-segments" aria-hidden="true">${timeline.segments.map(s=>`<i style="flex:${s.end-s.start}"><b style="width:${s.duration/(s.end-s.start)*100}%"></b></i>`).join('')}</div><input type="range" data-wp-seek min="0" max="${timeline.duration}" step="10" value="0" aria-label="整段作品时间轴"></div><time data-wp-duration>${timelineTime(timeline.duration)}</time><button data-wp-restart title="从头播放所有步骤与过渡" aria-label="从头播放所有步骤与过渡"><span aria-hidden="true">↺</span><span>播放全部</span></button></div><div class="wp-clock-caption"><span data-wp-position></span><span data-wp-status role="status"></span><span class="wp-clock-hint">拖动查看 · 从此处播放</span></div></footer></section>`;
@@ -151,12 +159,13 @@ export function mountWorkPlayer(host,value,{onStep=()=>{},onFrame=()=>{},showSte
   function stop(){running=false;automatic=false;win.cancelAnimationFrame(raf);win.clearTimeout(pairTimer);raf=null;lastTick=null;status();}
   function status(){
     if(disposed)return;
-    $('[data-wp-play]').innerHTML=`<span class="wp-play-symbol">${running?'Ⅱ':'▷'}</span><span>${running?uiText('暂停'):uiText('播放')}</span>`;
+    const nextPlayMarkup=`<span class="wp-play-symbol">${running?'Ⅱ':'▷'}</span><span>${running?uiText('暂停'):uiText('播放')}</span>`;
+    if(playMarkup!==nextPlayMarkup){$('[data-wp-play]').innerHTML=nextPlayMarkup;playMarkup=nextPlayMarkup;}
     $('[data-wp-play]').setAttribute('aria-pressed',String(running));$('[data-wp-play]').setAttribute('aria-label',running?uiText('暂停播放'):uiText('从当前位置播放全部步骤'));$('[data-wp-play]').disabled=!!media?.matches;$('[data-wp-restart]').disabled=!!media?.matches;
-    $('[data-wp-position]').textContent=`${String(work.steps.findIndex(s=>s.id===current.id)+1).padStart(2,'0')} / ${String(work.steps.length).padStart(2,'0')}`;
+    updateText($('[data-wp-position]'),`${String(work.steps.findIndex(s=>s.id===current.id)+1).padStart(2,'0')} / ${String(work.steps.length).padStart(2,'0')}`);
     const f=displayFrame||timelineFrame(timeline,time),phase=f.progress===1?uiText('停留'):f.from?(f.plan.mode==='morph'?uiText('连续形变'):uiText('图表入场')):uiText('图表入场');
-    $('[data-wp-status]').textContent=media?.matches?uiText('已开启减少动态效果'):`${stepName(current)} · ${phase}`;
-    $('[data-wp-time]').textContent=timelineTime(time);$('[data-wp-seek]').value=String(time);
+    updateText($('[data-wp-status]'),media?.matches?uiText('已开启减少动态效果'):`${stepName(current)} · ${phase}`);
+    updateText($('[data-wp-time]'),timelineTime(time));$('[data-wp-seek]').value=String(time);
     $('[data-wp-seek]').setAttribute('aria-valuetext',uiMessage`${timelineTime(time)}，第 ${work.steps.findIndex(s=>s.id===current.id)+1} 步，${stepName(current)}`);
     host.querySelectorAll('[data-wp-step]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wpStep===current.id)));
   }

@@ -1,3 +1,5 @@
+import {comparisonPresets,comparisonRecords} from './comparison-series-presets.js';
+import {networkPresets,networkRecords} from './network-series-presets.js';
 import {businessSeriesPresets,businessSeriesRecords} from './business-series-presets.js';
 import {structuralPresets,structuralRecords} from './structural-series-presets.js';
 import {statisticalPresets,statisticalRecords} from './statistical-series-presets.js';
@@ -18,6 +20,8 @@ import {refinementPresets,refinementRecords} from './refinement-presets.js';
 
 export const scenarioPresets=[
   ...analyticalPresets.filter(p=>p.id==='screening-effectiveness'),
+  ...networkPresets,
+  ...comparisonPresets,
   ...statisticalPresets,
   ...structuralPresets,
   ...businessSeriesPresets,
@@ -62,6 +66,8 @@ export function morphBaseDocument(doc){
 export function scenarioRecords(id,palette){
   const publicRecords=publicCaseRecords(id,palette);if(publicRecords)return publicRecords;
   palette??='ink';
+  const network=networkRecords(id,palette);if(network)return network;
+  const comparison=comparisonRecords(id,palette);if(comparison)return comparison;
   const statistical=statisticalRecords(id,palette);if(statistical)return statistical;
   const structural=structuralRecords(id,palette);if(structural)return structural;
   const businessSeries=businessSeriesRecords(id,palette);if(businessSeries)return businessSeries;

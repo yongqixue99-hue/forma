@@ -180,6 +180,23 @@ Object.assign(icons,{
  "paired-difference": "<path d=\"M3 2v18h19M4 14l6-9 6 6 6-8M4 6l6 8 6-9 6 9\"/>",
  "paired-lines": "<path d=\"M3 2v18h19M4 16l6-7 6 3 6-8M4 10l6 4 6-8 6 3\"/>"
 });
+Object.assign(icons,{
+ "network-chord": "<path d=\"M12 2a9 9 0 1 0 0 18 9 9 0 0 0 0-18M5 5q3 9 14 11M4 14Q15 15 16 3M6 18Q12 9 20 9\"/>",
+ "network-arc": "<path d=\"M3 18h18M4 18a8 12 0 0 1 16 0M4 18a4 7 0 0 1 8 0M12 18a4 6 0 0 1 8 0\"/>",
+ "network-force": "<path d=\"M5 4 12 10l8-5M12 10l-8 8m8-8 7 8M4 18l15 0M5 4l-1 14M19 18l1-13\"/>",
+ "flow-sankey": "<path d=\"M3 2v18M21 2v18M3 5c8 0 8 10 18 10M3 10c8 0 8-5 18-5M3 17c8 0 8-8 18-8\"/>",
+ "flow-chord": "<path d=\"M12 2a9 9 0 1 0 0 18 9 9 0 0 0 0-18M5 5q4 8 13 10m-5 0h5v-5M5 15q9 1 11-11m-4 2 4-2 1 5\"/>",
+ "flow-cycle": "<path d=\"M3 4h6v5H3zM16 4h6v5h-6zM9 15h6v5H9zM9 6h7m-3-2 3 2-3 2M19 9v8h-4M9 17H5V9\"/>",
+ "compare-qq": "<path d=\"M3 2v18h19M4 19 21 3M7 16h.1M11 11h.1M14 8h.1M18 6h.1\"/>",
+ "compare-delta": "<path d=\"M3 2v18h19M3 12h19M5 15l5-4 5 2 6-8\"/>",
+ "compare-ecdf": "<path d=\"M3 2v18h19M3 18h4v-5h5v-5h5V3h5M3 18h7v-3h4v-4h6V5h2\"/>",
+ "compare-rootogram": "<path d=\"M3 11h19M4 5h4v9H4zM10 2h4v14h-4zM16 6h4v7h-4zM4 5Q12-1 20 6\"/>",
+ "compare-counts": "<path d=\"M3 2v18h19M5 20V9h3v11m3 0V4h3v16m3 0V8h3v12M4 12l8-9 9 7\"/>",
+ "compare-worm": "<path d=\"M3 2v18h19M3 11h19M4 16q5-11 9-5t8-7\"/>",
+ "compare-residual-qq": "<path d=\"M3 2v18h19M4 18 21 3M6 17h.1M10 12h.1M16 8h.1M20 6h.1\"/>",
+ "compare-spreadlevel": "<path d=\"M3 2v18h19M5 17l5-5 5-1 6-7M7 16h.1M12 10h.1M18 8h.1\"/>",
+ "compare-group-intervals": "<path d=\"M3 2v18h19M7 7v10m-2-10h4m-4 10h4M14 4v9m-2-9h4m-4 9h4M20 8v10m-2-10h4m-4 10h4\"/>"
+});
 export const viewIcon=id=>`<svg viewBox="0 0 24 22" width="23" height="21" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[id]||''}</svg>`;
 const playIcon='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="m7 4 9 6-9 6Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
 const stopIcon='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M6 4v12m8-12v12" stroke="currentColor" stroke-width="1.5"/></svg>';

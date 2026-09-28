@@ -57,7 +57,7 @@ function venn(s,doc){
 }
 function sankeycycle(s,doc){
  const graph=cyclicFlow13(doc.data,{width:s.w,height:s.h,compact:s.compact}),flows=s.group();
- graph.links.forEach(l=>{const sx=l.source.x+l.source.width,tx=l.target.x,sy=l.y0,ty=l.y1,c=s.theme.groupColor?.(l.source.name,cat(s,l.source.index))||cat(s,l.source.index),bend=s.compact?12:18;
+ graph.links.forEach(l=>{const sx=l.source.x+l.source.width,tx=l.target.x,sy=l.y0,ty=l.y1,c=s.theme.objectColor(l.row,s.theme.groupColor?.(l.source.name,cat(s,l.source.index))||cat(s,l.source.index)),bend=s.compact?12:18;
   const d=l.returning?`M${sx},${sy}C${sx+bend},${sy} ${sx+bend},${l.lane} ${sx},${l.lane}H${tx}C${tx-bend},${l.lane} ${tx-bend},${ty} ${tx},${ty}`:`M${sx},${sy}C${(sx+tx)/2},${sy} ${(sx+tx)/2},${ty} ${tx},${ty}`;
   const p=s.path(d,{stroke:c,'stroke-width':l.width,'stroke-opacity':.43,'stroke-linecap':'butt','data-mark':'cycle-link','data-source':l.row.source,'data-target':l.row.target,'data-value':l.row.value,'data-return':l.returning},flows);s.draw(p,l.index/doc.data.length*.16,.66);s.edit(p,l.row,'value');s.tip(p,`${l.row.source} → ${l.row.target}\n${l.row.value} ${doc.unit}${l.returning?'\n'+t13('回流通道','Return channel'):''}`);
   // Direction markers remain legible independently of quantitative link width.

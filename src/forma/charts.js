@@ -162,7 +162,7 @@ function alluvial(s,doc){
   const colors=new Map(names.map((name,i)=>[name,t.colors[i%t.colors.length]]));
   const linkPath=sankeyLinkHorizontal();const flows=s.group();
   graph.links.forEach((l,i)=>{
-    const color=colors.get(l.source.name),path=linkPath(l);
+    const color=t.objectColor(l,colors.get(l.source.name)),path=linkPath(l);
     const base=s.path(path,{stroke:color,'stroke-width':Math.max(.5,l.width),'stroke-opacity':.085,fill:'none'},flows);s.tip(base,`${l.source.name} → ${l.target.name}\n${fmt(l.value)} ${doc.unit}`);
     const strands=Math.max(2,Math.ceil(l.width/3.7));
     for(let j=0;j<strands;j++){const offset=(j+.5)/strands*l.width-l.width/2,mid=(l.source.x1+l.target.x0)/2; s.path(`M${l.source.x1},${l.y0+offset} C${mid},${l.y0+offset} ${mid},${l.y1+offset} ${l.target.x0},${l.y1+offset}`,{stroke:color,'stroke-width':.45,'stroke-opacity':.38},flows);}
@@ -314,7 +314,7 @@ function chord(s,doc){
   const chords=d3.chord().padAngle(.075).sortSubgroups(d3.descending)(matrix),arc=d3.arc().innerRadius(radius).outerRadius(radius+3),ribbon=d3.ribbon().radius(radius-4),g=s.group({transform:`translate(${cx},${cy})`});
   const maxEdge=d3.max(chords,c=>c.source.value),maxNode=d3.max(chords.groups,c=>c.value),tick=d3.tickStep(0,maxNode,5),rr=radius-4;
   chords.forEach((c,i)=>{
-    const col=c.source.value===maxEdge?t.accent:t.fg,path=s.path(ribbon(c),{fill:col,'fill-opacity':.025,stroke:col,'stroke-width':.45,'stroke-opacity':.35},g);
+    const row=doc.data.find(row=>[row.source,row.target].includes(names[c.source.index])&&[row.source,row.target].includes(names[c.target.index])),col=t.objectColor(row,c.source.value===maxEdge?t.accent:t.fg),path=s.path(ribbon(c),{fill:col,'fill-opacity':.025,stroke:col,'stroke-width':.45,'stroke-opacity':.35},g);
     s.tip(path,`${names[c.source.index]} ↔ ${names[c.target.index]}\n${fmt(c.source.value)} ${doc.unit}`);s.reveal(path,.12+i/chords.length*.28,.32);
     const count=Math.max(2,Math.min(26,Math.ceil((c.source.endAngle-c.source.startAngle)*rr/(s.compact?3.5:3))));
     for(let j=0;j<count;j++){const f=(j+.5)/count,a=c.source.startAngle+(c.source.endAngle-c.source.startAngle)*f,b=c.target.endAngle-(c.target.endAngle-c.target.startAngle)*f,line=s.path(`M${Math.sin(a)*rr},${-Math.cos(a)*rr} Q0,0 ${Math.sin(b)*rr},${-Math.cos(b)*rr}`,{stroke:col,'stroke-width':.45,'stroke-opacity':c.source.value===maxEdge?.72:.38,'pointer-events':'none'},g);s.draw(line,.12+i/chords.length*.28+j/count*.08,.4);}

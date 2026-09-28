@@ -3788,5 +3788,22 @@
   "对角方块与边际比较一致性，完整表保留非对角计数": "Diagonal squares and margins compare agreement; the full table retains off-diagonal counts",
   "仅叶圆面积表示叶值，父圆是包络": "Only leaf-circle areas encode leaf values; parent circles are enclosures",
   "连线表示父子关系，角度与枝长仅用于布局": "Links encode parenthood; angles and edge lengths serve layout only",
-  "父级是叶值汇总，父子合计不可重复相加": "Parent totals summarize leaves; parent and child totals must not be added again"
+  "父级是叶值汇总，父子合计不可重复相加": "Parent totals summarize leaves; parent and child totals must not be added again",
+  "无向关系宽度表示权重；端点名称不表示方向": "Undirected ribbon widths encode weights; endpoint names do not imply direction.",
+  "弧宽表示关系权重；弧高仅用于布局": "Arc widths encode relationship weights; arc heights are layout only.",
+  "连线宽度表示权重，节点距离不代表数值差异": "Link widths encode weights; distances between nodes are not numerical differences.",
+  "流带宽度表示原始流量；中间节点遵守输入的流量守恒": "Ribbon widths encode original flow; intermediate nodes retain the supplied flow conservation.",
+  "箭头表示从来源到目标；保留每条有向边": "Arrows point from source to target; each directed edge remains intact.",
+  "循环边和净流入保留；总边权不可当作去重总人数": "Cycles and net inflows remain; total edge weight is not a count of unique people.",
+  "比较两组分位数，不将两个独立样本按行配对": "Compares group quantiles without pairing independent observations by row.",
+  "纵轴为两组同概率分位数之差；派生点不是新增样本": "The vertical axis is the difference at matching probabilities; derived points are not additional observations.",
+  "根号尺度比较观测与预期计数；预期值来自输入": "Observed and expected counts on a square-root scale; expected counts are supplied.",
+  "保留原始观测与预期计数，不从图形自动拟合模型": "Retains observed and expected counts without automatically fitting a model.",
+  "标准化残差减去理论正态分位数；不自动给出检验结论": "Standardized residuals minus theoretical normal quantiles; no automatic test conclusion.",
+  "输入的标准化残差对照理论正态分位数": "Supplied standardized residuals versus theoretical normal quantiles.",
+  "分组水平与离散度的对数关系；保留全部原始观测": "Log relationship of group location and spread; all original observations remain.",
+  "展示原始分组观测及分布区间；不是均值置信区间": "Shows original grouped observations and distribution intervals, not mean confidence intervals.",
+  "外部分析模型": "External analysis model",
+  "分组比较顺序": "Group comparison order",
+  "第二组 CDF 减第一组 CDF；并列值共同计入": "Second-group CDF minus first-group CDF, including all tied values."
 }

@@ -182,7 +182,7 @@ function arc(s,doc){
   const{w,h,theme:t}=s,names=uniq(doc.data.flatMap(d=>[d.source,d.target])),left=23,right=w-23,base=h-49,top=29,x=d3.scalePoint(names,[left,right]),max=d3.max(doc.data,d=>d.value),maxGap=Math.max(...doc.data.map(d=>Math.abs(names.indexOf(d.source)-names.indexOf(d.target))));
   const links=[...doc.data].sort((a,b)=>Math.abs(names.indexOf(b.source)-names.indexOf(b.target))-Math.abs(names.indexOf(a.source)-names.indexOf(a.target)));
   links.forEach((d,i)=>{
-    const a=x(d.source),b=x(d.target),distance=Math.abs(names.indexOf(d.source)-names.indexOf(d.target)),height=(base-top)*distance/maxGap,color=d.value===max?t.accent:t.color(0);
+    const a=x(d.source),b=x(d.target),distance=Math.abs(names.indexOf(d.source)-names.indexOf(d.target)),height=(base-top)*distance/maxGap,color=t.objectColor(d,d.value===max?t.accent:t.color(0));
     const curve=`M${a},${base} C${a},${base-height*1.33} ${b},${base-height*1.33} ${b},${base}`;
     const path=s.path(curve,{stroke:color,'stroke-width':d.value/max*(s.compact?2.4:3.8),'stroke-opacity':d.value===max?.9:.4,'stroke-linecap':'round'});s.tip(path,`${d.source} ↔ ${d.target}\n${fmt(d.value)} ${doc.unit}`);s.draw(path,i/links.length*.3,.47);
   });

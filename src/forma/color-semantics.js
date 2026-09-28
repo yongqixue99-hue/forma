@@ -1,3 +1,4 @@
+import {networkColorSubjects,networkViewMap} from './network-series-rules.js';
 import {interpolateLab,color as parseColor} from 'd3';
 import {themeFor} from './palettes.js';
 import {entitySpec,multivariateGroupKey,withEntityIds} from './entity-identity.js';
@@ -6,7 +7,7 @@ import {isEnglish} from './locale.js';
 import {businessSeriesColorKeys} from './business-series-rules.js';
 import {structuralColorKeys} from './structural-series-rules.js';
 const hex=value=>typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value);
-const scalarTemplates=new Set('column bar pie donut mosaic waffle lollipop rose circlepack pareto funnel orbit unit'.split(' '));
+const scalarTemplates=new Set('rootogram column bar pie donut mosaic waffle lollipop rose circlepack pareto funnel orbit unit'.split(' '));
 const sampleTemplates=new Set('swarm boxplot violin raincloud errorbar halfeye deltaplot ecdfdiff andrews biplot lexis swimmer radviz boxen sina qqcompare worm spreadlevel nelsonaalen bode nyquist nichols smith polarscatter constellation'.split(' '));
 const statisticalSamples=new Set('qqplot ppplot weibull meanexcess ttt lorenz ecdfband'.split(' '));
 const businessTargets=new Set('progress fan bullet gauge kpi'.split(' '));
@@ -25,6 +26,7 @@ export function normalizeValueColors(value){
 }
 export function colorSubjects(doc){
  if(valueColorTemplates.has(doc?.template))return [];
+ if(networkViewMap[doc?.template]&&doc.data.every(r=>r._id))return networkColorSubjects(doc);
  const rows=doc?.data||[],spec=entitySpec(doc);
  if(doc?.template==='splom'){const identified=withEntityIds(doc,{legacyNamespace:'unmigrated-multivariate'});return [...new Set(rows.map(r=>r.group))].map(label=>({id:multivariateGroupKey(identified,label),label}));}
  // Map labels to existing entity IDs only to find their current render slots.
