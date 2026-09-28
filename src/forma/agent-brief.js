@@ -1,3 +1,6 @@
+import {businessSeriesAgentGuide} from './business-series-rules.js';
+import {structuralAgentGuide} from './structural-series-rules.js';
+import {statisticalAgentGuide} from './statistical-series-rules.js';
 import {agentHandoff} from './agent-handoff.js';
 import text from './agent-rule-text.json' with {type:'json'};
 import {morphReady,stepView,viewFamily,transitionPlan,stepDomain,workViews} from './work-model.js';
@@ -26,7 +29,7 @@ export function selectAgentRules(work){
 }
 export function scopedWorkBrief(work,english=false){
  const t=(zh,en)=>english?en:zh,ids=selectAgentRules(work),language=english?'en':'zh';
- const guide=id=>id==='serial'?serialAgentGuide(english):id==='process'?processAgentGuide(english):id==='multivariate'?multivariateAgentGuide(english):id==='distribution'?distributionAgentGuide(english):id==='frequency-response'?frequencyAgentGuide(english):text[id]?.[language];
+ const guide=id=>['business-target', 'business-metrics', 'business-paired'].includes(id)?businessSeriesAgentGuide(english):['matrix-cell', 'contingency', 'hierarchy-tree'].includes(id)?structuralAgentGuide(english):['statistical-observations', 'statistical-survival'].includes(id)?statisticalAgentGuide(english):id==='serial'?serialAgentGuide(english):id==='process'?processAgentGuide(english):id==='multivariate'?multivariateAgentGuide(english):id==='distribution'?distributionAgentGuide(english):id==='frequency-response'?frequencyAgentGuide(english):text[id]?.[language];
  return `# FORMA · ${work.name} · ${t('Agent 制作说明书','Agent production brief')}
 
 ${t('使用下方完整配置交付可直接打开的交互 HTML、完整源代码和运行方法，一屏展示当前一步。不能只返回 JSON 或要求回 FORMA 导入。每一步拥有独立数据，只替换用户明确指定的范围。不能要求用户重复提供已包含的数据。','Deliver working interactive HTML, complete source code and run instructions from the configuration below, one step on screen at a time. Do not return only JSON or require reimport into FORMA. Each step owns independent data; only replace explicitly requested content.')}

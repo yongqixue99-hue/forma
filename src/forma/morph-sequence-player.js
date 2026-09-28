@@ -135,6 +135,7 @@ Object.assign(icons,{
 });
 const originalViewName=id=>scientificViews.find(v=>v.id===id)?.name||relationalViews.find(v=>v.id===id)?.name||seriesViews.find(v=>v.id===id)?.name||({columns:uiText('柱状图'),line:uiText('折线图'),area:uiText('面积图'),bars:uiText('条形图'),bubbles:uiText('气泡图'),pie:uiText('饼状图'),donut:uiText('环形图'),treemap:uiText('矩形树图'),rose:uiText('玫瑰图'),stacked:uiText('份额带'),lollipop:uiText('棒棒糖图'),dot:uiText('点图'),squares:uiText('比例方块'),semidonut:uiText('半环图'),radialbars:uiText('径向柱图'),radar:uiText('雷达图'),waterfall:uiText('瀑布图'),funnel:uiText('漏斗图'),pareto:uiText('帕累托图'),waffle:uiText('华夫图'),diverging:uiText('发散条形图'),step:uiText('阶梯折线图'),polarline:uiText('极坐标折线图'),unit:uiText('单位堆叠图'),'funnel-bars':uiText('转化漏斗')})[id]||id;
 Object.assign(icons,{
+ 'eval-ks':'<path d="M3 2v18h19M3 18h5v-5h5V7h6V3h3M3 19h9v-2h6v-5h4M13 7v10"/>',
  'eval-gains':'<path d="M3 2v18h19M3 20 9 9l6-4 7-3M3 20 22 2"/>',
  'eval-lift':'<path d="M3 2v18h19M3 15h19M3 3l5 2 5 5 9 5"/>',
  'distribution-sina':'<path d="M3 20h19M7 4h.01M9 7h.01M6 10h.01M11 12h.01M8 16h.01M16 5h.01M18 9h.01M15 13h.01M18 17h.01" stroke-width="2.6"/>',
@@ -149,6 +150,35 @@ export const viewName=id=>uiText(originalViewName(id));
 Object.assign(icons,{
  'serial-acf':'<path d="M2 11h20M4 11V3m4 8V6m4 5v5m4-5V8m4 3v2"/>',
  'serial-pacf':'<path d="M2 11h20M4 11V3m4 8v6m4-6V9m4 2v2m4-2v-1"/>'
+});
+Object.assign(icons,{
+ "stat-qq": "<path d=\"M3 2v18h19M5 17 20 3M7 16h.1M10 12h.1M14 8h.1M18 5h.1\"/>",
+ "stat-pp": "<path d=\"M3 2v18h19M3 20 22 2M6 16h.1M11 14h.1M16 7h.1M20 4h.1\"/>",
+ "stat-weibull": "<path d=\"M3 2v18h19M5 18 19 4M8 15h.1M11 10h.1M16 6h.1\"/>",
+ "stat-meanexcess": "<path d=\"M3 2v18h19M5 13 8 10l4 2 5-7 4-2M7 19v2M12 19v2M19 19v2\"/>",
+ "stat-ttt": "<path d=\"M3 2v18h19M3 20Q8 5 22 2M3 20 22 2\"/>",
+ "stat-lorenz": "<path d=\"M3 2v18h19M3 20Q19 19 22 2M3 20 22 2\"/>",
+ "stat-ecdfband": "<path d=\"M3 2v18h19M3 18h5v-4h5v-5h5V4h4M3 15h5v-4h5V6h5V2h4\"/>",
+ "stat-survival": "<path d=\"M3 2v18h19M3 3h5v4h5v5h5v4h4M10 5v4m-2-2h4\"/>",
+ "stat-nelsonaalen": "<path d=\"M3 2v18h19M3 19h5v-3h5v-4h5V5h4M9 14v4m-2-2h4\"/>",
+ "structural-bubbles": "<path d=\"M3 2v18h19M7 6h.1M14 6h.1M20 6h.1M7 13h.1M14 13h.1M20 13h.1\"/>",
+ "structural-radial": "<path d=\"M12 1v20M2 11h20M5 4l14 14M5 18 19 4M12 2a9 9 0 1 0 0 18 9 9 0 1 0 0-18M12 6a5 5 0 1 0 0 10 5 5 0 1 0 0-10\"/>",
+ "structural-agreement": "<path d=\"M3 2h18v18H3zM3 2h8v8H3zM11 10h10v10H11z\"/>",
+ "structural-association": "<path d=\"M3 11h18M4 3h5v8H4zM12 11h8v7h-8z\"/>",
+ "structural-mosaic": "<path d=\"M3 2h18v18H3zM11 2v18M3 8h8m0 6h10\"/>",
+ "structural-pack": "<path d=\"M12 2a9 9 0 1 0 0 18 9 9 0 1 0 0-18M8 5a4 4 0 1 0 0 8 4 4 0 1 0 0-8M16 10a4 4 0 1 0 0 8 4 4 0 1 0 0-8\"/>",
+ "structural-tree": "<path d=\"M12 11 4 4m8 7 8-7m-8 7v9M4 4 2 9m2-5 5-2m11 2 2 5m-2-5-5-2M12 20l-5-3m5 3 5-3\"/>",
+ "structural-table": "<path d=\"M3 3h18v3H3zM6 9h15v3H6zM9 15h12v3H9zM3 7v10h4\"/>",
+ "target-progress": "<path d=\"M3 4h18v4H3zM3 13h18v4H3zM15 2v8M12 11v8\"/>",
+ "target-fan": "<path d=\"M12 11 3 6a10 10 0 0 1 9-5zM12 11V1a10 10 0 0 1 10 10zM12 11h8a8 8 0 0 1-8 8z\"/>",
+ "target-bullet": "<path d=\"M3 4h18v13H3zM3 8h12v5H3M18 3v15M10 4v13\"/>",
+ "target-gauge": "<path d=\"M3 17a9 9 0 0 1 18 0M12 17l5-9M3 17h18\"/>",
+ "target-pairs": "<path d=\"M4 5h15M4 15h12M4 3v4m15-4v4M4 13v4m12-4v4\"/>",
+ "metric-cards": "<path d=\"M3 3h8v7H3zM14 3h8v7h-8zM3 13h8v7H3zM14 13h8v7h-8z\"/>",
+ "metric-pairs": "<path d=\"M3 4h17M3 11h17M3 18h17M7 2v4m8-4v4M5 9v4m12-4v4M9 16v4m8-4v4\"/>",
+ "paired-combo": "<path d=\"M3 2v18h19M6 20v-8h3v8m4 0V8h3v12m4 0V5h2v15M4 12l6-8 6 3 6-5\"/>",
+ "paired-difference": "<path d=\"M3 2v18h19M4 14l6-9 6 6 6-8M4 6l6 8 6-9 6 9\"/>",
+ "paired-lines": "<path d=\"M3 2v18h19M4 16l6-7 6 3 6-8M4 10l6 4 6-8 6 3\"/>"
 });
 export const viewIcon=id=>`<svg viewBox="0 0 24 22" width="23" height="21" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[id]||''}</svg>`;
 const playIcon='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="m7 4 9 6-9 6Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';

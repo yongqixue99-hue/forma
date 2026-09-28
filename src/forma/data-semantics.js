@@ -1,5 +1,5 @@
 import {uiText,uiMarkup,uiMessage} from './locale.js';
-const properties={maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
+const properties={referenceMean:uiText('参考模型均值'),referenceSD:uiText('参考模型标准差'),alpha:uiText('显著水平参数'),minExceedances:uiText('最少超额样本数'),bandLabels:uiText('定性区间名称'),maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
 export function semanticChanges(before,after){
   const display=(doc,key)=>key==='variableUnits'?Object.fromEntries(Object.entries(doc.variableUnits||{}).map(([id,unit])=>[doc.entities?.items.find(v=>v.id===id)?.name||id,unit])):doc[key];
   const changes=Object.entries(properties).flatMap(([key,label])=>JSON.stringify(before[key])===JSON.stringify(after[key])?[]:[{key,label,before:display(before,key),after:display(after,key)}]);
@@ -21,6 +21,27 @@ export function semanticValue(value){
   return String(value);
 }
 export function encodingMeaning(view){
+  if(view?.startsWith('target-'))return uiText('原值和目标保持不变；量程与区间只采用输入值');
+  if(view?.startsWith('metric-'))return uiText('各指标使用自己的单位和刻度，不跨单位比较长短');
+  if(view?.startsWith('paired-')&&['paired-combo','paired-lines','paired-difference'].includes(view))return uiText('同两条序列与真实时间间距；缺失处不连线或填充');
+  if(view==='stat-qq')return uiText('横轴为拟合正态分位数，纵轴保留原值；不自动判定正态性');
+  if(view==='stat-pp')return uiText('比较显式参考模型与右连续经验概率，不自动拟合参数');
+  if(view==='stat-weibull')return uiText('完整正寿命的 Weibull 概率坐标；未进行参数拟合');
+  if(view==='stat-meanexcess')return uiText('阈值以上平均超额为派生摘要，短线保留全部原样本');
+  if(view==='stat-ttt')return uiText('累计总试验时间份额，不是风险率');
+  if(view==='stat-lorenz')return uiText('等权样本和资源的累计份额；保留原值');
+  if(view==='stat-ecdfband')return uiText('DKW 同时置信带依赖独立同分布假设，不是均值区间');
+  if(view==='stat-survival')return uiText('Kaplan–Meier 持续比例；加号表示右删失');
+  if(view==='stat-nelsonaalen')return uiText('累积风险 Σd/n 不是概率，也不是 −log(S)');
+  if(view==='structural-bubbles')return uiText('圆面积表示非负原值；缺失与真实零分别标记');
+  if(view==='structural-radial')return uiText('仅颜色表示原值；扇区面积不表示数量');
+  if(view==='structural-association')return uiText('面积表示 |O−E|，带符号高度为 Pearson 残差；不输出显著性');
+  if(view==='structural-mosaic')return uiText('矩形面积表示联合频数；行内高度表示条件占比');
+  if(view==='structural-agreement')return uiText('对角方块与边际比较一致性，完整表保留非对角计数');
+  if(view==='structural-pack')return uiText('仅叶圆面积表示叶值，父圆是包络');
+  if(view==='structural-tree')return uiText('连线表示父子关系，角度与枝长仅用于布局');
+  if(view==='structural-table')return uiText('父级是叶值汇总，父子合计不可重复相加');
+
   if(view==='distribution-sina')return uiText('数值轴保留原值；另一方向仅按密度抖动');
   if(view==='distribution-boxen')return uiText('嵌套箱表示尾部分位区间，箱宽不是频数密度');
   if(view==='distribution-halfeye')return uiText('密度与中央 50%/90% 样本分位区间，不是均值置信区间');
@@ -38,6 +59,7 @@ export function encodingMeaning(view){
   if(view?.startsWith('ordered-estimate-'))return uiText('区间来自输入的上下界，保留原定义与真实日期间距');
   if(view==='trajectory-path')return uiText('路径按真实日期连接同一对象，不是回归线');
   if(view?.startsWith('spatial-'))return view==='spatial-surface'?uiText('完整网格的原始高度；相邻采样点之间线性连接'):view==='spatial-bubbles'?uiText('正交投影面积与真实 size 成正比；三个坐标保持原值'):view==='spatial-3d'?uiText('正交投影；屏幕距离不能当作三维原始距离'):uiText('只展示选定坐标平面，隐藏维度的数据仍保留');
+  if(view==='eval-ks')return uiText('右连续 CDF 包含同分样本；D 为最大类别内累计比例差，不是准确率');
   if(view==='eval-roc')return uiText('同阈值：假阳性率 FPR 与真阳性率 TPR');
   if(view==='eval-pr')return uiText('同阈值：召回率与精确率；AP 不等于 ROC AUC');
   if(view==='eval-gains')return uiText('同阈值：已筛选样本比例与已覆盖正类比例');
@@ -64,5 +86,5 @@ export function encodingMeaning(view){
 export function frameMeaning(view,{progress=1,mode,fromView}={}){
   if(mode==='morph'&&progress>0&&progress<1&&fromView==='series-rank'&&view!=='series-rank')return uiText('变形中，请在停稳后读数。由名次返回原值，名次差不表示数值差。');
   const meaning=encodingMeaning(view);
-  return mode==='morph'&&progress>0&&progress<1&&/^(eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
+  return mode==='morph'&&progress>0&&progress<1&&/^(stat|structural|target|metric|paired|eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
 }

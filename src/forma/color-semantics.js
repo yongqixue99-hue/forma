@@ -2,9 +2,16 @@ import {interpolateLab,color as parseColor} from 'd3';
 import {themeFor} from './palettes.js';
 import {entitySpec,multivariateGroupKey,withEntityIds} from './entity-identity.js';
 import {populationId} from './data-identity.js';
+import {isEnglish} from './locale.js';
+import {businessSeriesColorKeys} from './business-series-rules.js';
+import {structuralColorKeys} from './structural-series-rules.js';
 const hex=value=>typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value);
 const scalarTemplates=new Set('column bar pie donut mosaic waffle lollipop rose circlepack pareto funnel orbit unit'.split(' '));
 const sampleTemplates=new Set('swarm boxplot violin raincloud errorbar halfeye deltaplot ecdfdiff andrews biplot lexis swimmer radviz boxen sina qqcompare worm spreadlevel nelsonaalen bode nyquist nichols smith polarscatter constellation'.split(' '));
+const statisticalSamples=new Set('qqplot ppplot weibull meanexcess ttt lorenz ecdfband'.split(' '));
+const businessTargets=new Set('progress fan bullet gauge kpi'.split(' '));
+const businessPairs=new Set('comboline difference learning'.split(' '));
+const structuralTrees=new Set('circlehierarchy radialtree treetable'.split(' '));
 export const valueColorTemplates=new Set(['heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency','spectrogram','radialheatmap','spiralheatmap','hodograph']);
 export function normalizeColorBindings(value){
  if(value===undefined)return undefined;
@@ -23,6 +30,23 @@ export function colorSubjects(doc){
  // Map labels to existing entity IDs only to find their current render slots.
  // Binding keys are persistent entity/record IDs, never labels or row indices.
  if(spec&&doc.entities?.kind===spec.kind){const byName=new Map(doc.entities.items.map(e=>[e.name,e]));return [...new Set(rows.map(r=>r[spec.field]))].flatMap(name=>byName.has(name)?[{id:byName.get(name).id,label:name}]:[]);}
+ if(rows.length&&rows.every(r=>r._id)){
+  if(statisticalSamples.has(doc?.template)){
+   const groups=[...new Set(rows.map(r=>r.group).filter(g=>typeof g==='string'&&g.trim()))];
+   return [{id:populationId('sample-group',rows),label:groups.length===1?groups[0]:isEnglish()?'All observations':'全部观测'}];
+  }
+  if(doc?.template==='survival')return [...new Set(rows.map(r=>r.group))].map(group=>({id:populationId('sample-group',rows.filter(r=>r.group===group)),label:typeof group==='string'&&group.trim()?group:isEnglish()?'All observations':'全部观测'}));
+  if(businessTargets.has(doc?.template))return rows.map(r=>({id:r._id,label:String(r.label??r._id)}));
+  if(businessPairs.has(doc?.template)){
+   const labels=doc.seriesLabels|| (doc.template==='learning'?(isEnglish()?['Training loss','Validation loss']:['训练损失','验证损失']):doc.template==='comboline'?(isEnglish()?['Column series','Line series']:['柱状序列','折线序列']):(isEnglish()?['Series A','Series B']:['序列 A','序列 B']));
+   return businessSeriesColorKeys(doc).map((id,i)=>({id,label:typeof labels[i]==='string'&&labels[i].trim()?labels[i]:`${isEnglish()?'Series':'序列'} ${i+1}`}));
+  }
+  if(structuralTrees.has(doc?.template)){
+   // The same top-level branch membership is used by the morph renderer.
+   // Names only label the panel; binding IDs contain its exact stored records.
+   try{const keys=structuralColorKeys({...doc,family:'hierarchy-tree'}),subjects=new Map();for(let i=0;i<rows.length;i++)if(rows[i].parent==='ROOT')subjects.set(keys[i],{id:keys[i],label:rows[i].label});const root=rows.find(r=>r.parent==='ROOT');for(let i=0;i<rows.length;i++)if(rows[i].parent===root?.id)subjects.set(keys[i],{id:keys[i],label:rows[i].label});return [...subjects.values()];}catch{return [];}
+  }
+ }
  if(sampleTemplates.has(doc?.template)&&rows.every(r=>r._id))return [...new Set(rows.map(r=>r.group))].map(label=>({id:populationId('sample-group',rows.filter(r=>r.group===label)),label}));
  if(scalarTemplates.has(doc?.template)&&rows.every(r=>r._id))return rows.map(r=>({id:r._id,label:String(r.label??r.period??r._id)}));
  return [];

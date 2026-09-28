@@ -93,15 +93,15 @@ test('interrupting a work transition retains displayed keyed paths and guide vis
 
 test('native charts grow at seeked timestamps, all scene effects remain reversible',()=>{
   for(const effect of ['entrance','slide','fade','gather']){
-    const a=makeStep({doc:getExample('column')}),b=makeStep({doc:getExample('bullet'),transition:effect});
+    const a=makeStep({doc:getExample('column')}),b=makeStep({doc:getExample('variwide'),transition:effect});
     const t=workTimeline(newWork([a,b])),s=t.segments[1],renderer=new WorkFrameRenderer(host(),t.work.steps,{width:800,height:360});
     const frame=p=>timelineFrame(t,s.start+s.duration*p);
-    const at0=renderer.render(frame(.28));assert.equal(renderer.scene.p,0);assert.equal(at0.step.doc.template,'bullet');
+    const at0=renderer.render(frame(.28));assert.equal(renderer.scene.p,0);assert.equal(at0.step.doc.template,'variwide');
     renderer.render(frame(.7));assert.ok(renderer.scene.p>0&&renderer.scene.p<1);
     const expected=renderer.scene.svg.outerHTML;
     renderer.render(frame(1));renderer.render(frame(.7));assert.equal(renderer.scene.svg.outerHTML,expected);
     renderer.render(frame(.1));assert.equal(renderer.state.step.doc.template,'column');
-    renderer.render(frame(.7));assert.equal(renderer.state.step.doc.template,'bullet');renderer.destroy();
+    renderer.render(frame(.7));assert.equal(renderer.state.step.doc.template,'variwide');renderer.destroy();
   }
 });
 

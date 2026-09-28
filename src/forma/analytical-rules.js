@@ -11,6 +11,7 @@ export const univariateViews=[
   {id:'uni-ecdf',name:uiText('经验累积分布'),en:'Empirical distribution',note:uiText('每个台阶表示不超过当前数值的样本占比，直接使用原始观测。同值样本共同跳升，不依赖直方图的分箱。')}
 ];
 export const evaluationViews=[
+  {id:'eval-ks',name:uiText('预测分布 KS 图'),en:'Score KS diagnostic',note:uiText('同一得分阈值展开为真实 0/1 类别的右连续经验累积分布，包含全部同分样本。最大竖直距离 D 只表示分离程度，不表示准确率或显著性。')},
   {id:'eval-gains',name:uiText('累计增益曲线'),en:'Cumulative gains',note:uiText('同一模型的得分阈值保持对应，横轴是已筛选样本占比，纵轴是已覆盖正类占比。同分样本一起进入，不拆开并列分数。')},
   {id:'eval-lift',name:uiText('提升曲线'),en:'Cumulative lift',note:uiText('同一阈值点由累计增益转为提升倍数：正类覆盖比例除以筛选比例。未筛选样本时提升未定义，不填成零；基准为随机筛选的 1 倍。')},
   {id:'eval-roc',name:uiText('ROC 阈值曲线'),en:'ROC by threshold',note:uiText('按同一得分阈值计算假阳性率和真阳性率。同分样本一起进入预测正类，适合比较二分类模型的判别能力。')},
@@ -28,7 +29,7 @@ export const analyticalViews=[...univariateViews,...evaluationViews,...correlati
 const families=new Map([...univariateViews.map(v=>[v.id,'univariate']),...evaluationViews.map(v=>[v.id,'evaluation']),...correlationViews.map(v=>[v.id,'correlation'])]);
 export const analyticalFamily=view=>families.get(view);
 export const isAnalyticalView=view=>families.has(view);
-export const analyticalViewMap={histogram:'uni-histogram',ecdf:'uni-ecdf',roc:'eval-roc',precisionrecall:'eval-pr',calibration:'eval-calibration',cumulativegains:'eval-gains',liftcurve:'eval-lift',correlation:'corr-heatmap'};
+export const analyticalViewMap={ksplot:'eval-ks',histogram:'uni-histogram',ecdf:'uni-ecdf',roc:'eval-roc',precisionrecall:'eval-pr',calibration:'eval-calibration',cumulativegains:'eval-gains',liftcurve:'eval-lift',correlation:'corr-heatmap'};
 const key=(...parts)=>JSON.stringify(parts),unique=xs=>[...new Set(xs)],text=s=>typeof s==='string'&&!!s.trim(),finite=n=>typeof n==='number'&&Number.isFinite(n)&&Math.abs(n)<=1e15;
 
 // The native schema remains the saved/editable document. These identities only
@@ -99,7 +100,7 @@ export function analyticalRecipe(from,to){
   const family=analyticalFamily(to);
   if(from===to)return {id:'analysis-update',name:uiText('原始记录与统计更新'),description:uiText('保留样本、阈值或变量对的标识，再根据实际数据更新计算结果。')};
   if(family==='univariate')return {id:'analysis-distribution',name:uiText('分箱与累计展开'),description:uiText('保留原始观测位置与共用分箱；切换累计含义时收起频数，再展开比例与精确的经验台阶。')};
-  if(family==='evaluation')return [from,to].includes('eval-calibration')?{id:'analysis-calibration',name:uiText('概率分箱重建'),description:uiText('阈值曲线收拢后，按概率分箱展开校准点。阈值点与分箱统计使用不同标识，不冒充同一个样本。')}:{id:'analysis-threshold',name:uiText('同阈值坐标迁移'),description:uiText('同一模型的同一得分阈值保持对应，在 ROC、PR、累计增益、提升和阈值轴间迁移；轴含义随图型更新。')};
+  if(family==='evaluation')return [from,to].includes('eval-calibration')?{id:'analysis-calibration',name:uiText('概率分箱重建'),description:uiText('阈值曲线收拢后，按概率分箱展开校准点。阈值点与分箱统计使用不同标识，不冒充同一个样本。')}:{id:'analysis-threshold',name:uiText('同阈值坐标迁移'),description:uiText('同一模型的同一得分阈值保持对应，在 ROC、PR、累计增益、提升、阈值轴和 KS 累积分布间迁移；KS 使用 score ≤ t，包含全部同分样本，轴含义随图型更新。')};
   return {id:'analysis-correlation',name:uiText('变量对展开与转向'),description:uiText('同一对变量的相关系数保持对应，在方格、圆面积与排序条之间变形，对称重复项按需收起。')};
 }
 export function analyticalGuide(doc,view){

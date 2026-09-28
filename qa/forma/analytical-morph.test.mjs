@@ -19,8 +19,8 @@ const mapped=id=>scientificDocument({doc:getExample(id)});
 const finite=layout=>{const keys=new Set();for(const m of layout.marks){assert.equal(m.points.length,128);assert.ok(m.points.every(p=>p.every(Number.isFinite)),`${layout.view}/${m.key}`);assert.ok(!keys.has(m.key),m.key);keys.add(m.key);}};
 function familyWork(family){const doc=getExample({univariate:'histogram',evaluation:'calibration',correlation:'correlation'}[family]);return newWork(analyticalViews.filter(v=>analyticalFamily(v.id)===family).map(v=>({doc,view:v.id,dataGroup:'test:analysis'})));}
 
-test('three batches expose fourteen views and eight native adapters with full editable source documents',()=>{
-  assert.equal(analyticalViews.length,14);assert.equal(Object.keys(analyticalViewMap).length,8);assert.equal(analyticalPresets.length,7);
+test('three batches expose fifteen views and nine native adapters with full editable source documents',()=>{
+  assert.equal(analyticalViews.length,15);assert.equal(Object.keys(analyticalViewMap).length,9);assert.equal(analyticalPresets.length,7);
   for(const v of analyticalViews){assert.equal(viewName(v.id),v.name);assert.match(viewIcon(v.id),/<path|<circle/);}
   for(const template of Object.keys(analyticalViewMap)){
     const doc=getExample(template),step=makeStep({doc}),d=scientificDocument(step);assert.equal(morphReady(step),true,template);assert.deepEqual(payload(step.doc),payload(doc));assert.equal(d.data.length,doc.data.length);assert.equal(new Set(d.data.map(r=>r.label)).size,d.data.length);
@@ -75,7 +75,7 @@ test('correlation signs, fixed scale, unique pairs, circle areas and constant va
   const real=layoutScientific(mapped('correlation'),'corr-bubbles');const sizes=real.marks.filter(m=>m.role==='pair'&&m.tone);const area=m=>(Math.max(...m.points.map(p=>p[0]))-Math.min(...m.points.map(p=>p[0])))**2;for(const m of sizes)near(area(m)/area(sizes[0]),Math.abs(m.tone/sizes[0].tone));
 });
 
-test('all 54 ordered within-family directions retain nodes and deterministic backward seeking',async()=>{
+test('all 66 ordered within-family directions retain nodes and deterministic backward seeking',async()=>{
   let n=0;
   for(const family of ['univariate','evaluation','correlation']){const w=familyWork(family);for(const a of w.steps)for(const b of w.steps){if(a===b)continue;n++;const plan=transitionPlan(a,b,{steps:w.steps});assert.equal(plan.mode,'morph',`${a.view}->${b.view}`);
     // Each direction is independent. Close its simulated page before the next
@@ -85,7 +85,7 @@ test('all 54 ordered within-family directions retain nodes and deterministic bac
     const seek=chart.setDocument(scientificDocument(b),b.view,{manual:true,effect:plan.effect,recipe:plan.recipe,domain:stepDomain(b,w.steps)});seek(.38);const middle=structuredClone([...chart.current]);seek(1);seek(.38);assert.deepEqual([...chart.current],middle);seek(0);seek(1);
     chart.layout.marks.forEach(m=>assert.deepEqual(chart.current.get(m.key),m.points));for(const [k,node]of nodes)assert.equal(chart.nodes.get(k).shape,node);
     }finally{chart?.destroy();await win.happyDOM.close();}
-  }}assert.equal(n,54);
+  }}assert.equal(n,66);
 });
 
 test('independent cohorts, changed truth, variable sets and incompatible schemas fall back to native entrance',()=>{
@@ -116,4 +116,26 @@ test('maximum source sizes keep every row and valid finite geometry without trun
   const h=scientificDocument({doc:histogram}),ecdf=layoutScientific(h,'uni-ecdf',800,430);assert.equal(h.data.length,600);assert.equal(ecdf.distribution.at(-1).count,600);finite(ecdf);
   const evaluation=getExample('calibration');evaluation.data=['A','B','C'].flatMap(model=>Array.from({length:300},(_,i)=>({label:`S${i}`,model,actual:i%2,score:(i*97%300)/300})));const d=scientificDocument({doc:evaluation}),roc=layoutScientific(d,'eval-roc',800,430);assert.equal(d.data.length,900);assert.ok(roc.evaluations.every(c=>c.n===300));finite(roc);
   const matrix=getExample('correlation');matrix.data=Array.from({length:120},(_,i)=>Array.from({length:6},(_,j)=>({sample:`S${i}`,variable:`V${j}`,value:i+j*Math.sin(i+j)}))).flat();const c=scientificDocument({doc:matrix}),pairs=layoutScientific(c,'corr-pairs',300,260);assert.equal(c.data.length,720);assert.equal(pairs.pairs.length,15);finite(pairs);
+});
+
+
+test('KS includes score ties in right-continuous class CDFs and keeps the same threshold identities',()=>{
+  const d=mapped('calibration');d.data=[['a',1,0],['b',0,0],['c',1,.5],['d',0,.5],['e',1,.5],['f',0,.75],['g',0,1],['h',1,1]].map(([sample,actual,score],row)=>({sample,label:JSON.stringify(['M',sample]),actual,score,model:'M',group:'M',row}));
+  const ks=layoutScientific(d,'eval-ks',780,430),roc=layoutScientific(d,'eval-roc',780,430),points=ks.evaluations[0].ks.points;
+  for(const p of points)for(const actual of [0,1]){const rows=d.data.filter(r=>r.actual===actual);near(p[`f${actual}`],rows.filter(r=>r.score<=p.threshold).length/rows.length);}
+  near(ks.evaluations[0].ks.distance,.25);
+  for(const m of ks.marks.filter(m=>m.role==='threshold-point'&&m.opacity)){assert.ok(roc.marks.some(n=>n.key===m.key));}
+  const half=points.find(p=>p.threshold===.5);near(half.f1,.75);near(half.f0,.5);finite(ks);
+});
+
+test('KS and threshold tails retain their DOM nodes and exact departure frames through reverse and interruptions',()=>{
+ const win=new Window(),d=mapped('calibration'),tailRoles=new Set(['positive-drop','positive-tail','negative-drop','negative-tail','threshold-tail']);
+ try{for(const from of ['eval-ks','eval-threshold']){
+  const chart=new ScientificMorphChart(win.document.createElement('div'),d,{view:from,width:800,height:430}),start=chart.layout,tailMarks=start.marks.filter(m=>tailRoles.has(m.role)),nodes=new Map(tailMarks.map(m=>[m.key,chart.nodes.get(m.key).shape]));
+  assert.equal(tailMarks.length,5*start.evaluations.length);assert.ok(tailMarks.some(m=>m.opacity>0));
+  const seek=chart.setDocument(d,'eval-roc',{manual:true,effect:'guided'});seek(0);
+  for(const m of tailMarks){assert.equal(chart.nodes.get(m.key)?.shape,nodes.get(m.key));assert.deepEqual(chart.current.get(m.key),m.points);near(Number(chart.nodes.get(m.key).shape.getAttribute('fill-opacity')),m.opacity);}
+  seek(.41);const interrupted=structuredClone([...chart.current]),resume=chart.setDocument(d,from==='eval-ks'?'eval-threshold':'eval-ks',{manual:true,resume:true,effect:'guided'});resume(0);assert.deepEqual([...chart.current],interrupted);resume(1);
+  const reverse=chart.setDocument(d,from,{manual:true,effect:'guided'});reverse(1);for(const m of tailMarks){assert.equal(chart.nodes.get(m.key).shape,nodes.get(m.key));assert.deepEqual(chart.current.get(m.key),m.points);near(Number(chart.nodes.get(m.key).shape.getAttribute('fill-opacity')),m.opacity);}chart.destroy();
+ }}finally{win.happyDOM.close();}
 });

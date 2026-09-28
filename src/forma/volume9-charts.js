@@ -1,3 +1,4 @@
+import {populationId} from './data-identity.js';
 import {labelInk} from './chart-readability.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import * as d3 from 'd3';
@@ -92,33 +93,34 @@ function percentarea(s,doc){
   s.clipReveal(g,f.left-1,f.top-1,f.right-f.left+2,f.bottom-f.top+2,0,.8);periods(s,table.columns,x,f.bottom,{max:s.compact?4:6});
 }
 function comboline(s,doc){
-  const {theme:t}=s,f=yAxis(s,doc.data.flatMap(d=>[d.bar,d.line]),{top:49,bottom:s.h-(doc.axes?49:36)}),x=d3.scaleBand(doc.data.map(d=>d.period),[f.left,f.right]).padding(.42),cx=v=>x(v)+x.bandwidth()/2;
+  const {theme:t}=s,colors=['bar','line'].map((field,i)=>t.objectColor(populationId('business-series:'+field,doc.data),i?t.accent:t.fg)),f=yAxis(s,doc.data.flatMap(d=>[d.bar,d.line]),{top:49,bottom:s.h-(doc.axes?49:36)}),x=d3.scaleBand(doc.data.map(d=>d.period),[f.left,f.right]).padding(.42),cx=v=>x(v)+x.bandwidth()/2;
   if(doc.axes)titles(s,doc,f.left,f.right,32);
-  legend8(s,[{label:doc.seriesLabels[0],color:t.fg},{label:doc.seriesLabels[1],color:t.accent,line:true}]);
-  doc.data.forEach((d,i)=>{const rect=s.rect(x(d.period),f.bottom,x.bandwidth(),0,{fill:t.fg,'fill-opacity':.7,'data-mark':'basic-combo-bar','data-value':d.bar});rising(s,rect,f.y(0),f.y(d.bar),i/doc.data.length*.2);s.edit(rect,d,'bar');s.tip(rect,`${d.period} · ${doc.seriesLabels[0]}\n${d.bar} ${doc.unit}`);});
-  const g=s.group();s.path(d3.line().defined(d=>d.line!==null).x(d=>cx(d.period)).y(d=>f.y(d.line))(doc.data),{stroke:t.accent,'stroke-width':1.6,'data-mark':'basic-combo-line'},g);
-  doc.data.filter(d=>d.line!==null).forEach(d=>{const p=s.circle(cx(d.period),f.y(d.line),2.8,{fill:t.bg,stroke:t.accent,'stroke-width':1},g);s.edit(p,d,'line');s.tip(p,`${d.period} · ${doc.seriesLabels[1]}\n${d.line} ${doc.unit}`);});s.clipReveal(g,f.left-4,f.top-5,f.right-f.left+8,f.bottom-f.top+10,.16,.68);
+  legend8(s,[{label:doc.seriesLabels[0],color:colors[0]},{label:doc.seriesLabels[1],color:colors[1],line:true}]);
+  doc.data.forEach((d,i)=>{const rect=s.rect(x(d.period),f.bottom,x.bandwidth(),0,{fill:colors[0],'fill-opacity':.7,'data-mark':'basic-combo-bar','data-value':d.bar});rising(s,rect,f.y(0),f.y(d.bar),i/doc.data.length*.2);s.edit(rect,d,'bar');s.tip(rect,`${d.period} · ${doc.seriesLabels[0]}\n${d.bar} ${doc.unit}`);});
+  const g=s.group();s.path(d3.line().defined(d=>d.line!==null).x(d=>cx(d.period)).y(d=>f.y(d.line))(doc.data),{stroke:colors[1],'stroke-width':1.6,'data-mark':'basic-combo-line'},g);
+  doc.data.filter(d=>d.line!==null).forEach(d=>{const p=s.circle(cx(d.period),f.y(d.line),2.8,{fill:t.bg,stroke:colors[1],'stroke-width':1},g);s.edit(p,d,'line');s.tip(p,`${d.period} · ${doc.seriesLabels[1]}\n${d.line} ${doc.unit}`);});s.clipReveal(g,f.left-4,f.top-5,f.right-f.left+8,f.bottom-f.top+10,.16,.68);
   periods(s,doc.data.map(d=>d.period),cx,f.bottom,{max:s.compact?4:8});
 }
 function progress(s,doc){
   const {theme:t,w,h}=s,left=16,right=w-18,top=28,bottom=h-29,slot=(bottom-top)/doc.data.length,scale=d3.scaleLinear([0,Math.max(1,d3.max(doc.data,d=>d.value/d.target))],[left,right]).nice(4);
   label(s,left,12,uiText('完成率'),{'font-size':s.fs-2},10);
   scale.ticks(4).forEach(v=>num(s,scale(v),h-5,`${fmt(v*100)}%`,{'font-size':s.fs-3,'text-anchor':v===0?'start':Math.abs(scale(v)-right)<1?'end':'middle'}));
-  doc.data.forEach((d,i)=>{const y=top+i*slot,ratio=d.value/d.target,delay=i/doc.data.length*.24,barY=y+Math.min(14,slot*.4),barH=Math.min(12,slot*.2),g=s.group({'data-mark':'basic-progress','data-ratio':ratio});
+  doc.data.forEach((d,i)=>{const y=top+i*slot,ratio=d.value/d.target,col=t.objectColor(d,ratio>=1?t.accent:t.fg),delay=i/doc.data.length*.24,barY=y+Math.min(14,slot*.4),barH=Math.min(12,slot*.2),g=s.group({'data-mark':'basic-progress','data-ratio':ratio});
     label(s,left,y+4,d.label,{'font-size':s.fs-1,fill:t.fg},s.compact?8:16,g);
     if(!s.compact)num(s,right-80,y+4,`${fmt(d.value)} / ${fmt(d.target)} ${doc.unit}`,{'text-anchor':'end','font-size':s.fs-2},g);
-    num(s,right,y+4,`${fmt(ratio*100)}%`,{'text-anchor':'end','font-size':s.fs-1,fill:ratio>=1?t.accent:t.fg},g);
+    num(s,right,y+4,`${fmt(ratio*100)}%`,{'text-anchor':'end','font-size':s.fs-1,fill:col},g);
     s.rect(left,barY,scale(1)-left,barH,{fill:t.fg,'fill-opacity':.055},g);
-    const rect=s.rect(left,barY,0,barH,{fill:ratio>=1?t.accent:t.fg,'fill-opacity':.83},g);horizontal(s,rect,left,scale(ratio),delay);
+    const rect=s.rect(left,barY,0,barH,{fill:col,'fill-opacity':.83},g);horizontal(s,rect,left,scale(ratio),delay);
     s.line(scale(1),barY-3,scale(1),barY+barH+3,{stroke:t.secondary,'stroke-width':1},g);
     s.edit(g,d);s.tip(g,uiMessage`${d.label}\n完成 ${d.value} / 目标 ${d.target} ${doc.unit}\n完成率 ${fmt(ratio*100)}%`);
   });
 }
 function kpi(s,doc){
   const {w,h,theme:t}=s,cols=Math.min(doc.data.length,w>=750||h<190?4:2),rows=Math.ceil(doc.data.length/cols),left=16,top=18,gap=22,cw=(w-left*2-gap*(cols-1))/cols,rh=(h-top*2)/rows;
-  doc.data.forEach((d,i)=>{const x=left+(i%cols)*(cw+gap),y=top+Math.floor(i/cols)*rh,change=change9(d),col=i===0?t.accent:t.fg,delay=i*.06;
+  doc.data.forEach((d,i)=>{const x=left+(i%cols)*(cw+gap),y=top+Math.floor(i/cols)*rh,change=change9(d),col=t.objectColor(d,i===0?t.accent:t.fg),delay=i*.06;
     if(i%cols)s.line(x-gap/2,y,x-gap/2,y+rh-19,{'stroke-width':.7});
     label(s,x,y+10,d.label,{fill:t.fg,'font-size':s.fs},Math.max(4,Math.floor(cw/s.fs)));
+    s.line(x,y+18,x+Math.min(18,cw),y+18,{stroke:col,'stroke-width':1.5,'data-mark':'metric-color','data-record-id':d._id});
     const fs=Math.min(s.compact?27:42,rh*.25,cw/Math.max(3,String(fmt(d.value)).length)*1.5),val=num(s,x,y+rh*.4,fmt(d.value),{'font-size':fs,fill:col,'data-mark':'basic-metric','data-value':d.value});
     s.add(p=>val.textContent=fmt(d.value*phase(p,delay,.62)));
     label(s,x,y+rh*.57,d.metricUnit,{'font-size':s.fs-2},Math.floor(cw/(s.fs-2)));

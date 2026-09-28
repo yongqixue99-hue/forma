@@ -1,3 +1,4 @@
+import {populationId} from './data-identity.js';
 import * as d3 from 'd3';
 import {measurementDomain} from './axis-policy.js';
 import {phase7 as phase,number7 as fmt,num7 as num,label7 as label} from './volume7-utils.js';
@@ -14,16 +15,16 @@ function frame(s,xd,yd,{left=s.compact?43:55,top=32,bottom=s.h-43,right=s.w-19,x
 function recordAttrs(row){return{'data-record-id':row._id,'data-record-label':row.label};}
 function rawRug(s,rows,x,y,{color=s.theme.secondary,field='value',height=5,delay=.2,parent}={}){rows.forEach((row,i)=>{const px=x(row[field]),mark=s.line(px,y,px,y+height,{stroke:color,'stroke-width':1,'stroke-opacity':.48,'data-mark':'distribution-raw',...recordAttrs(row),'data-value':row[field]},parent);s.reveal(mark,delay+i/rows.length*.22,.33);s.edit(mark,row,field);s.tip(mark,`${row.label}${row.group?' · '+row.group:''}\n${field}: ${String(row[field])} ${s.doc.unit}\n${t12('原始观测','Raw observation')}`);});}
 function reference(s,f,y=0){s.line(f.left,f.y(y),f.right,f.y(y),{stroke:s.theme.secondary,'stroke-width':1,'stroke-dasharray':'4 4'});}
-function lorenz(s,doc){
+function lorenz(s,doc){const populationColor=s.theme.objectColor(populationId('sample-group',doc.data),s.theme.accent);
  const stats=lorenz12(doc.data),f=frame(s,[0,1],[0,1],{xlabel:t12('累计样本份额','Cumulative sample share'),ylabel:t12('累计资源份额','Cumulative resource share'),xformat:probability,yformat:probability}),{x,y}=f,g=s.group();
  s.line(x(0),y(0),x(1),y(1),{stroke:s.theme.secondary,'stroke-dasharray':'4 4','data-mark':'lorenz-equality'});
- const fill=s.path(d3.area().x(d=>x(d.population)).y0(d=>y(d.population)).y1(d=>y(d.share))(stats.points),{fill:s.theme.accent,'fill-opacity':.10},g),curve=s.path(d3.line().x(d=>x(d.population)).y(d=>y(d.share))(stats.points),{stroke:s.theme.accent,'stroke-width':2,'data-mark':'lorenz-curve','data-gini':stats.gini},g);s.draw(curve,.08,.75);s.reveal(fill,.06,.65);
- stats.points.slice(1).forEach((p,i)=>{const mark=s.circle(x(p.population),y(p.share),s.compact?1.8:2.5,{fill:s.theme.accent,'data-mark':'lorenz-point','data-population':p.population,'data-share':p.share,...recordAttrs(p.row)},g);s.growCircle(mark,s.compact?1.8:2.5,i/doc.data.length*.38,.38);s.edit(mark,p.row,'value');s.tip(mark,`${p.row.label}: ${String(p.row.value)} ${doc.unit}\n${t12('累计样本','Cumulative sample')}: ${probability(p.population)}\n${t12('累计资源','Cumulative resource')}: ${fmt(p.share*100)}%`);});
+ const fill=s.path(d3.area().x(d=>x(d.population)).y0(d=>y(d.population)).y1(d=>y(d.share))(stats.points),{fill:populationColor,'fill-opacity':.10},g),curve=s.path(d3.line().x(d=>x(d.population)).y(d=>y(d.share))(stats.points),{stroke:populationColor,'stroke-width':2,'data-mark':'lorenz-curve','data-gini':stats.gini},g);s.draw(curve,.08,.75);s.reveal(fill,.06,.65);
+ stats.points.slice(1).forEach((p,i)=>{const mark=s.circle(x(p.population),y(p.share),s.compact?1.8:2.5,{fill:populationColor,'data-mark':'lorenz-point','data-population':p.population,'data-share':p.share,...recordAttrs(p.row)},g);s.growCircle(mark,s.compact?1.8:2.5,i/doc.data.length*.38,.38);s.edit(mark,p.row,'value');s.tip(mark,`${p.row.label}: ${String(p.row.value)} ${doc.unit}\n${t12('累计样本','Cumulative sample')}: ${probability(p.population)}\n${t12('累计资源','Cumulative resource')}: ${fmt(p.share*100)}%`);});
  label(s,f.left+10,f.top+18,`Gini ${fmt(stats.gini,{significantDigits:4})}`,{'font-size':s.fs+3,fill:s.theme.fg},25);label(s,f.left+10,f.top+36,t12('虚线：完全均等','Dashed: equal distribution'),{'font-size':s.fs-2},35);
 }
-function ppplot(s,doc){
+function ppplot(s,doc){const populationColor=s.theme.objectColor(populationId('sample-group',doc.data),s.theme.accent);
  const points=pp12(doc.data,doc.referenceMean,doc.referenceSD),f=frame(s,[0,1],[0,1],{xlabel:t12('参考正态累计概率','Reference normal CDF'),ylabel:t12('经验累计概率','Empirical CDF'),xformat:probability,yformat:probability});s.line(f.x(0),f.y(0),f.x(1),f.y(1),{stroke:s.theme.secondary,'stroke-dasharray':'4 4'});
- points.forEach((p,i)=>{const r=s.compact?2.1:3,mark=s.circle(f.x(p.theoretical),f.y(p.empirical),r,{fill:s.theme.accent,'fill-opacity':.7,'data-mark':'pp-point','data-theoretical':p.theoretical,'data-empirical':p.empirical,...recordAttrs(p.row)});s.add(progress=>{const q=phase(progress,i/points.length*.34,.5);mark.setAttribute('cy',f.y(p.theoretical+(p.empirical-p.theoretical)*q));mark.setAttribute('r',r*Math.sqrt(q));});s.edit(mark,p.row,'value');s.tip(mark,`${p.row.label}: ${String(p.row.value)} ${doc.unit}\nF₀: ${fmt(p.theoretical)} · Fₙ: ${fmt(p.empirical)}`);});
+ points.forEach((p,i)=>{const r=s.compact?2.1:3,mark=s.circle(f.x(p.theoretical),f.y(p.empirical),r,{fill:populationColor,'fill-opacity':.7,'data-mark':'pp-point','data-theoretical':p.theoretical,'data-empirical':p.empirical,...recordAttrs(p.row)});s.add(progress=>{const q=phase(progress,i/points.length*.34,.5);mark.setAttribute('cy',f.y(p.theoretical+(p.empirical-p.theoretical)*q));mark.setAttribute('r',r*Math.sqrt(q));});s.edit(mark,p.row,'value');s.tip(mark,`${p.row.label}: ${String(p.row.value)} ${doc.unit}\nF₀: ${fmt(p.theoretical)} · Fₙ: ${fmt(p.empirical)}`);});
  label(s,f.left+8,f.top+15,`N(${fmt(doc.referenceMean)}, ${fmt(doc.referenceSD)}²)`,{fill:s.theme.fg,'font-size':s.fs-1},35);
 }
 function deltaplot(s,doc){

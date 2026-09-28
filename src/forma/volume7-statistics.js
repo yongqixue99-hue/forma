@@ -1,3 +1,4 @@
+import {populationId} from './data-identity.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import * as d3 from 'd3';
 import {unique7 as unique,qqRows,survivalSteps,likertLayout} from './volume7-data.js';
@@ -13,7 +14,7 @@ function raincloud(s,doc){
 function qqplot(s,doc){
   const {w,h,theme:t}=s,rows=qqRows(doc.data),ext=d3.extent(rows.flatMap(d=>[d.value,d.theoretical])),side=Math.min(w-93,h-72),left=(w-side)/2,top=26,bottom=top+side,right=left+side,x=d3.scaleLinear(ext,[left,right]).nice(4),y=d3.scaleLinear(x.domain(),[bottom,top]);
   x.ticks(4).forEach(v=>{s.line(left,y(v),right,y(v),{'stroke-width':.5,'stroke-dasharray':'1 5'});num(s,left-8,y(v)+3,fmt(v),{'text-anchor':'end','font-size':s.fs-2});num(s,x(v),bottom+17,fmt(v),{'text-anchor':'middle','font-size':s.fs-2});});const [lo,hi]=x.domain();s.line(x(lo),y(lo),x(hi),y(hi),{stroke:t.secondary,'stroke-dasharray':'3 4','stroke-width':.9});
-  rows.forEach((r,i)=>{const dot=s.circle(x(r.theoretical),y(r.value),s.compact?2:2.7,{fill:t.bg,stroke:i<rows.length*.1||i>rows.length*.9?t.accent:t.fg,'stroke-width':1,'data-mark':'qq-observation','data-theoretical':r.theoretical,'data-value':r.value});s.tip(dot,uiMessage`${r.label}\n观测 ${r.value} ${doc.unit}\n拟合正态分位 ${fmt(r.theoretical)} ${doc.unit}`);s.growCircle(dot,s.compact?2:2.7,i/rows.length*.4,.5);});label(s,left,12,uiMessage`观测分位 / ${doc.unit}`,{'font-size':s.fs-2},28);label(s,right,h-3,uiMessage`拟合正态分位 / ${doc.unit}`,{'text-anchor':'end','font-size':s.fs-2},35);
+  rows.forEach((r,i)=>{const dot=s.circle(x(r.theoretical),y(r.value),s.compact?2:2.7,{fill:t.bg,stroke:t.objectColor(populationId('sample-group',doc.data),i<rows.length*.1||i>rows.length*.9?t.accent:t.fg),'stroke-width':1,'data-mark':'qq-observation','data-theoretical':r.theoretical,'data-value':r.value});s.tip(dot,uiMessage`${r.label}\n观测 ${r.value} ${doc.unit}\n拟合正态分位 ${fmt(r.theoretical)} ${doc.unit}`);s.growCircle(dot,s.compact?2:2.7,i/rows.length*.4,.5);});label(s,left,12,uiMessage`观测分位 / ${doc.unit}`,{'font-size':s.fs-2},28);label(s,right,h-3,uiMessage`拟合正态分位 / ${doc.unit}`,{'text-anchor':'end','font-size':s.fs-2},35);
 }
 function survival(s,doc){
   const {w,h,theme:t}=s,groups=unique(doc.data.map(d=>d.group)),left=45,right=w-20,top=36,bottom=h-34,x=d3.scaleLinear([0,d3.max(doc.data,d=>d.duration)||1],[left,right]),y=d3.scaleLinear([0,1],[bottom,top]);s.legend(groups.map((n,i)=>({label:short(n,5),color:t.color(i)})),left,12);

@@ -1,3 +1,4 @@
+import {populationId} from './data-identity.js';
 import {labelInk,drawSectorLabels} from './chart-readability.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import * as d3 from 'd3';
@@ -69,9 +70,9 @@ function step(s,doc){
   s.text(left,13,uiText('变更后保持'),{'font-size':s.fs-2});
 }
 function difference(s,doc){
-  const {w,h,theme:t}=s,rows=orderedDates(doc.data),left=44,right=w-20,top=35,bottom=h-37,x=d3.scaleUtc(d3.extent(rows,r=>new Date(r.period)),[left,right]),y=d3.scaleLinear(s.linearDomain(rows.flatMap(r=>[r.a,r.b])),[bottom,top]).nice(4);
-  s.legend(doc.seriesLabels.map((label,i)=>({label:short(label,8),color:i?t.secondary:t.accent})),left,13);axes(s,x,y,{left,right,top,bottom,date:true});const layer=s.group(),area=d3.area().x(r=>x(r.x)).y0(r=>y(r.a)).y1(r=>y(r.b));
-  differenceSegments(rows).forEach(segment=>s.path(area(segment.points),{fill:segment.positive?t.accent:t.fg,'fill-opacity':segment.positive?.18:.09,'data-mark':'difference-area','data-sign':segment.positive?'positive':'negative'},layer));
-  ['a','b'].forEach((key,j)=>{s.path(d3.line().x(r=>x(new Date(r.period))).y(r=>y(r[key]))(rows),{stroke:j?t.secondary:t.accent,'stroke-width':j?1:1.5,'stroke-dasharray':j?'4 3':null},layer);rows.forEach(r=>{const p=s.circle(x(new Date(r.period)),y(r[key]),2,{fill:t.bg,stroke:j?t.secondary:t.accent,'stroke-width':.8},layer);s.edit(p,r,key);s.tip(p,uiMessage`${r.period}\n${doc.seriesLabels[j]} ${r[key]} ${doc.unit}\n差值 ${fmt(r.a-r.b)} ${doc.unit}`);});});s.clipReveal(layer,left-4,top-8,right-left+9,bottom-top+12,0,.84);
+  const {w,h,theme:t}=s,colors=['a','b'].map((field,i)=>t.objectColor(populationId('business-series:'+field,doc.data),i?t.secondary:t.accent)),rows=orderedDates(doc.data),left=44,right=w-20,top=35,bottom=h-37,x=d3.scaleUtc(d3.extent(rows,r=>new Date(r.period)),[left,right]),y=d3.scaleLinear(s.linearDomain(rows.flatMap(r=>[r.a,r.b])),[bottom,top]).nice(4);
+  s.legend(doc.seriesLabels.map((label,i)=>({label:short(label,8),color:colors[i]})),left,13);axes(s,x,y,{left,right,top,bottom,date:true});const layer=s.group(),area=d3.area().x(r=>x(r.x)).y0(r=>y(r.a)).y1(r=>y(r.b));
+  differenceSegments(rows).forEach(segment=>s.path(area(segment.points),{fill:t.objectColor(populationId('business-series:'+(segment.positive?'a':'b'),doc.data),segment.positive?t.accent:t.fg),'fill-opacity':segment.positive?.18:.09,'data-mark':'difference-area','data-sign':segment.positive?'positive':'negative'},layer));
+  ['a','b'].forEach((key,j)=>{s.path(d3.line().x(r=>x(new Date(r.period))).y(r=>y(r[key]))(rows),{stroke:colors[j],'stroke-width':j?1:1.5,'stroke-dasharray':j?'4 3':null},layer);rows.forEach(r=>{const p=s.circle(x(new Date(r.period)),y(r[key]),2,{fill:t.bg,stroke:colors[j],'stroke-width':.8},layer);s.edit(p,r,key);s.tip(p,uiMessage`${r.period}\n${doc.seriesLabels[j]} ${r[key]} ${doc.unit}\n差值 ${fmt(r.a-r.b)} ${doc.unit}`);});});s.clipReveal(layer,left-4,top-8,right-left+9,bottom-top+12,0,.84);
 }
 export const volume6Renderers={donut,circlepack,dendrogram,ternary,contour,hexbin,step,difference};

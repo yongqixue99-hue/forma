@@ -44,7 +44,7 @@ function fan(s,doc){
   const angle=d3.scalePoint(doc.data.map(d=>d.label),[-Math.PI*.72,Math.PI*.72]),at=(a,len)=>[cx+Math.sin(a)*len,cy-Math.cos(a)*len];
   [.25,.5,.75,1].forEach(f=>{const arc=d3.arc().innerRadius(inner+(r-inner)*f).outerRadius(inner+(r-inner)*f).startAngle(-Math.PI*.72).endAngle(Math.PI*.72);s.path(arc(),{transform:`translate(${cx},${cy})`,stroke:t.line,'stroke-dasharray':f===1?'none':'1 4','stroke-width':.65});});
   doc.data.forEach((d,i)=>{
-    const a=angle(d.label),ratio=d.value/d.target,color=ratio>=.8?t.accent:t.fg,p0=at(a,inner),p1=at(a,r);
+    const a=angle(d.label),ratio=d.value/d.target,color=t.objectColor(d,ratio>=.8?t.accent:t.fg),p0=at(a,inner),p1=at(a,r);
     s.line(...p0,...p1,{stroke:t.line,'stroke-width':.8});
     for(let j=1;j<=10;j++){const p=at(a,inner+(r-inner)*j/10);s.circle(...p,.85,{fill:t.secondary,opacity:.5});}
     const stem=s.line(...p0,...p0,{stroke:color,'stroke-width':1.05}),dot=s.circle(...p0,3.2,{fill:color,stroke:t.bg,'stroke-width':1});

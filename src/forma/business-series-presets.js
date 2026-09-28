@@ -1,0 +1,19 @@
+import {getExample} from './catalog.js';
+import {withRecordIds} from './data-identity.js';
+import {businessSeriesText as t} from './business-series-rules.js';
+const preset=(id,name,en,description,descriptionEn,dataNote,dataNoteEn,views,category='regular')=>({id,get name(){return t(name,en);},get description(){return t(description,descriptionEn);},get dataNote(){return t(dataNote,dataNoteEn);},get relation(){return t('同一份原始表 · 连续变形','One original table · Continuous morphing');},views,category});
+export const businessSeriesPresets=[
+ preset('target-scorecard','目标进度与评估区间','Targets, progress and context','六项目标由百分比长条展开为径向射线，再回到原始数量与输入的评估区间。','Six targets move from progress bars to radial rays, then return to original amounts and supplied assessment ranges.','示例显式提供 value / target、low / mid / high 和 bandLabels；阈值仅为演示，不是自动统计结论。','The example explicitly supplies value / target, low / mid / high and bandLabels. These are illustrative thresholds, not automatic statistical conclusions.',['target-progress','target-fan','target-bullet','target-pairs']),
+ preset('target-single-gauge','单项目标仪表流转','A single target in motion','同一条记录从量程仪表转为完成比例，再展开实际与目标端点。','One record moves from a range gauge to its completion ratio, then unfolds into actual and target endpoints.','保留 min=0、max=100、value=76、target=90；不添加虚构项目以适配多项目图。','Retain min=0, max=100, value=76 and target=90. No extra projects are invented to fit multi-item charts.',['target-gauge','target-progress','target-pairs']),
+ preset('metric-before-after','经营指标前后读法','Business metrics, before and after','当前数值卡连续展开为逐项独立的前后对照，销售额、订单量与退款率仍保留各自单位。','Metric cards unfold into independent before/after comparisons, retaining each unit for revenue, orders and refund rates.','四个指标不混单位求和，独立刻度明确标注；前期非正时仅显示差值。','The four metrics are never summed across units. Independent scales are labelled, and nonpositive previous values show only differences.',['metric-cards','metric-pairs']),
+ preset('paired-operating-trend','实际与目标连续对照','Actual and target through time','同一月度原表从柱线对照变为双折线，再展开有正负的差异面积。','One monthly table moves from columns and line to two lines, then unfolds into signed difference areas.','两列使用相同单位，保留全部时期与原始 bar / line 编辑字段；交叉位置为线性插值。','Both columns share a unit. Retain every period and original bar / line editing field. Crossings are linearly interpolated.',['paired-combo','paired-lines','paired-difference']),
+ preset('learning-gap-story','学习曲线与验证差距','Learning curves and validation gap','训练与验证两条原始曲线展开为差异区域，缺失轮次始终留空。','Original training and validation curves unfold into difference areas while missing epochs remain gaps.','使用原始 train / validation 与真实 epoch；保留示例中的 null，既不跨缺口连线，也不补零。','Use original train / validation values and actual epochs. Keep the example null: never bridge the gap or fill it with zero.',['paired-lines','paired-difference'],'research')
+];
+export function businessSeriesRecords(id,palette='ink'){
+ const p=businessSeriesPresets.find(p=>p.id===id);if(!p)return null;
+ const template=id==='target-scorecard'?'bullet':id==='target-single-gauge'?'gauge':id==='metric-before-after'?'kpi':id==='paired-operating-trend'?'comboline':'learning';
+ let native=getExample(template);
+ if(id==='target-scorecard')native={...native,bandLabels:[t('待改善','Developing'),t('稳定','Steady'),t('充分','Strong')],data:[['研究','Research',82,90],['设计','Design',71,90],['开发','Development',93,100],['测试','Testing',67,80],['上线','Delivery',84,95],['服务','Support',77,85]].map(([zh,en,value,target])=>({label:t(zh,en),value,target,low:45,mid:75,high:110}))};
+ const doc=withRecordIds(native,{legacyNamespace:`scenario:${id}`});doc.title=p.name;doc.subtitle=p.relation;doc.source={name:t('FORMA 场景演示 · 合成数据','FORMA scenario demonstration · Synthetic data'),type:'demo'};
+ return p.views.map(view=>({doc:structuredClone(doc),view,dataGroup:`scenario:${id}`,relation:'auto',scale:'shared',options:{palette}}));
+}

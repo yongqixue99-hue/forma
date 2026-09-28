@@ -1,3 +1,9 @@
+import {layoutBusinessSeries} from './business-series-morph.js';
+import {isBusinessSeriesView} from './business-series-rules.js';
+import {layoutStructural} from './structural-series-morph.js';
+import {isStructuralView} from './structural-series-rules.js';
+import {layoutStatistical} from './statistical-series-morph.js';
+import {isStatisticalView} from './statistical-series-rules.js';
 import {layoutDistribution} from './distribution-morph.js';
 import {isDistributionView} from './distribution-rules.js';
 import {layoutFrequency} from './frequency-morph.js';
@@ -128,6 +134,9 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
     return layout;
   }
   const eligible=scientificEligibility(doc,view);if(!eligible.valid)throw new Error(eligible.reason);
+  if(isStatisticalView(view))return layoutStatistical(doc,view,w,h,options);
+  if(isStructuralView(view))return layoutStructural(doc,view,w,h,options);
+  if(isBusinessSeriesView(view))return layoutBusinessSeries(doc,view,w,h,options);
   if(isFrequencyView(view))return layoutFrequency(doc,view,w,h,options);
   if(isDistributionView(view))return layoutDistribution(doc,view,w,h,options);
   if(isSerialView(view))return layoutSerial(doc,view,w,h,options);
@@ -165,6 +174,9 @@ export class ScientificMorphChart extends MorphChart{
     if(this.options.editable&&layout.doc.family==='multivariate')this.svg.setAttribute('role','group');
     for(const m of layout.marks){
       const n=this.nodes.get(m.key),color=this.markColor(m);
+      // Scientific layouts explicitly encode missing-value placeholders. The
+      // scalar renderer's null suppression must not hide these authored marks.
+      n.shape.setAttribute('opacity',1);
       n.shape.setAttribute('fill',m.paper?this.theme.bg:color);n.shape.setAttribute('fill-opacity',m.opacity);n.shape.setAttribute('stroke',color);n.shape.setAttribute('stroke-opacity',m.opacity);n.shape.setAttribute('stroke-width',m.stroke);n.texture.setAttribute('opacity',0);
       if(Object.hasOwn(m,'tone')&&!m.tone)n.shape.setAttribute('stroke',this.theme.secondary);
       n.title.textContent=m.tooltip||'';n.group.setAttribute('aria-label',m.tooltip||'');n.group.setAttribute('data-science-role',m.role);n.group.setAttribute('tabindex',m.opacity&&this.options.interactive!==false?0:-1);n.group.setAttribute('aria-hidden',String(!m.opacity));

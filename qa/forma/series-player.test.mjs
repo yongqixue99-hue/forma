@@ -70,11 +70,11 @@ test('independent native charts run their own growth tracks during all full-scen
   const c=clock(),original=Object.getOwnPropertyDescriptor(globalThis,'document');Object.defineProperty(globalThis,'document',{value:c.win.document,configurable:true});
   try{
     for(const effect of ['auto','entrance','slide','gather','fade']){
-      const a=makeStep({doc:getExample('column')}),b=makeStep({doc:getExample('bullet'),transition:effect,duration:1000});
+      const a=makeStep({doc:getExample('column')}),b=makeStep({doc:getExample('variwide'),transition:effect,duration:1000});
       const stage=new WorkStage(c.host,a,{steps:[a,b]});const plan=stage.go(b);assert.equal(plan.mode,'gather');c.advance(0);c.advance(280);
-      const bars=[...c.host.querySelectorAll('[data-mark=bullet-value]')];assert.ok(bars.length>0);assert.ok(bars.every(b=>Number(b.getAttribute('width'))===0));
-      c.advance(500);const middle=bars.map(b=>Number(b.getAttribute('width')));assert.ok(middle.some(v=>v>0));
-      c.advance(1000);assert.ok(bars.some((b,i)=>Number(b.getAttribute('width'))>middle[i]));assert.equal(stage.busy,false);assert.equal(c.host.querySelector('[data-wp-title]').textContent,b.doc.title);
+      const bars=[...c.host.querySelectorAll('[data-mark=variwide-bar]')];assert.ok(bars.length>0);assert.ok(bars.every(b=>Number(b.getAttribute('height'))===0));
+      c.advance(500);const middle=bars.map(b=>Number(b.getAttribute('height')));assert.ok(middle.some(v=>v>0));
+      c.advance(1000);assert.ok(bars.some((b,i)=>Number(b.getAttribute('height'))>middle[i]));assert.equal(stage.busy,false);assert.equal(c.host.querySelector('[data-wp-title]').textContent,b.doc.title);
       stage.go(a);c.advance(1100);c.advance(1450);stage.go(b);c.advance(1500);c.advance(2500);assert.equal(stage.busy,false);assert.equal(stage.scene.doc.title,b.doc.title);
       stage.destroy();assert.equal(c.queue.size,0);
     }

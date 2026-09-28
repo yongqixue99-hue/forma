@@ -128,11 +128,11 @@ function bullet(s,doc) {
     const cy=top+(i+.5)*rowH,height=Math.min(25,rowH*.6),group=s.group();
     s.text(left-10,cy+3,short(row.label,compact?5:8),{'text-anchor':'end',fill:t.fg,'font-size':s.fs-1});
     [0,row.low,row.mid].forEach((start,j)=>s.rect(x(start),cy-height/2,x([row.low,row.mid,row.high][j])-x(start),height,{fill:bandColors[j]},group));
-    const achieved=row.value>=row.target,bar=s.rect(left,cy-height*.16,0,height*.32,{fill:achieved?t.accent:t.fg,'data-mark':'bullet-value','data-value':row.value},group);
+    const achieved=row.value>=row.target,color=t.objectColor(row,achieved?t.accent:t.fg),bar=s.rect(left,cy-height*.16,0,height*.32,{fill:color,'data-mark':'bullet-value','data-value':row.value},group);
     s.add(progress=>bar.setAttribute('width',String((x(row.value)-left)*phase(progress,i*.055,.53))));
-    const target=s.line(x(row.target),cy-height/2-4,x(row.target),cy+height/2+4,{stroke:t.fg,'stroke-width':1.1,'data-mark':'bullet-target','data-target':row.target},group);s.reveal(target,.45+i*.03,.24);
+    const target=s.line(x(row.target),cy-height/2-4,x(row.target),cy+height/2+4,{stroke:t.objectColor(row,t.fg),'stroke-width':1.1,'data-mark':'bullet-target','data-target':row.target},group);s.reveal(target,.45+i*.03,.24);
     s.tip(group,uiMessage`${row.label}\n实际 ${fmt(row.value)} / 目标 ${fmt(row.target)} ${doc.unit}\n${doc.bandLabels.map((label,j)=>`${label} ${fmt([0,row.low,row.mid][j])}–${fmt([row.low,row.mid,row.high][j])}`).join('；')}`);
-    number(s,w-13,cy+3,fmt(row.value),{'text-anchor':'end',fill:achieved?t.accent:t.fg});
+    number(s,w-13,cy+3,fmt(row.value),{'text-anchor':'end',fill:color});
   });
   horizontalAxis(s,x,bottom,{grid:false});
   s.line(12,h-9,12,h-1,{stroke:t.fg,'stroke-width':1.1});s.text(19,h-3,uiText('目标'),{'font-size':s.fs-2});

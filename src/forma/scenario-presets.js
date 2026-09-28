@@ -1,3 +1,6 @@
+import {businessSeriesPresets,businessSeriesRecords} from './business-series-presets.js';
+import {structuralPresets,structuralRecords} from './structural-series-presets.js';
+import {statisticalPresets,statisticalRecords} from './statistical-series-presets.js';
 import {distributionPresets,distributionRecords} from './distribution-presets.js';
 import {frequencyPresets,frequencyRecords} from './frequency-presets.js';
 import {realPresetDetails,realScenarioRecords} from './real-scenario-data.js';
@@ -15,6 +18,9 @@ import {refinementPresets,refinementRecords} from './refinement-presets.js';
 
 export const scenarioPresets=[
   ...analyticalPresets.filter(p=>p.id==='screening-effectiveness'),
+  ...statisticalPresets,
+  ...structuralPresets,
+  ...businessSeriesPresets,
   ...distributionPresets,
   ...frequencyPresets,
   ...publicCases,
@@ -41,7 +47,7 @@ export const scenarioPresets=[
   {id:'contribution',name:'累计贡献',description:'从各项支出到累计占比，再看它们如何累加成总支出。',dataNote:'两列：支出项目、金额。填写互不重复的正向支出，不含已经汇总的总计。',relation:'同一组数据 · 可加总项目',views:['columns','pareto','waterfall']},
   {id:'cashflow',name:'收支变化',description:'每月净现金流允许正数、负数与零值，围绕共同零基线观察变化。',dataNote:'两列：月份、净现金流。流入减流出得到净值，保留负号；真实没有变化才填写 0。',relation:'同一组数据 · 正负数值',views:['columns','diverging','line','dot']},
   {id:'conversion',name:'转化阶段',description:'追踪同一批访客从访问到付费的去向，按阶段顺序查看人数。',dataNote:'两列：阶段、人数。每一阶段来自前一阶段的同一批对象；不要把不同人群混在一起。',relation:'同一批对象 · 有序阶段',views:['bars','funnel-bars']}
-].map(p=>({...p,...realPresetDetails(p.id)}));
+].map(p=>Object.defineProperties({}, {...Object.getOwnPropertyDescriptors(p),...Object.getOwnPropertyDescriptors(realPresetDetails(p.id)||{})}));
 
 export const scenarioCategory=p=>p.category==='research'||['paired-study','research-budget'].includes(p.id)?'research':'regular';
 
@@ -56,6 +62,9 @@ export function morphBaseDocument(doc){
 export function scenarioRecords(id,palette){
   const publicRecords=publicCaseRecords(id,palette);if(publicRecords)return publicRecords;
   palette??='ink';
+  const statistical=statisticalRecords(id,palette);if(statistical)return statistical;
+  const structural=structuralRecords(id,palette);if(structural)return structural;
+  const businessSeries=businessSeriesRecords(id,palette);if(businessSeries)return businessSeries;
   const distribution=distributionRecords(id,palette);if(distribution)return distribution;
   const frequency=frequencyRecords(id,palette);if(frequency)return frequency;
   const real=realScenarioRecords(id,scenarioPresets.find(p=>p.id===id)?.views,palette);if(real)return real;
