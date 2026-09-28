@@ -102,3 +102,20 @@ FORMA 保留当前原生 SVG 架构，独立实现128点闭合轮廓插值。条
 循环桑基图以强连通分量构造层次，独立排布回流与自环通道，共用数量到线宽比例。节点保留流入、流出和差额，不擅自平衡数据。邻接矩阵要求包含显式零的完整有向方阵；韦恩图要求三集合的七个排他区域，圆面积不编码数量。同期群留存按各群固定起始人数计算，允许回访上升，未观测未来保持缺失。敏感性龙卷风图表示输入参数低/高情景的模型输出，允许两端方向相反或位于基准同一侧。
 
 新增 24 型均采用确定性原生入场动画，支持重播和反向定位；没有将它们登记成未经实现的连续变形。图库直接适配连续变形的模板仍为 65 种。
+
+## 第十四至十六批：多变量、可靠性与决策（2026-09-28）
+
+新增 24 种后，图库由 144 扩为 168 种。沿用现有 D3 / SVG 渲染与主题系统，没有新增运行时依赖。每种图的字段、公式、适用边界与参考链接同时写入中英双语数据指南。
+
+| 依据 | 实现与边界 |
+| --- | --- |
+| [pandas Andrews curves](https://pandas.pydata.org/docs/reference/api/pandas.plotting.andrews_curves.html)、[R PCA biplot](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/biplot.princomp.html) | Andrews 使用声明顺序的可比尺度原值，不自动标准化；双标图接收外部得分与载荷，明确载荷倍率和缩放约定，不重新拟合 PCA。 |
+| [Taylor diagram primer](https://pcmdi.llnl.gov/staff/taylor/CV/Taylor_diagram_primer.pdf) | 泰勒图同时显示标准差比、相关与中心误差，保留负相关半圆；目标图分离均值偏差与中心误差，并检查标准差三角界限。 |
+| [NIST Youden plot](https://www.itl.nist.gov/div898/handbook/eda/section3/eda33v.htm)、[R agreementplot](https://search.r-project.org/CRAN/refmans/vcd/html/agreementplot.html)、[R assocplot](https://stat.ethz.ch/R-manual/R-devel/library/graphics/html/assocplot.html) | Youden 图使用等单位比例坐标；一致性 B 不冒充 Cohen κ；列联表保留全部显式零值，关联图面积对应观察与期望频数之差，马赛克面积对应联合频数。 |
+| [swimplot](https://stat.ethz.ch/CRAN/web/packages/swimplot/refman/swimplot.html)、[pyts RecurrencePlot](https://pyts.readthedocs.io/en/latest/generated/pyts.image.RecurrencePlot.html) | 个体泳道保留响应与继续观察标记，多状态历程保留未观测空档；复现图直接比较原始标量距离，阈值有原始单位，不声称重构完整相空间。 |
+| [NIST Weibull plot](https://www.itl.nist.gov/div898/handbook/eda/section3/weibplot.htm)、[NIST TTT](https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/ttt_plot.htm)、[R mean excess](https://search.r-project.org/CRAN/refmans/evir/html/meplot.html) | Weibull 概率位置用 `(i−0.3)/(n+0.4)`；TTT 使用完整等权正寿命；平均超额仅使用严格超阈样本并明确最小样本数。均不擅自拟合寿命或极值模型。 |
+| [SciPy spectrogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html) | 接收外部已计算的完整时频功率矩阵，明确时间、频率和功率单位，不执行或伪造 FFT。 |
+
+[RadViz 方法](https://pandas.pydata.org/pandas-docs/version/1.5/user_guide/visualization.html#radviz)按完整观测范围归一化后计算径向平衡位置；[Hive plot](https://www.hiveplot.com/)使用明确轴分组与位置。累计增益按完整同分块推进；[决策曲线原论文](https://pmc.ncbi.nlm.nih.gov/articles/2577036/)的净获益按 `TP/n − FP/n × t/(1−t)` 计算，并展示全部处理和均不处理基线。比例控制漏斗使用声明基准的二项正态近似，要求各分母满足近似条件；[L’Abbé 图](https://search.r-project.org/CRAN/refmans/plotrix/html/labbePlot.html)保留双组原始分母，气泡面积表示样本量。列线图展示用户给定的线性加法评分，不将评分冒充风险概率。
+
+新增模板使用可往返定位的原生入场动画。连续变形兼容性仍按现有引擎判断，65 种已适配模板的范围保持不变。

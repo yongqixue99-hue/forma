@@ -1,3 +1,6 @@
+import {validateVolume14,volume14Summary} from './volume14-data.js';
+import {validateVolume15,volume15Summary} from './volume15-data.js';
+import {validateVolume16,volume16Summary} from './volume16-data.js';
 import {validateVolume10,volume10Summary} from './volume10-data.js';
 import {validateVolume11,volume11Summary} from './volume11-data.js';
 import {validateVolume12,volume12Summary} from './volume12-data.js';
@@ -107,6 +110,9 @@ function checkDocument(doc) {
   validateVolume11(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume12(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume13(doc,{fail,count,noDuplicates,positive,allZero,warnings});
+  validateVolume14(doc,{fail,count,noDuplicates,positive,allZero,warnings});
+  validateVolume15(doc,{fail,count,noDuplicates,positive,allZero,warnings});
+  validateVolume16(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume9(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume8(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume7(doc,{fail,count,noDuplicates,positive,allZero,warnings});
@@ -145,6 +151,9 @@ export function summary(doc) {
   const volume11=volume11Summary(doc,fmt);if(volume11)return volume11;
   const volume12=volume12Summary(doc,fmt);if(volume12)return volume12;
   const volume13=volume13Summary(doc,fmt);if(volume13)return volume13;
+  const volume14=volume14Summary(doc,fmt);if(volume14)return volume14;
+  const volume15=volume15Summary(doc,fmt);if(volume15)return volume15;
+  const volume16=volume16Summary(doc,fmt);if(volume16)return volume16;
   const volume9=volume9Summary(doc,fmt);if(volume9)return volume9;
   const volume8=volume8Summary(doc,fmt);if(volume8)return volume8;
   const volume7=volume7Summary(doc,fmt);if(volume7)return volume7;

@@ -4,8 +4,8 @@ import {entitySpec,multivariateGroupKey,withEntityIds} from './entity-identity.j
 import {populationId} from './data-identity.js';
 const hex=value=>typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value);
 const scalarTemplates=new Set('column bar pie donut mosaic waffle lollipop rose circlepack pareto funnel orbit unit'.split(' '));
-const sampleTemplates=new Set('swarm boxplot violin raincloud errorbar halfeye deltaplot ecdfdiff'.split(' '));
-export const valueColorTemplates=new Set(['heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency']);
+const sampleTemplates=new Set('swarm boxplot violin raincloud errorbar halfeye deltaplot ecdfdiff andrews biplot lexis swimmer radviz'.split(' '));
+export const valueColorTemplates=new Set(['heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency','spectrogram']);
 export function normalizeColorBindings(value){
  if(value===undefined)return undefined;
  if(!Array.isArray(value)||value.length>1500||value.some(r=>!r||typeof r.id!=='string'||!r.id||r.id.length>100000||!hex(r.color))||new Set(value.map(r=>r.id)).size!==value.length)return null;

@@ -14,7 +14,7 @@ const window=new Window();globalThis.document=window.document;globalThis.XMLSeri
 const near=(a,b,tol=1e-9)=>assert.ok(Math.abs(a-b)<tol,`${a} != ${b}`),valid=d=>validateDocument(d).valid;
 const scene=(doc,opts={})=>new ChartScene(document.createElement('div'),doc,{width:680,height:360,interactive:false,...opts});
 test('eight new templates have complete shared contracts, user data roundtrips and runnable export payloads',()=>{
- assert.equal(catalog.length,144);assert.equal(volume10Catalog.length,8);
+ assert.equal(catalog.length,168);assert.equal(volume10Catalog.length,8);
  for(const t of volume10Catalog){const d=getExample(t.id);assert.ok(valid(d),`${t.id}: ${validateDocument(d).errors}`);assert.deepEqual(parseDataText(toCSV(d),d,'csv').data,d.data);assert.deepEqual(readProject(JSON.stringify(makeProject(d,{}))).doc,d);const guide=getDataGuide(t.id);assert.ok(guide.rowMeaning);assert.equal(guide.fields.length,t.fields.length);assert.ok(agentBrief(d).includes(t.id));assert.ok(standaloneHTML(d,{},'var FormaPlayer={mount(){}};').includes(t.id));}
 });
 test('map code coverage is explicit, display names are independent, null stays unmeasured and unknown codes fail',()=>{
