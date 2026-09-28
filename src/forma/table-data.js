@@ -109,7 +109,7 @@ export function cellsToDocument(doc, cells, rowMeta=doc.data) {
     const problem=doc.template==='choropleth'&&key==='code'&&!resolveCountry(value)
       ?(isEnglish()?' must be a supported map region. Type a country name or code and choose a match.':'需要填写底图支持的地区。输入国家名称或代码并选择匹配项。')
       :fieldProblem(value,type,{doc,key});
-    if(problem){const sourceColumn=doc.tableInput?.fieldColumns?.[key],header=Number.isInteger(sourceColumn)?doc.tableInput.headers?.[sourceColumn]:undefined;errors.push({row:r,col:c,message:uiMessage`第 ${r+1} 行「${header??fieldLabel([key,type,desc])}」${problem}`});}
+    if(problem){const sourceColumn=doc.tableInput?.fieldColumns?.[key],header=Number.isInteger(sourceColumn)?doc.tableInput.headers?.[sourceColumn]:undefined;errors.push({row:r,col:c,message:uiMessage`第 ${r+1} 行「${header??fieldLabel([key,type,desc],doc.template)}」${problem}`});}
     return [key, value];
   }))}));
   if(doc.template==='choropleth'){

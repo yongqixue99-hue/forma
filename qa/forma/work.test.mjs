@@ -245,7 +245,7 @@ test('editor catalog combines animation capability with search without changing 
   f.host.querySelector('[data-we=add]').click();
   f.host.querySelector('[data-we-picker-tab=library]').click();
   const visible=()=>[...f.host.querySelectorAll('[data-we-template]')].filter(b=>!b.hidden);
-  assert.equal(visible().length,120);
+  assert.equal(visible().length,144);
   const toggle=f.host.querySelector('[data-we-morph-only]');toggle.checked=true;toggle.dispatchEvent(new win.Event('change',{bubbles:true}));
   assert.equal(visible().length,65);assert.equal(f.host.querySelector('[data-we-catalog-count]').textContent,'65 个图表');
   change(f.host,'[data-we-search]','3D');

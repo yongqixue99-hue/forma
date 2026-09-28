@@ -16,7 +16,7 @@ const valid=doc=>validateDocument(doc).valid;
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(a),Math.abs(b)),`${a} ≈ ${b}`);
 
 test('edition six has twelve distinct contracts, four spatial templates and lossless source data',()=>{
-  assert.equal(catalog.length,120);assert.equal(volume6Catalog.length,12);assert.equal(filterCatalog(catalog,{category:'spatial'}).length,6);
+  assert.equal(catalog.length,144);assert.equal(volume6Catalog.length,12);assert.equal(filterCatalog(catalog,{category:'spatial'}).length,6);
   for(const t of volume6Catalog){const doc=getExample(t.id);assert.ok(valid(doc),JSON.stringify(validateDocument(doc)));assert.deepEqual(parseDataText(toCSV(doc),doc,'csv').data,doc.data);assert.equal(doc.source.type,'demo');}
 });
 

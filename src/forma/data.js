@@ -1,4 +1,7 @@
 import {validateVolume10,volume10Summary} from './volume10-data.js';
+import {validateVolume11,volume11Summary} from './volume11-data.js';
+import {validateVolume12,volume12Summary} from './volume12-data.js';
+import {validateVolume13,volume13Summary} from './volume13-data.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {entityProblems} from './entity-identity.js';
 import {fieldProblem,recordProblems} from './data-contract.js';
@@ -101,6 +104,9 @@ function checkDocument(doc) {
   if(t.id==='dumbbell') {count(rows.length,3,10,uiText('对象'));noDuplicates(rows.map(r=>r.label),uiText('对象名称'));}
   validateEditorial(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume10(doc,{fail,count,noDuplicates,positive,allZero,warnings});
+  validateVolume11(doc,{fail,count,noDuplicates,positive,allZero,warnings});
+  validateVolume12(doc,{fail,count,noDuplicates,positive,allZero,warnings});
+  validateVolume13(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume9(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume8(doc,{fail,count,noDuplicates,positive,allZero,warnings});
   validateVolume7(doc,{fail,count,noDuplicates,positive,allZero,warnings});
@@ -136,6 +142,9 @@ export function recommend(query) {
 export function summary(doc) {
   const d=doc.data;
   const volume10=volume10Summary(doc,fmt);if(volume10)return volume10;
+  const volume11=volume11Summary(doc,fmt);if(volume11)return volume11;
+  const volume12=volume12Summary(doc,fmt);if(volume12)return volume12;
+  const volume13=volume13Summary(doc,fmt);if(volume13)return volume13;
   const volume9=volume9Summary(doc,fmt);if(volume9)return volume9;
   const volume8=volume8Summary(doc,fmt);if(volume8)return volume8;
   const volume7=volume7Summary(doc,fmt);if(volume7)return volume7;

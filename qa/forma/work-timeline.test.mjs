@@ -150,7 +150,7 @@ test('player and video use the same contour frame; video duration and final hold
   }finally{out.destroy();}
 });
 
-test('all 112 native templates retain valid deterministic entrance frames in whole-work export',()=>{
+test('all current native templates retain valid deterministic entrance frames in whole-work export',()=>{
   for(const t of catalog){const work=newWork([{doc:getExample(t.id)}]),out=createWorkExportRenderer(work);try{
     for(const time of [0,800,work.steps[0].duration+1])assert.doesNotMatch(out.frame(time).replace(/<style>[\s\S]*?<\/style>/g,''),/NaN|Infinity|undefined/,t.id);
   }finally{out.destroy();}}

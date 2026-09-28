@@ -12,9 +12,9 @@ const window=new Window();globalThis.document=window.document;globalThis.XMLSeri
 const chart=(doc,options={})=>new ChartScene(document.createElement('div'),doc,{width:600,height:320,interactive:false,...options});
 const valid=doc=>validateDocument(doc).valid,near=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} ≠ ${b}`);
 
-test('12 basic templates integrate with all 120 contracts and preserve CSV data and metadata',()=>{
-  assert.equal(catalog.length,120);assert.equal(volume9Catalog.length,12);
-  assert.equal(new Set(catalog.map(t=>t.id)).size,120);
+test('12 basic templates integrate with all current contracts and preserve CSV data and metadata',()=>{
+  assert.equal(catalog.length,144);assert.equal(volume9Catalog.length,12);
+  assert.equal(new Set(catalog.map(t=>t.id)).size,144);
   for(const t of volume9Catalog){const d=getExample(t.id);assert.ok(valid(d),t.id);assert.deepEqual(parseDataText(toCSV(d),d,'csv').data,d.data);assert.deepEqual(parseDataText(JSON.stringify(d),d),d);assert.ok(summary(d).label);assert.equal(d.source.type,'demo');}
 });
 test('basic collection spans old and new charts and composes with independent family facets',()=>{

@@ -26,7 +26,7 @@ test('country changes preserve values and IDs, update default names, keep custom
   model.setCell(0,0,'A');assert.equal(model.report.valid,false);assert.ok(model.report.cellErrors.some(e=>e.row===0&&e.col===0));assert.equal(model.doc.data[0].code,'ARG');
   model.undo();assert.equal(model.report.valid,true);setLocale('zh-CN');
 });
-test('all 120 English example units and axes are semantic, without Item aliases',()=>{
+test('all current English example units and axes are semantic, without Item aliases',()=>{
   setLocale('en');try{for(const chart of catalog){const doc=getExample(chart.id);assert.doesNotMatch(JSON.stringify({unit:doc.unit,axes:doc.axes}),/Item \d|[\u3400-\u9fff]/,chart.id);}}finally{setLocale('zh-CN');}
 });
 test('four public scenario replacements preserve source values and honest aggregation',()=>{

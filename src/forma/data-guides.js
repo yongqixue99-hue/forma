@@ -1,5 +1,9 @@
 import {agentHandoff} from './agent-handoff.js';
 import {guide10} from './volume10-data.js';
+import {guide11} from './volume11-data.js';
+import {guide12} from './volume12-data.js';
+import {guide13} from './volume13-data.js';
+import {fieldNames} from './locale-catalog.js';
 import {isEnglish} from './locale.js';
 import {englishGuide,englishFormat,chartAgentBriefEN} from './locale-guide.js';
 import {cleanAnnotations} from './annotations.js';
@@ -111,7 +115,8 @@ const notes={
   kpi:['不同指标可以有不同单位；前期值非正时仅显示绝对差值，不计算增长率。'],
 };
 
-export const parameterNames={maxLag:'最大滞后阶数',axes:'坐标与维度名称',qThreshold:'校正 p 值阈值',fcThreshold:'倍数变化阈值',pc1Variance:'PC1 解释方差 / %',pc2Variance:'PC2 解释方差 / %',sets:'集合名称',chromosomes:'染色体名称与长度',threshold:'显著性阈值',referenceEffect:'参考效应',intervalLabel:'区间定义',doseUnit:'剂量单位',positiveLabel:'正类含义',bins:'分箱数',binCount:'分箱数',binRadius:'分箱大小',max:'量程上限',periodLabels:'前后时期名称',pairLabels:'配对观测名称',methodLabels:'测量方法名称',seriesLabels:'序列名称',sideLabels:'两侧名称',responses:'回答选项顺序',bandLabels:'区间名称'};
+export const parameterNames={target:'参考目标值',sigma:'参考过程标准差',referenceK:'CUSUM 参考值 / σ',decisionH:'CUSUM 判定界限 / σ',lambda:'EWMA 权重',limitSigma:'控制限倍数',lag:'滞后阶数',sampleInterval:'采样间隔',timeUnit:'时间单位',referenceMean:'参考正态均值',referenceSD:'参考正态标准差',binsX:'横轴分箱数',binsY:'纵轴分箱数',bandwidthX:'横轴核带宽',bandwidthY:'纵轴核带宽',bandwidth:'密度核带宽',dotCount:'等概率点数量',baseline:'基准情景结果',periodUnit:'观察期单位',nodes:'节点名称与顺序',maxLag:'最大滞后阶数',axes:'坐标与维度名称',qThreshold:'校正 p 值阈值',fcThreshold:'倍数变化阈值',pc1Variance:'PC1 解释方差 / %',pc2Variance:'PC2 解释方差 / %',sets:'集合名称',chromosomes:'染色体名称与长度',threshold:'显著性阈值',referenceEffect:'参考效应',intervalLabel:'区间定义',doseUnit:'剂量单位',positiveLabel:'正类含义',bins:'分箱数',binCount:'分箱数',binRadius:'分箱大小',max:'量程上限',periodLabels:'前后时期名称',pairLabels:'配对观测名称',methodLabels:'测量方法名称',seriesLabels:'序列名称',sideLabels:'两侧名称',responses:'回答选项顺序',bandLabels:'区间名称'};
+export const parameterLabel=key=>isEnglish()?(fieldNames[key]||key.replace(/([A-Z])/g,' $1')):(parameterNames[key]||key);
 const metadataKeys=new Set(['version','template','title','subtitle','unit','source','data','tableInput','provenance','entities','sampleEntities','selectedPair','variableUnits']);
 const introductions={
   tide:'多条折线共用时间轴与数值轴，用于比较不同序列的变化、波动和趋势。缺失值保留断点。',
@@ -168,9 +173,9 @@ export function getDataGuide(id){
   const doc=getExample(id);
   const guide={id,name:t.name,introduction:introductions[id]||t.description,motion:t.motion,rowMeaning:meanings[id],use:t.use,limit:t.limit,avoid:t.avoid,
     fields:dataContract(doc).fields.map(f=>({key:f.key,label:f.label,description:f.description,format:fieldFormat(f.type)+(f.rule?`；${f.rule.note}`:''),sample:f.example})),
-    notes:notes[id]||[],parameters:Object.entries(doc).filter(([key])=>!metadataKeys.has(key)).map(([key,value])=>({key,label:parameterNames[key]||key,value})),
+    notes:notes[id]||[],parameters:Object.entries(doc).filter(([key])=>!metadataKeys.has(key)).map(([key,value])=>({key,label:parameterLabel(key),value})),
     sampleRows:doc.data.slice(0,3),sampleSize:doc.data.length,example:doc};
-  return guide10(t,isEnglish()?englishGuide(t,guide):guide);
+  return [guide10,guide11,guide12,guide13].reduce((result,extend)=>extend(t,result),isEnglish()?englishGuide(t,guide):guide);
 }
 
 // The complete work keeps the actual user documents separately. This section

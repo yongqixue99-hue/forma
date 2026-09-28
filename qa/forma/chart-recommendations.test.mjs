@@ -32,7 +32,7 @@ test('goal shortlists partition the live catalog without duplicate or orphan cha
  }
 });
 test('contract examples retain meanings of interval definitions, axes and repeated measurements',async()=>{
- for(const id of ['interval','ribbon','paired','blandaltman','likert','acf','pcaloadings','xy']){
+ for(const id of ['interval','ribbon','paired','blandaltman','likert','acf','pcaloadings','xy',...catalog.filter(t=>t.edition>=11).map(t=>t.id)]){
   const d=(await read(`chart-guides/${id}.json`)).locales.en.exampleDocument;
   for(const [key,value]of Object.entries(d))if(!['data','title','subtitle'].includes(key))assert.doesNotMatch(JSON.stringify(value),/Item \d+/,`${id}.${key}`);
  }

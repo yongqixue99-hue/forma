@@ -21,9 +21,11 @@ test('series colour follows registered entity identity independently of registry
  const at=colorSubjects(doc).findIndex(s=>s.id===entity.id);assert.equal(chartTheme(doc,options).color(at),'#315577');
 });
 test('sample population bindings retain exact members rather than a display name',()=>{
- const doc=withRecordIds(getExample('boxplot')),first=colorSubjects(doc)[0];doc.data.filter(r=>r.group===first.label).forEach(r=>r.group='Renamed population');doc.data.reverse();
+ for(const template of ['boxplot','halfeye','deltaplot','ecdfdiff']){
+ const doc=withRecordIds(getExample(template)),first=colorSubjects(doc)[0];doc.data.filter(r=>r.group===first.label).forEach(r=>r.group='Renamed population');doc.data.reverse();
  assert.equal(colorSubjects(doc).find(s=>s.label==='Renamed population').id,first.id);doc.data=doc.data.filter((r,i)=>!(r.group==='Renamed population'&&i===doc.data.findIndex(r=>r.group==='Renamed population')));
  assert.notEqual(colorSubjects(doc).find(s=>s.label==='Renamed population').id,first.id);
+ }
 });
 test('colour options validate identities and typed scales instead of silently accepting malformed styles',()=>{
  assert.throws(()=>cleanOptions({colorBindings:[{id:'a',color:'#112233'},{id:'a',color:'#445566'}]}));

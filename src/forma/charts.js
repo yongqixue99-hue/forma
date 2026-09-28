@@ -1,6 +1,9 @@
 import {labelFont,labelInk,areaDataLabel} from './chart-readability.js';
 import {chartTheme} from './color-semantics.js';
 import {volume10Renderers} from './volume10-charts.js';
+import {volume11Renderers} from './volume11-charts.js';
+import {volume12Renderers} from './volume12-charts.js';
+import {volume13Renderers} from './volume13-charts.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {measurementDomain} from './axis-policy.js';
 import {renderAnnotations} from './annotation-view.js';
@@ -349,5 +352,5 @@ function dumbbell(s,doc){
   });
 }
 
-const renderers={tide,orbit,alluvial,ridges,race,scatter,calendar,waterfall,mosaic,chord,waffle,dumbbell,...editorialRenderers,...atlasRenderers,...volume4Renderers,...volume5Renderers,...volume6Renderers,...volume7Renderers,...volume8Renderers,...volume9Renderers,...volume10Renderers,...spatialRenderers};
+const renderers={tide,orbit,alluvial,ridges,race,scatter,calendar,waterfall,mosaic,chord,waffle,dumbbell,...editorialRenderers,...atlasRenderers,...volume4Renderers,...volume5Renderers,...volume6Renderers,...volume7Renderers,...volume8Renderers,...volume9Renderers,...volume10Renderers,...volume11Renderers,...volume12Renderers,...volume13Renderers,...spatialRenderers};
 export const createChart=(host,doc,options)=>new ChartScene(host,doc,options);

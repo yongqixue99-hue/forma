@@ -6,11 +6,11 @@ import {filterCatalog,facetCounts} from '../../src/forma/library-filter.js';
 import {morphReady} from '../../src/forma/work-model.js';
 
 test('library animation counts partition templates and use actual work eligibility',()=>{
-  assert.deepEqual(motionCoverage,{templates:120,morph:65,entrance:55,encodings:101});
+  assert.deepEqual(motionCoverage,{templates:144,morph:65,entrance:79,encodings:101});
   assert.deepEqual(libraryCatalog.map(t=>t.id),catalog.map(t=>t.id));
   for(const t of libraryCatalog)assert.equal(t.motion==='morph',morphReady({doc:getExample(t.id)}),t.id);
   const morph=filterCatalog(libraryCatalog,{motion:'morph'}),entrance=filterCatalog(libraryCatalog,{motion:'entrance'});
-  assert.equal(new Set([...morph,...entrance].map(t=>t.id)).size,120);
+  assert.equal(new Set([...morph,...entrance].map(t=>t.id)).size,144);
   assert.ok(entrance.every(t=>!morph.some(m=>m.id===t.id)));
 });
 
@@ -20,13 +20,13 @@ test('animation filters compose with research, visual family, search and favorit
   assert.deepEqual(filterCatalog(libraryCatalog,{...filters,motion:'entrance'}),[]);
   assert.equal(filterCatalog(libraryCatalog,{family:'spatial',motion:'morph'}).length,3);
   assert.equal(filterCatalog(libraryCatalog,{family:'spatial',motion:'entrance'}).length,3);
-  assert.equal(filterCatalog(libraryCatalog).length,120);
+  assert.equal(filterCatalog(libraryCatalog).length,144);
 });
 
 test('facets preserve other conditions and remove only their own dimension',()=>{
   const filters={motion:'morph',family:'scatter'};
   const motion=facetCounts(libraryCatalog,filters,'motion');
-  assert.equal(motion.all,17);assert.equal(motion.morph+motion.entrance,motion.all);
+  assert.equal(motion.all,18);assert.equal(motion.morph+motion.entrance,motion.all);
   assert.equal(motion.morph,filterCatalog(libraryCatalog,filters).length);
   assert.equal(facetCounts(libraryCatalog,filters,'family').all,65);
   const favorites=facetCounts(libraryCatalog,{motion:'morph',onlyFavorites:true,favorites:['roc','pca']},'motion');

@@ -83,3 +83,22 @@ FORMA 保留当前原生 SVG 架构，独立实现128点闭合轮廓插值。条
 ## 第八版：科研语义与统计核对
 
 这轮通过 agent-reach 的 Exa 检索官方资料，核对 Penn State 的均值响应 t 区间、NIST 的一致性分析、scikit-learn 的 ROC/AP/校准、Bioconductor 的组学结果、UpSet 的交集矩阵。来源链接与使用边界集中于 [SCIENTIFIC-GUIDE.md](SCIENTIFIC-GUIDE.md)。没有引入这些项目的运行时或复制其代码。新增绘图与数值计算沿用本地 D3/SVG，依赖版本保持不变。
+
+## 第十一至十三批：过程、分布与复杂关系（2026-09-28）
+
+本次新增 24 种图表，图库由 120 扩为 144 种，没有增加运行时依赖。数值方法与数据语义依据以下一手文档核对；绘图实现使用本项目的 D3 / SVG 场景。
+
+| 依据 | 实现与边界 |
+| --- | --- |
+| [NIST p 控制图](https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc332.htm)、[u 控制图](https://www.itl.nist.gov/div898/software/dataplot/refman1/ch2/ucontrol.pdf) | 按各批真实样本量或暴露量计算动态控制限；不将缺陷次数等同于不合格件数。 |
+| [NIST CUSUM](https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/cusum.htm)、[EWMA](https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm)、[X̄-R](https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc311.htm) | 双侧标准化 CUSUM 不在越限后擅自重置；EWMA 使用启动期控制限；子组均值与极差图保留各组原始观测。 |
+| [SciPy periodogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.periodogram.html) | 等间隔观测先去均值，采用矩形窗的单边每频点功率，单位为观测单位的平方；不是功率谱密度，Nyquist 点不加倍。预测扇形另接收外部模型已计算的嵌套区间，不内置预测模型。 |
+| [R quantile](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html)、[R ECDF](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/ecdf.html)、[SciPy ndtr](https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.ndtr.html) | 分位数按 Type 7；经验分布保留重复观测；P–P 对照概率而非 Q–Q 的分位值。两组差异的方向与组顺序明确列出。 |
+| [世界银行 Gini 定义](https://databank.worldbank.org/metadataglossary/gender-statistics/series/SI.POV.GINI) | 洛伦兹曲线使用等权非负观测，显示 0–1 的 Gini 系数，未声称支持调查权重。 |
+| [R Gaussian density](https://search.r-project.org/R/refmans/stats/html/density.html)、[D3 contours](https://d3js.org/d3-contour/contours)、[ggdist half-eye](https://mjskay.github.io/ggdist/reference/stat_halfeye.html) | 真实高斯核密度与声明带宽；二维等高线表示密度层级而非置信概率。半眼的中央区间属于样本分布，不是均值置信区间；分位点阵每点代表等概率份额，不冒充原始样本点。 |
+| [D3 pack](https://d3js.org/d3-hierarchy/pack)、[D3 tree](https://d3js.org/d3-hierarchy/tree) | 任意深度层级仅加总叶值；父圆含布局留白，面积不等于严格总量；径向树的枝长与角度仅用于排布。 |
+| [D3 geo](https://d3js.org/d3-geo/shape)、[Natural Earth 使用条款](https://www.naturalearthdata.com/about/terms-of-use/) | 复用已有世界底图，地理流线沿大圆方向绘制并在日期变更线分段，线宽表示数量；连线不表示实际运输路线。 |
+
+循环桑基图以强连通分量构造层次，独立排布回流与自环通道，共用数量到线宽比例。节点保留流入、流出和差额，不擅自平衡数据。邻接矩阵要求包含显式零的完整有向方阵；韦恩图要求三集合的七个排他区域，圆面积不编码数量。同期群留存按各群固定起始人数计算，允许回访上升，未观测未来保持缺失。敏感性龙卷风图表示输入参数低/高情景的模型输出，允许两端方向相反或位于基准同一侧。
+
+新增 24 型均采用确定性原生入场动画，支持重播和反向定位；没有将它们登记成未经实现的连续变形。图库直接适配连续变形的模板仍为 65 种。

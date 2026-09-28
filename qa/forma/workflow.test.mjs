@@ -30,7 +30,7 @@ test('header switch and column mapping are explicit and cannot duplicate or omit
   assert.throws(()=>mapTable(t,[0,0],f),/同一列/);assert.throws(()=>mapTable(t,[0,-1],f),/每个图表字段/);
   const ambiguous=splitTable(parseTable('A,B,C\nfoo,1,2\nbar,2,3'));assert.deepEqual(suggestMapping(ambiguous.headers,ambiguous.rows,f),[0,-1]);
 });
-test('all 112 existing documents survive a grid roundtrip, including statistics and metadata',()=>{
+test('all current existing documents survive a grid roundtrip, including statistics and metadata',()=>{
   for(const t of catalog){const doc=getExample(t.id),result=cellsToDocument(doc,documentCells(doc));assert.deepEqual(result.doc,doc,t.id);assert.equal(result.errors.length,0,t.id);assert.equal(validateDocument(result.doc).valid,true,t.id);}
 });
 test('invalid cells keep locations and missing trend observations remain null',()=>{

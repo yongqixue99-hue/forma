@@ -69,7 +69,7 @@ test('morph timeline seek is deterministic at arbitrary times and preserves exac
   chart.seekTransition('columns','donut',1);for(const m of layoutMorph(doc,'donut',720,440).marks)assert.deepEqual(chart.current.get(m.key),m.points);
   chart.seekTransition('columns','donut',.52);assert.deepEqual([...host.querySelectorAll('path[data-key]')].map(p=>p.getAttribute('d')),middle);assert.equal(chart.frame,null);chart.destroy();
 });
-test('all 112 native chart templates compose with finite SVG geometry at a quarter canvas size',()=>{
+test('all current native chart templates compose with finite SVG geometry at a quarter canvas size',()=>{
   for(const t of catalog){const p=composed([t.id]);const panel=p.scenes[0].panels[0];panel.w=48;panel.h=48;const host=document.createElement('div'),surface=new CanvasSurface(host,p);surface.frame(0,{sceneIndex:0});
     assert.ok(host.querySelector('svg'),t.id);for(const node of host.querySelectorAll('svg *'))for(const attr of node.attributes)if(['d','x','y','r','cx','cy','width','height','transform','points'].includes(attr.name))assert.doesNotMatch(attr.value,/NaN|Infinity|undefined/,`${t.id}:${attr.name}`);surface.destroy();
   }

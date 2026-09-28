@@ -25,7 +25,7 @@ test('API reports field paths, missing parameters, invalid numbers and incompati
  for(const change of [r=>r.version=2,r=>r.steps[0].options={ratio:'unknown'},r=>delete r.steps[0].table.mapping.value,r=>r.steps[0].table.rows[0][2]='not a number']){const r=request();change(r);const report=validate(r);assert.equal(report.valid,false);assert.ok(report.errors[0].path);assert.equal(report.work,undefined);}
  const r=request();r.steps.push({...structuredClone(r.steps[0]),view:'donut',transition:'smooth',dataGroup:'same'});r.steps[0].dataGroup='same';assert.equal(validate(r).valid,false);
 });
-test('all 120 published chart contracts configure through both document and explicit table paths',()=>{
+test('all current published chart contracts configure through both document and explicit table paths',()=>{
  for(const t of catalog){const doc=getExample(t.id),r={kind:'forma-agent-request',version:1,name:'QA '+t.id,steps:[{chart:t.id,document:doc}]};let report=validate(r);assert.ok(report.valid,t.id+': '+JSON.stringify(report.errors));
  r.steps=[{chart:t.id,metadata:{title:doc.title,subtitle:doc.subtitle,unit:doc.unit,source:doc.source.name},parameters:Object.fromEntries(getDataGuide(t.id).parameters.map(p=>[p.key,p.value])),table:{headers:t.fields.map(f=>f[0]),rows:doc.data.map(row=>t.fields.map(f=>row[f[0]])),mapping:Object.fromEntries(t.fields.map((f,i)=>[f[0],i]))}}];report=validate(r);assert.ok(report.valid,t.id+': '+JSON.stringify(report.errors));
  }
