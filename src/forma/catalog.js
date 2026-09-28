@@ -1,3 +1,6 @@
+import {volume19Catalog,volume19Contents} from './volume19-catalog.js';
+import {volume18Catalog,volume18Contents} from './volume18-catalog.js';
+import {volume17Catalog,volume17Contents} from './volume17-catalog.js';
 import {volume14Catalog,volume14Contents} from './volume14-catalog.js';
 import {volume15Catalog,volume15Contents} from './volume15-catalog.js';
 import {volume16Catalog,volume16Contents} from './volume16-catalog.js';
@@ -63,7 +66,7 @@ export const catalog = [
 ];
 
 catalog.forEach(t=>t.edition=1);
-catalog.push(...editorialCatalog,...atlasCatalog,...volume4Catalog,...volume5Catalog,...volume6Catalog,...volume7Catalog,...volume8Catalog,...volume9Catalog,...volume10Catalog,...volume11Catalog,...volume12Catalog,...volume13Catalog,...volume14Catalog,...volume15Catalog,...volume16Catalog);
+catalog.push(...editorialCatalog,...atlasCatalog,...volume4Catalog,...volume5Catalog,...volume6Catalog,...volume7Catalog,...volume8Catalog,...volume9Catalog,...volume10Catalog,...volume11Catalog,...volume12Catalog,...volume13Catalog,...volume14Catalog,...volume15Catalog,...volume16Catalog,...volume17Catalog,...volume18Catalog,...volume19Catalog);
 catalog.forEach(t=>t.basic=basicTemplateIds.has(t.id));
 applyCatalogLanguage(catalog);
 assignChartFamilies(catalog);
@@ -106,7 +109,7 @@ const contents={
 };
 
 export function getExample(id) {
-  const content=contents[id]||editorialContents[id]||atlasContents[id]||volume4Contents[id]||volume5Contents[id]||volume6Contents[id]||volume7Contents[id]||volume8Contents[id]||volume9Contents[id]||volume10Contents[id]||volume11Contents[id]||volume12Contents[id]||volume13Contents[id]||volume14Contents[id]||volume15Contents[id]||volume16Contents[id];
+  const content=contents[id]||editorialContents[id]||atlasContents[id]||volume4Contents[id]||volume5Contents[id]||volume6Contents[id]||volume7Contents[id]||volume8Contents[id]||volume9Contents[id]||volume10Contents[id]||volume11Contents[id]||volume12Contents[id]||volume13Contents[id]||volume14Contents[id]||volume15Contents[id]||volume17Contents[id]||volume18Contents[id]||volume19Contents[id]||volume16Contents[id];
   return englishDemo(structuredClone({version:1,template:id,source:{name:'FORMA 设计演示 · 确定性合成数据',type:'demo'},...content,title:exampleTitle(id,content?.title)}),findTemplate(id)?.en);
 }
 

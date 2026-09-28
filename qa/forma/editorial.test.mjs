@@ -11,7 +11,7 @@ const valid=d=>validateDocument(d).valid;
 const scene=doc=>new ChartScene(document.createElement('div'),doc,{width:650,height:320,interactive:false});
 
 test('all six collections retain their documented template counts and every CSV roundtrip remains valid',()=>{
-  assert.equal(catalog.length,168);assert.equal(new Set(catalog.map(t=>t.id)).size,168);
+  assert.equal(catalog.length,204);assert.equal(new Set(catalog.map(t=>t.id)).size,204);
   for(const [edition,count] of [[1,12],[2,12],[3,8],[4,8]])assert.equal(catalog.filter(t=>t.edition===edition).length,count);
   for(const t of catalog){const d=getExample(t.id);assert.ok(valid(parseDataText(toCSV(d),d,'csv')),t.id);assert.ok(!summary(d).value.includes('NaN'),t.id);}
 });

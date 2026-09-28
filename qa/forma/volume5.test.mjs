@@ -11,7 +11,7 @@ const window=new Window();globalThis.document=window.document;globalThis.XMLSeri
 const chart=(doc,width=650,height=340)=>new ChartScene(document.createElement('div'),doc,{width,height,compact:width<400,interactive:false});
 const valid=d=>validateDocument(d).valid;
 test('all eight edition-five documents have complete contracts and lossless CSV roundtrips',()=>{
-  assert.equal(volume5Catalog.length,8);assert.equal(catalog.length,168);
+  assert.equal(volume5Catalog.length,8);assert.equal(catalog.length,204);
   for(const t of volume5Catalog){const d=getExample(t.id);assert.ok(valid(d),JSON.stringify(validateDocument(d)));assert.deepEqual(parseDataText(toCSV(d),d,'csv').data,d.data);assert.doesNotMatch(summary(d).value,/NaN|Infinity/);}
 });
 test('concrete names replace abstract titles without breaking stable IDs or former aliases',()=>{

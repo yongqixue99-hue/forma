@@ -22,7 +22,7 @@ const openExportPanel=async(...args)=>(await import('./export-panel.js')).openEx
 import { spatialViews } from './spatial-charts.js';
 import { filterCatalog, facetCounts } from './library-filter.js';
 import {libraryCatalog, motionFilters, motionCoverage} from './library-capabilities.js';
-import {renderPreviewFrame} from './library-preview-frame.js';
+import {createLibraryPreviews} from './library-previews.js';
 import { mountLibraryTools } from './library-tools.js';
 import { captureSurface, animateSurface } from './transitions.js';
 import {newWork,cleanWork,stepReport,morphReady} from './work-model.js';
@@ -63,7 +63,7 @@ const state={view:'library',goal:'all',category:'all',family:'all',edition:'all'
 if(!palettes[state.palette])state.palette='ink';
 let taskPicker=null;
 let betaController=null,editorController=null,collectionController=null,pendingEditorPaste=false,pendingEditorHelp=false,pendingWork=null;
-let previews=[],galleryStart=performance.now(),frozenTime=8,modal=null,modalScene=null,studioColorController=null,lastTime=performance.now(),prevRoute='',gridToken=0,toastTimer, motionController=null, surfaceCancel=null, studioReturnTarget=null;
+let previews=null,galleryStart=performance.now(),frozenTime=8,modal=null,modalScene=null,studioColorController=null,lastTime=performance.now(),prevRoute='',gridToken=0,toastTimer, motionController=null, surfaceCancel=null, studioReturnTarget=null;
 const logo=`<svg class="forma-mark" viewBox="0 0 28 28" aria-hidden="true"><path d="M3 24V4h4v20M11 24V4h4v20M19 16V4h4v12" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 10h24M1 17h16" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>`;
 
 document.querySelector('#app').innerHTML=uiMarkup`
@@ -110,7 +110,7 @@ const libraryTools=mountLibraryTools({
 });
 
 function toast(message){const el=$('#toast');const top=[...document.querySelectorAll('dialog[open]')].at(-1);(top||document.querySelector('#app')).append(el);el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3400);}
-function destroyPreviews(){for(const p of previews){p.observer?.disconnect();p.scene?.destroy();}previews=[];}
+function destroyPreviews(){++gridToken;previews?.destroy();previews=null;}
 function setPaletteCSS(){const p=palettes[state.palette];document.documentElement.style.setProperty('--accent',p.accent);document.documentElement.style.setProperty('--accent-light',p.tint);}
 function paletteButtons(current,action='palette'){
   return Object.entries(palettes).map(([id,p])=>uiMarkup`<button class="palette-button ${id===current?'selected':''}" data-action="${action}" data-id="${id}" aria-label="${uiText(p.name)}色谱" aria-pressed="${id===current}"><span class="swatches">${p.colors.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span>${uiText(p.name)}</span>${id===current?icon('Check',12):''}</button>`).join('');
@@ -165,7 +165,7 @@ function renderLibrary(){
 function savedItem(id){const record=id&&workStore?.peek(id);if(!record||record.work.steps.length!==1)return;return {id,...record.work.steps[0],updated:record.work.updated,revision:record.revision,record};}
 const editorKey=(id,savedId)=>savedId?`saved:${savedId}`:`template:${id}`;
 function syncEditorEntries(){
-  document.querySelectorAll('[data-action="add-editor"]').forEach(button=>{const added=workStore?.has(button.dataset.saved||`record:${editorKey(button.dataset.id)}`);button.classList.toggle('in-editor',!!added);button.innerHTML=`${icon(added?'Check':'Grid2x2',14)}<span>${added?uiText('进入作品编辑器'):uiText('加入编辑器')}</span>`;button.setAttribute('aria-label',`${added?uiText('编辑'):uiText('将')}${findTemplate(button.dataset.id).name}${added?uiText('数据'):uiText('加入编辑器')}`);});
+  document.querySelectorAll('[data-action="add-editor"]').forEach(button=>{const added=workStore?.has(button.dataset.saved||`record:${editorKey(button.dataset.id)}`);button.classList.toggle('in-editor',!!added);button.innerHTML=`${icon(added?'Check':'Grid2x2',14)}<span>${added?uiText('进入作品编辑器'):uiText('加入编辑器')}</span>`;button.setAttribute('aria-label',added?uiMessage`编辑${findTemplate(button.dataset.id).name}数据`:uiMessage`将${findTemplate(button.dataset.id).name}加入编辑器`);});
 }
 async function addEditorChart(doc,options={},savedId,{fresh=false}={}){
   const id=fresh?crypto.randomUUID():savedId||`record:${editorKey(doc.template)}`;
@@ -209,31 +209,28 @@ async function renderMotionPage(epoch){
 function renderGrid(){
   libraryTools.closeMenus();
   const previous=new Map([...document.querySelectorAll('#chart-grid [data-card]')].map(el=>[el.dataset.card,el.getBoundingClientRect()]));
-  destroyPreviews();const token=++gridToken;
+  destroyPreviews();const token=gridToken;
   const list=filterCatalog(orderedCatalog,state);
   const filtered=state.goal!=='all'||state.category!=='all'||state.family!=='all'||state.edition!=='all'||state.motion!=='all'||state.query.trim()||state.onlyFavorites;
   $('#result-count').textContent=uiMessage`${list.length} 个图表`;
   updateLibraryFilters();
   const grid=$('#chart-grid');grid.classList.toggle('filtered',!!filtered);
   if(!list.length){grid.innerHTML=uiMarkup`<div class="empty-state">${icon('Search',32)}<h2>${state.onlyFavorites&&!state.favorites.size?uiText('还没有收藏的图表'):uiText('没有找到匹配的图表')}</h2><p>当前筛选组合下没有结果，可以清除筛选，重新挑选。</p><button class="button" data-action="reset-filters">查看全部图表 ${icon('ArrowRight',15)}</button></div>`;return;}
-  grid.innerHTML=list.map(t=>cardHTML(t,getExample(t.id),!filtered&&t.featured)).join('');syncEditorEntries();
+  const documents=new Map(list.map(t=>[t.id,getExample(t.id)]));
+  grid.innerHTML=list.map(t=>cardHTML(t,documents.get(t.id),!filtered&&t.featured)).join('');syncEditorEntries();
   if(previous.size&&!matchMedia('(prefers-reduced-motion: reduce)').matches){for(const card of grid.children){const before=previous.get(card.dataset.card),after=card.getBoundingClientRect();if(after.bottom<0||after.top>innerHeight)continue;card.animate([{opacity:before?1:0,transform:before?`translate(${before.left-after.left}px,${before.top-after.top}px)`:'translateY(12px)'},{opacity:1,transform:'translate(0,0)'}],{duration:520,easing:'cubic-bezier(.22,1,.36,1)'});}}
-  requestAnimationFrame(()=>{if(token!==gridToken)return;for(const t of list){const host=document.querySelector(`[data-preview="${t.id}"]`);if(!host)continue;addPreview(host,getExample(t.id),{palette:state.palette,dark:!!t.dark,compact:!(!filtered&&t.featured)});} });
+  requestAnimationFrame(()=>{if(token!==gridToken||!grid.isConnected)return;for(const t of list){const host=grid.querySelector(`[data-preview="${t.id}"]`);if(!host)continue;addPreview(host,documents.get(t.id),{palette:state.palette,dark:!!t.dark,compact:!(!filtered&&t.featured)});} });
 }
 function cardHTML(t,doc,featured=false,savedId){
-  const theme=themeFor(state.palette,!!t.dark),metric=summary(doc);const title=t.name,canMorph=savedId?morphReady({doc}):t.motion==='morph';
-  return uiMarkup`<article class="chart-card ${featured?'featured':''} ${['orbit','fan'].includes(t.id)?'orbit-card':''} ${t.dark?'dark-card':''}" style="--card-bg:${theme.bg};--card-fg:${theme.fg};--card-muted:${theme.secondary};--card-line:${theme.line}" data-card="${t.id}"><header class="card-header"><div><div class="card-eyebrow"><span class="mono">${t.no}</span><span>${esc(t.en)}</span></div><button class="card-title-button" data-action="open" data-id="${t.id}" ${savedId?`data-saved="${savedId}"`:''}><h2>${esc(savedId?doc.title:title)}</h2></button><p class="card-description">${esc(savedId?t.type:`${doc.title} · ${doc.unit}`)}</p></div><div class="card-actions">${libraryTools.buttonsHTML(doc,savedId,'card')}<button class="icon-button favorite-button ${state.favorites.has(t.id)?'hearted':''}" data-action="favorite" data-id="${t.id}" aria-pressed="${state.favorites.has(t.id)}" aria-label="${state.favorites.has(t.id)?uiText('取消收藏'):uiText('收藏')}${t.name}" title="收藏${t.name}">${icon('Heart',16)}</button></div></header>
+  const theme=themeFor(state.palette,!!t.dark),metric=featured&&t.id!=='sunburst'?summary(doc):null;const title=t.name,canMorph=savedId?morphReady({doc}):t.motion==='morph';
+  return uiMarkup`<article class="chart-card ${featured?'featured':''} ${['orbit','fan'].includes(t.id)?'orbit-card':''} ${t.dark?'dark-card':''}" style="--card-bg:${theme.bg};--card-fg:${theme.fg};--card-muted:${theme.secondary};--card-line:${theme.line}" data-card="${t.id}"><header class="card-header"><div><div class="card-eyebrow"><span class="mono">${t.no}</span><span>${esc(t.en)}</span></div><button class="card-title-button" data-action="open" data-id="${t.id}" ${savedId?`data-saved="${savedId}"`:''}><h2>${esc(savedId?doc.title:title)}</h2></button><p class="card-description">${esc(savedId?t.type:`${doc.title} · ${doc.unit}`)}</p></div><div class="card-actions">${libraryTools.buttonsHTML(doc,savedId,'card')}<button class="icon-button favorite-button ${state.favorites.has(t.id)?'hearted':''}" data-action="favorite" data-id="${t.id}" aria-pressed="${state.favorites.has(t.id)}" aria-label="${esc(state.favorites.has(t.id)?uiMessage`取消收藏${t.name}`:uiMessage`收藏${t.name}`)}" title="收藏${t.name}">${icon('Heart',16)}</button></div></header>
   ${featured&&t.id!=='sunburst'?`<div class="featured-metric"><span class="metric-value">${metric.value}<small>${esc(metric.unit)}</small></span><span class="metric-label"><span class="live-dot"></span>${esc(metric.label)}</span><span class="feature-caption">${esc(t.type)}<br><em>FORM / ${t.no}</em></span></div>`:''}
   <div class="chart-preview" data-preview="${savedId||t.id}" data-action="open" data-id="${t.id}" ${savedId?`data-saved="${savedId}"`:''} role="button" tabindex="0" aria-label="打开${esc(t.name)}工作台"></div>
   <footer class="card-footer">${canMorph?uiMarkup`<span class="card-motion-label" title="已接入连续变形，具体组合取决于数据与图型适用性。">${icon('ArrowRight',12)}可连续变形</span>`:''}<div class="card-use-actions"><button class="card-export" data-action="open-export" data-id="${t.id}" ${savedId?`data-saved="${savedId}"`:''} aria-label="导出${esc(t.name)}">${icon('Download',14)}<span>导出</span></button><button class="card-edit" data-action="add-editor" data-id="${t.id}" ${savedId?`data-saved="${savedId}"`:''} aria-label="将${esc(t.name)}加入编辑器">${icon('Grid2x2',14)}<span>加入编辑器</span></button></div></footer></article>`;
 }
 function addPreview(host,doc,options){
-  const entry={scene:null,visible:false};
-  entry.observer=new IntersectionObserver(es=>{
-    entry.visible=es[0].isIntersecting;
-    if(entry.visible&&!entry.scene){entry.scene=new ChartScene(host,doc,{...options,compact:host.clientWidth<550,progress:1});renderPreviewFrame(entry.scene,state.playing?Math.min(1,((performance.now()-galleryStart)/1000%11)/8):1);}
-    else if(!entry.visible&&entry.scene){entry.scene.destroy();entry.scene=null;}
-  },{rootMargin:'180px'});entry.observer.observe(host);previews.push(entry);
+  previews??=createLibraryPreviews({createScene:(target,data,settings)=>new ChartScene(target,data,{...settings,compact:target.clientWidth<550,progress:1}),currentProgress:()=>state.playing?Math.min(1,((performance.now()-galleryStart)/1000%11)/8):1});
+  previews.add(host,doc,options);
 }
 
 
@@ -407,10 +404,10 @@ document.addEventListener('click',async event=>{
   else if(['family','category','motion'].includes(a)){state[a]=id;if(matchMedia('(max-width:900px)').matches){$('#library-filters').open=false;$('#library-filters summary').focus();}renderGrid();}
   else if(a==='palette'){state.palette=id;writeStore('forma.palette',id);setPaletteCSS();$('.palette-picker').innerHTML=uiMarkup`<span class="control-label">色谱</span>${paletteButtons(id)}`;renderGrid();}
   else if(a==='use-palette'){state.palette=id;writeStore('forma.palette',id);setPaletteCSS();location.hash='library';}
-  else if(a==='favorite'){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);writeStore('forma.favorites',[...state.favorites]);action.classList.toggle('hearted',state.favorites.has(id));action.setAttribute('aria-pressed',state.favorites.has(id));action.setAttribute('aria-label',`${state.favorites.has(id)?uiText('取消收藏'):uiText('收藏')}${findTemplate(id).name}`);if(state.onlyFavorites&&state.view==='library')renderGrid();else if(state.view==='library')updateLibraryFilters();}
+  else if(a==='favorite'){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);writeStore('forma.favorites',[...state.favorites]);action.classList.toggle('hearted',state.favorites.has(id));action.setAttribute('aria-pressed',state.favorites.has(id));action.setAttribute('aria-label',state.favorites.has(id)?uiMessage`取消收藏${findTemplate(id).name}`:uiMessage`收藏${findTemplate(id).name}`);if(state.onlyFavorites&&state.view==='library')renderGrid();else if(state.view==='library')updateLibraryFilters();}
   else if(a==='favorites'){state.onlyFavorites=!state.onlyFavorites;action.classList.toggle('active',state.onlyFavorites);action.setAttribute('aria-pressed',state.onlyFavorites);renderGrid();}
   else if(a==='reset-filters'){state.goal='all';state.category='all';state.family='all';state.edition='all';state.motion='all';state.query='';state.onlyFavorites=false;renderView();}
-  else if(a==='gallery-play'){if(state.playing){frozenTime=8;state.playing=false;previews.forEach(p=>renderPreviewFrame(p.scene,1));}else{galleryStart=performance.now();frozenTime=0;state.playing=true;previews.forEach(p=>renderPreviewFrame(p.scene,0));}action.innerHTML=`${icon(state.playing?'Pause':'Play',13)}<span>${state.playing?uiText('静态看图'):uiText('播放动效')}</span>`;}
+  else if(a==='gallery-play'){if(state.playing){frozenTime=8;state.playing=false;previews?.render(1);}else{galleryStart=performance.now();frozenTime=0;state.playing=true;previews?.render(0);}action.innerHTML=`${icon(state.playing?'Pause':'Play',13)}<span>${state.playing?uiText('静态看图'):uiText('播放动效')}</span>`;}
   else if(a==='studio-tab'){modal.tab=id;renderSidebar();}
   else if(a==='studio-settings'){modal.tab='style';renderSidebar();if(matchMedia('(max-width:760px)').matches)$('.studio-sidebar').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
   else if(a==='copy-agent'){await navigator.clipboard.writeText(agentBrief(modal.doc,modal.options));toast(uiText('已复制 Agent 制作说明书。'));}
@@ -481,11 +478,11 @@ let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);
 function tick(now){
   if(!document.hidden){
     if(modal&&modal.playing){modal.p=Math.min(1,modal.p+Math.min(100,now-modal.last)/1000/modal.options.duration);if(modal.p>=1)modal.playing=false;modalScene?.render(modal.p);updatePlayback();}
-    else if(!modal&&state.playing){const elapsed=(now-galleryStart)/1000;const progress=Math.min(1,(elapsed%11)/8);for(const p of previews)if(p.visible)renderPreviewFrame(p.scene,progress);}
+    else if(!modal&&state.playing){const elapsed=(now-galleryStart)/1000;const progress=Math.min(1,(elapsed%11)/8);previews?.render(progress);}
   }
   if(modal)modal.last=now;lastTime=now;requestAnimationFrame(tick);
 }
-matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches){state.playing=false;previews.forEach(p=>renderPreviewFrame(p.scene,1));if(modal){modal.playing=false;modal.p=1;modalScene?.render(1);updatePlayback();}if($('#gallery-play'))$('#gallery-play').innerHTML=uiMarkup`${icon('Play',13)}<span>播放动效</span>`;}});
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches){state.playing=false;previews?.render(1);if(modal){modal.playing=false;modal.p=1;modalScene?.render(1);updatePlayback();}if($('#gallery-play'))$('#gallery-play').innerHTML=uiMarkup`${icon('Play',13)}<span>播放动效</span>`;}});
 window.Forma=Forma;
 setPaletteCSS();
 $('#main').innerHTML=uiText('<p class="route-loading" role="status">正在读取本地作品…</p>');

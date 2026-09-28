@@ -16,13 +16,13 @@ const close=(a,b,tol=1e-8)=>assert.ok(Math.abs(a-b)<tol*Math.max(1,Math.abs(a),M
 const valid=doc=>validateDocument(doc).valid;
 
 test('20 additions have valid source-aware documents and lossless CSV roundtrips',()=>{
-  assert.equal(catalog.length,168);assert.equal(volume7Catalog.length,20);assert.equal(volume7Catalog.filter(t=>t.dimension==='3d').length,2);
+  assert.equal(catalog.length,204);assert.equal(volume7Catalog.length,20);assert.equal(volume7Catalog.filter(t=>t.dimension==='3d').length,2);
   for(const t of volume7Catalog){const doc=getExample(t.id);assert.ok(valid(doc),`${t.id}: ${validateDocument(doc).errors}`);assert.deepEqual(parseDataText(toCSV(doc),doc,'csv').data,doc.data);assert.equal(doc.source.type,'demo');assert.ok(t.fields.length&&t.limit&&t.use&&t.avoid&&t.motion);}
 });
 test('visual families cover all templates once, and compose with purpose, favorites, search and latest additions',()=>{
   assert.deepEqual(families.slice(1,4).map(f=>f.name),['饼状图类','折线图类','柱状图类']);
-  const counts=facetCounts(catalog,{},'family');assert.equal(Object.entries(counts).filter(([k])=>k!=='all').reduce((n,[,v])=>n+v,0),168);assert.ok(catalog.every(t=>families.some(f=>f.id===t.family)));
-  assert.deepEqual(filterCatalog(catalog,{family:'pie'}).map(t=>t.id).sort(),['donut','pie','rose','sunburst']);
+  const counts=facetCounts(catalog,{},'family');assert.equal(Object.entries(counts).filter(([k])=>k!=='all').reduce((n,[,v])=>n+v,0),204);assert.ok(catalog.every(t=>families.some(f=>f.id===t.family)));
+  assert.deepEqual(filterCatalog(catalog,{family:'pie'}).map(t=>t.id).sort(),['donut','pie','rose','sunburst','windrose']);
   const opts={family:'line',category:'trend',edition:'7'};assert.equal(filterCatalog(catalog,opts).length,4);assert.equal(facetCounts(catalog,opts,'family').all,6);
   assert.deepEqual(filterCatalog(catalog,{...opts,onlyFavorites:true,favorites:new Set(['polarline','pie'])}).map(t=>t.id),['polarline']);
   assert.equal(filterCatalog(catalog,{family:'bar',query:'stacked column'}).length,2);assert.equal(filterCatalog(catalog,{edition:'7'}).length,20);

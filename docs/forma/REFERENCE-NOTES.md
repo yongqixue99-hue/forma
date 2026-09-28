@@ -119,3 +119,17 @@ FORMA 保留当前原生 SVG 架构，独立实现128点闭合轮廓插值。条
 [RadViz 方法](https://pandas.pydata.org/pandas-docs/version/1.5/user_guide/visualization.html#radviz)按完整观测范围归一化后计算径向平衡位置；[Hive plot](https://www.hiveplot.com/)使用明确轴分组与位置。累计增益按完整同分块推进；[决策曲线原论文](https://pmc.ncbi.nlm.nih.gov/articles/2577036/)的净获益按 `TP/n − FP/n × t/(1−t)` 计算，并展示全部处理和均不处理基线。比例控制漏斗使用声明基准的二项正态近似，要求各分母满足近似条件；[L’Abbé 图](https://search.r-project.org/CRAN/refmans/plotrix/html/labbePlot.html)保留双组原始分母，气泡面积表示样本量。列线图展示用户给定的线性加法评分，不将评分冒充风险概率。
 
 新增模板使用可往返定位的原生入场动画。连续变形兼容性仍按现有引擎判断，65 种已适配模板的范围保持不变。
+
+
+## 第十七至十九批：统计诊断、业务网络与工程信号（2026-09-28）
+
+新增 36 种后，图库达到 204 种，可使用“200+ 种图表”介绍。新模板均接入现有数据编辑、主题、Agent 说明与作品导出，采用可往返定位的原生入场；65 种连续变形模板和 139 种原生入场模板分别标注，没有新增运行时依赖。
+
+| 方法资料 | 实现与边界 |
+| --- | --- |
+| [Seaborn boxen](https://seaborn.pydata.org/generated/seaborn.boxenplot.html)、[ggforce sina](https://ggforce.data-imaginist.com/reference/geom_sina.html)、[R 回归诊断](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/plot.lm.html) | 分位箱与密度抖动保留原始观测；回归图接收真实拟合值、残差、杠杆与模型参数，不在图中伪造拟合结果。Cook 距离参考线不用于自动删除观测。 |
+| [NetworkX 双部图](https://networkx.org/documentation/stable/reference/algorithms/bipartite.html)、[SciPy 双样本 KS](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html)、[scikit-learn 代价敏感决策](https://scikit-learn.org/stable/auto_examples/model_selection/plot_cost_sensitive_learning.html) | 关系图保留已给边与分组；预测评估按完整同分块统计，阈值、类别与误判代价显式声明。KS 图显示经验分布差，未冒充显著性检验。 |
+| [MathWorks Bode](https://www.mathworks.com/help/control/ref/dynamicsystem.bode.html)、[Nyquist](https://www.mathworks.com/help/control/ref/dynamicsystem.nyquist.html)、[scikit-rf 反射系数](https://scikit-rf.readthedocs.io/en/latest/api/generated/skrf.tlineFunctions.zl_2_Gamma0.html) | 幅相、复平面与阻抗图由给定复数观测计算；只连接已给频率点，不补镜像或闭合轮廓，不自行推断稳定性。Smith 图使用正实参考阻抗与非负电阻。 |
+| [MetPy hodograph](https://unidata.github.io/MetPy/latest/api/generated/metpy.plots.Hodograph.html)、[MathWorks 眼图](https://www.mathworks.com/help/comm/ref/eyediagram.html)、[星座图](https://www.mathworks.com/help/comm/ref/constellationdiagram.html) | 风廓线保持实测高度与等比例风分量；眼图保留原始采样与不完整窗口；星座图保留实际 I/Q 点，不生成理想符号或虚构 EVM/BER。 |
+
+36 种图的字段、单位、计算方式和限制均有中英双语数据指南。图库预览统一采用可见区域渲染、离屏释放和重复帧跳过；路由切换会使旧渲染任务失效。

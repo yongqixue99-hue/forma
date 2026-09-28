@@ -1,3 +1,6 @@
+import {volume19Renderers} from './volume19-charts.js';
+import {volume18Renderers} from './volume18-charts.js';
+import {volume17Renderers} from './volume17-charts.js';
 import {volume14Renderers} from './volume14-charts.js';
 import {volume15Renderers} from './volume15-charts.js';
 import {volume16Renderers} from './volume16-charts.js';
@@ -355,5 +358,5 @@ function dumbbell(s,doc){
   });
 }
 
-const renderers={tide,orbit,alluvial,ridges,race,scatter,calendar,waterfall,mosaic,chord,waffle,dumbbell,...editorialRenderers,...atlasRenderers,...volume4Renderers,...volume5Renderers,...volume6Renderers,...volume7Renderers,...volume8Renderers,...volume9Renderers,...volume10Renderers,...volume11Renderers,...volume12Renderers,...volume13Renderers,...volume14Renderers,...volume15Renderers,...volume16Renderers,...spatialRenderers};
+const renderers={tide,orbit,alluvial,ridges,race,scatter,calendar,waterfall,mosaic,chord,waffle,dumbbell,...editorialRenderers,...atlasRenderers,...volume4Renderers,...volume5Renderers,...volume6Renderers,...volume7Renderers,...volume8Renderers,...volume9Renderers,...volume10Renderers,...volume11Renderers,...volume12Renderers,...volume13Renderers,...volume14Renderers,...volume15Renderers,...volume17Renderers,...volume18Renderers,...volume19Renderers,...volume16Renderers,...spatialRenderers};
 export const createChart=(host,doc,options)=>new ChartScene(host,doc,options);

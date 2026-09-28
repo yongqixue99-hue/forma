@@ -3700,5 +3700,10 @@
   "同一批对象 · 位置与规模": "Same objects · Position and size",
   "完整网格的原始高度；相邻采样点之间线性连接": "Original heights on a complete grid; adjacent samples are connected linearly",
   "正交投影面积与真实 size 成正比；三个坐标保持原值": "Orthographic area is proportional to actual size; all three coordinates retain their values",
-  "每行填写唯一对象名称、分组和三个真实坐标，并注明 X、Y、Z 的指标与单位。三维气泡需额外填写正数 size 和 axes.size；曲面仅接受完整均匀的 X、Y 网格。二维投影只隐藏一维，原始数据和记录 ID 都会保留；空间使用正交投影，不把视觉距离当成真实距离。": "Each row contains a unique object, group and three actual coordinates, with metric names and units for X, Y and Z. Bubbles also require positive size and axes.size; surfaces require a complete, evenly spaced X/Y grid. Projections hide one coordinate while preserving the original data and record IDs. Orthographic screen distances are not original spatial distances."
+  "每行填写唯一对象名称、分组和三个真实坐标，并注明 X、Y、Z 的指标与单位。三维气泡需额外填写正数 size 和 axes.size；曲面仅接受完整均匀的 X、Y 网格。二维投影只隐藏一维，原始数据和记录 ID 都会保留；空间使用正交投影，不把视觉距离当成真实距离。": "Each row contains a unique object, group and three actual coordinates, with metric names and units for X, Y and Z. Bubbles also require positive size and axes.size; surfaces require a complete, evenly spaced X/Y grid. Projections hide one coordinate while preserving the original data and record IDs. Orthographic screen distances are not original spatial distances.",
+  "复制{0}的提示词": "Copy prompt for {0}",
+  "选择{0}": "Select {0}",
+  "取消选择{0}": "Deselect {0}",
+  "取消收藏{0}": "Remove {0} from favorites",
+  "编辑{0}数据": "Edit {0} data"
 }

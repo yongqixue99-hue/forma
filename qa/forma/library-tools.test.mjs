@@ -2,6 +2,7 @@ import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { Window } from 'happy-dom';
 import { createServer } from 'vite';
+import english from '../../src/forma/locales/en.json' with {type:'json'};
 
 // SSR loads the real module (including its CSS import) without starting another
 // browser or server port. Clipboard rendering itself is tested in library-actions.
@@ -14,7 +15,7 @@ before(async () => {
   const globals = {
     window, document: window.document, XMLSerializer: window.XMLSerializer,
     MutationObserver: window.MutationObserver, localStorage: window.localStorage,
-    navigator: window.navigator, innerWidth: 1000, innerHeight: 800
+    navigator: window.navigator, innerWidth: 1000, innerHeight: 800, __FORMA_MESSAGES__:english
   };
   for (const [name, value] of Object.entries(globals)) {
     originalGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name));
@@ -251,4 +252,16 @@ test('primary copy in both cards and details copies the current Agent brief',asy
  const studio=document.querySelector('#studio');studio.innerHTML=controller.buttonsHTML(docs[0],undefined,'studio');studio.setAttribute('open','');studio.querySelector('[data-action="chart-copy"]').click();await new Promise(resolve=>setTimeout(resolve,0));
  assert.equal(clipboardWrites.length,2);assert.equal(clipboardWrites[1],clipboardWrites[0]);
  studio.querySelector('[data-action="chart-copy-options"]').click();assert.equal(document.querySelector('[role="menuitem"]').dataset.format,'recipe');assert.ok(document.querySelector('[data-format="png"]'));
+});
+
+test('English card actions keep complete accessible phrases before and after selection',async t=>{
+ const {setLocale}=await server.ssrLoadModule('/src/forma/locale.js');
+ const {findTemplate}=await server.ssrLoadModule('/src/forma/catalog.js');
+ setLocale('en');t.after(()=>setLocale('zh-CN'));
+ const {docs}=mount(t,['mosaic']),name=findTemplate(docs[0].template).name;
+ assert.equal(document.querySelector('[data-action="chart-copy"]').getAttribute('aria-label'),`Copy prompt for ${name}`);
+ const button=document.querySelector('[data-action="chart-select"]');
+ assert.equal(button.getAttribute('aria-label'),`Select ${name}`);
+ button.click();assert.equal(button.getAttribute('aria-label'),`Deselect ${name}`);
+ button.click();assert.equal(button.getAttribute('aria-label'),`Select ${name}`);
 });

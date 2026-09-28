@@ -71,7 +71,7 @@ export function mountLibraryTools({ getContext, onOpen, onEdit, toast }) {
     const name = findTemplate(doc.template)?.name || doc.title;
     const selected = items.some(item => item.key === selectionKey(doc, savedId));
     const attributes = `data-id="${esc(doc.template)}" ${savedId ? `data-saved="${esc(savedId)}"` : ''} data-scope="${scope === 'studio' ? 'studio' : 'card'}"`;
-    return uiMarkup`<span class="ft-chart-tools" data-ft-scope="${scope === 'studio' ? 'studio' : 'card'}"><span class="ft-copy-split"><button type="button" class="ft-chart-button" data-action="chart-copy" ${attributes} aria-label="复制${esc(name)}的提示词" title="复制提示词">${icon(Copy)}<span class="ft-tool-label">复制提示词</span></button><button type="button" class="ft-chart-button ft-copy-more" data-action="chart-copy-options" ${attributes} aria-haspopup="menu" aria-expanded="false" aria-label="${esc(name)}的其他复制选项" title="其他复制选项">${icon(ChevronDown,11)}</button></span><button type="button" class="ft-chart-button ft-select-button ${selected ? 'is-selected' : ''}" data-action="chart-select" ${attributes} aria-pressed="${selected}" aria-label="${selected ? uiText('取消选择') : uiText('选择')}${esc(name)}" title="${selected ? uiText('从清单移除') : uiText('加入已选清单：')}${esc(name)}">${icon(selected ? Check : Square)}<span class="ft-tool-label">${selected ? uiText('已选') : uiText('选择')}</span></button></span>`;
+    return uiMarkup`<span class="ft-chart-tools" data-ft-scope="${scope === 'studio' ? 'studio' : 'card'}"><span class="ft-copy-split"><button type="button" class="ft-chart-button" data-action="chart-copy" ${attributes} aria-label="复制${esc(name)}的提示词" title="复制提示词">${icon(Copy)}<span class="ft-tool-label">复制提示词</span></button><button type="button" class="ft-chart-button ft-copy-more" data-action="chart-copy-options" ${attributes} aria-haspopup="menu" aria-expanded="false" aria-label="${esc(name)}的其他复制选项" title="其他复制选项">${icon(ChevronDown,11)}</button></span><button type="button" class="ft-chart-button ft-select-button ${selected ? 'is-selected' : ''}" data-action="chart-select" ${attributes} aria-pressed="${selected}" aria-label="${esc(selected ? uiMessage`取消选择${name}` : uiMessage`选择${name}`)}" title="${selected ? uiText('从清单移除') : uiText('加入已选清单：')}${esc(name)}">${icon(selected ? Check : Square)}<span class="ft-tool-label">${selected ? uiText('已选') : uiText('选择')}</span></button></span>`;
   }
 
   function updateMini() {
@@ -91,7 +91,7 @@ export function mountLibraryTools({ getContext, onOpen, onEdit, toast }) {
       const selected = keys.has(key), name = findTemplate(button.dataset.id)?.name || uiText('当前');
       button.classList.toggle('is-selected', selected);
       button.setAttribute('aria-pressed', String(selected));
-      button.setAttribute('aria-label', `${selected ? uiText('取消选择') : uiText('选择')}${name}`);
+      button.setAttribute('aria-label', selected ? uiMessage`取消选择${name}` : uiMessage`选择${name}`);
       button.title = `${selected ? uiText('从清单移除') : uiText('加入已选清单：')}${name}${button.dataset.scope === 'studio' && items.length ? uiMessage` · 清单已有 ${items.length} 张` : ''}`;
       const label = button.querySelector('.ft-tool-label');
       if (label) label.textContent = selected ? uiText('已选') : uiText('选择');
