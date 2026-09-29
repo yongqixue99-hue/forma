@@ -1,3 +1,7 @@
+import {engineeringColorSubjects,engineeringViewMap} from './engineering-series-rules.js';
+import {multivariateExtendedColorSubjects,multivariateExtendedViewMap} from './multivariate-extended-rules.js';
+import {advancedRelationsColorSubjects,advancedRelationsViewMap} from './advanced-relations-rules.js';
+import {temporalColorSubjects,temporalViewMap} from './temporal-series-rules.js';
 import {networkColorSubjects,networkViewMap} from './network-series-rules.js';
 import {interpolateLab,color as parseColor} from 'd3';
 import {themeFor} from './palettes.js';
@@ -9,7 +13,7 @@ import {structuralColorKeys} from './structural-series-rules.js';
 const hex=value=>typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value);
 const scalarTemplates=new Set('rootogram column bar pie donut mosaic waffle lollipop rose circlepack pareto funnel orbit unit'.split(' '));
 const sampleTemplates=new Set('swarm boxplot violin raincloud errorbar halfeye deltaplot ecdfdiff andrews biplot lexis swimmer radviz boxen sina qqcompare worm spreadlevel nelsonaalen bode nyquist nichols smith polarscatter constellation'.split(' '));
-const statisticalSamples=new Set('qqplot ppplot weibull meanexcess ttt lorenz ecdfband'.split(' '));
+const statisticalSamples=new Set('scalelocation residualleverage cooksdistance addedvariable componentresidual metafunnel qqplot ppplot weibull meanexcess ttt lorenz ecdfband'.split(' '));
 const businessTargets=new Set('progress fan bullet gauge kpi'.split(' '));
 const businessPairs=new Set('comboline difference learning'.split(' '));
 const structuralTrees=new Set('circlehierarchy radialtree treetable'.split(' '));
@@ -26,6 +30,10 @@ export function normalizeValueColors(value){
 }
 export function colorSubjects(doc){
  if(valueColorTemplates.has(doc?.template))return [];
+ if(advancedRelationsViewMap[doc?.template]&&doc.data.every(r=>r._id))return advancedRelationsColorSubjects(doc);
+ if(multivariateExtendedViewMap[doc?.template]&&doc.data.every(r=>r._id))return multivariateExtendedColorSubjects(doc);
+ if(engineeringViewMap[doc?.template]&&doc.data.every(r=>r._id))return engineeringColorSubjects(doc);
+ if(temporalViewMap[doc?.template]&&doc.data.every(r=>r._id))return temporalColorSubjects(doc);
  if(networkViewMap[doc?.template]&&doc.data.every(r=>r._id))return networkColorSubjects(doc);
  const rows=doc?.data||[],spec=entitySpec(doc);
  if(doc?.template==='splom'){const identified=withEntityIds(doc,{legacyNamespace:'unmigrated-multivariate'});return [...new Set(rows.map(r=>r.group))].map(label=>({id:multivariateGroupKey(identified,label),label}));}

@@ -1,3 +1,8 @@
+import {engineeringPresets,engineeringRecords} from './engineering-series-presets.js';
+import {multivariateExtendedPresets,multivariateExtendedRecords} from './multivariate-extended-presets.js';
+import {advancedRelationsPresets,advancedRelationsRecords} from './advanced-relations-presets.js';
+import {temporalPresets,temporalRecords} from './temporal-series-presets.js';
+import {regressionDiagnosticPresets,regressionDiagnosticRecords} from './regression-diagnostic-presets.js';
 import {comparisonPresets,comparisonRecords} from './comparison-series-presets.js';
 import {networkPresets,networkRecords} from './network-series-presets.js';
 import {businessSeriesPresets,businessSeriesRecords} from './business-series-presets.js';
@@ -20,6 +25,11 @@ import {refinementPresets,refinementRecords} from './refinement-presets.js';
 
 export const scenarioPresets=[
   ...analyticalPresets.filter(p=>p.id==='screening-effectiveness'),
+  ...advancedRelationsPresets,
+  ...multivariateExtendedPresets,
+  ...engineeringPresets,
+  ...temporalPresets,
+  ...regressionDiagnosticPresets,
   ...networkPresets,
   ...comparisonPresets,
   ...statisticalPresets,
@@ -66,6 +76,11 @@ export function morphBaseDocument(doc){
 export function scenarioRecords(id,palette){
   const publicRecords=publicCaseRecords(id,palette);if(publicRecords)return publicRecords;
   palette??='ink';
+  const advancedRelations=advancedRelationsRecords(id,palette);if(advancedRelations)return advancedRelations;
+  const multivariateExtended=multivariateExtendedRecords(id,palette);if(multivariateExtended)return multivariateExtended;
+  const engineering=engineeringRecords(id,palette);if(engineering)return engineering;
+  const temporal=temporalRecords(id,palette);if(temporal)return temporal;
+  const regressionDiagnostic=regressionDiagnosticRecords(id,palette);if(regressionDiagnostic)return regressionDiagnostic;
   const network=networkRecords(id,palette);if(network)return network;
   const comparison=comparisonRecords(id,palette);if(comparison)return comparison;
   const statistical=statisticalRecords(id,palette);if(statistical)return statistical;

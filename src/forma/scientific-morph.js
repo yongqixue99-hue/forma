@@ -1,3 +1,13 @@
+import {layoutEngineering} from './engineering-series-morph.js';
+import {isEngineeringView} from './engineering-series-rules.js';
+import {layoutMultivariateExtended,interpolateMultivariateExtendedMark} from './multivariate-extended-morph.js';
+import {isMultivariateExtendedView} from './multivariate-extended-rules.js';
+import {layoutAdvancedRelations,interpolateAdvancedRelationsMark} from './advanced-relations-morph.js';
+import {isAdvancedRelationsView} from './advanced-relations-rules.js';
+import {layoutTemporal} from './temporal-series-morph.js';
+import {isTemporalView} from './temporal-series-rules.js';
+import {layoutRegressionDiagnostic} from './regression-diagnostic-morph.js';
+import {isRegressionDiagnosticView} from './regression-diagnostic-rules.js';
 import {layoutComparison} from './comparison-series-morph.js';
 import {isComparisonView} from './comparison-series-rules.js';
 import {layoutNetwork,interpolateNetworkMark} from './network-series-morph.js';
@@ -138,6 +148,11 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
     return layout;
   }
   const eligible=scientificEligibility(doc,view);if(!eligible.valid)throw new Error(eligible.reason);
+  if(isAdvancedRelationsView(view))return layoutAdvancedRelations(doc,view,w,h,options);
+  if(isMultivariateExtendedView(view))return layoutMultivariateExtended(doc,view,w,h,options);
+  if(isEngineeringView(view))return layoutEngineering(doc,view,w,h,options);
+  if(isTemporalView(view))return layoutTemporal(doc,view,w,h,options);
+  if(isRegressionDiagnosticView(view))return layoutRegressionDiagnostic(doc,view,w,h,options);
   if(isNetworkView(view))return layoutNetwork(doc,view,w,h,options);
   if(isComparisonView(view))return layoutComparison(doc,view,w,h,options);
   if(isStatisticalView(view))return layoutStatistical(doc,view,w,h,options);
@@ -170,9 +185,13 @@ export class ScientificMorphChart extends MorphChart{
   }
   markColor(m){
     if(m.neutral)return this.theme.secondary;
-    if(m.valueDomain&&m.value!==null)return valueColorFor(this.options,m.value,m.valueDomain,interpolateRgb(this.theme.bg,this.theme.colors[(m.value<0?0:1)%this.theme.colors.length])(Math.max(.08,Math.abs(m.tone||0))));
+    const colorValue=m.colorValue??m.value;
+    if(m.valueDomain&&colorValue!==null)return valueColorFor(this.options,colorValue,m.valueDomain,interpolateRgb(this.theme.bg,m.nativeColorRole==='accent'?this.theme.accent:this.theme.colors[(colorValue<0?0:1)%this.theme.colors.length])(Math.max(.08,Math.abs(m.tone||0))));
     if(m.accent)return this.theme.colors[1]||this.theme.colors[0];
     if(Object.hasOwn(m,'tone')){if(m.tone===null)return this.theme.secondary;const end=this.theme.colors[m.tone>=0?1:0]||this.theme.colors[0],fallback=interpolateRgb(this.theme.bg,end)(m.solidTone?1:Math.abs(m.tone));return this.doc.family==='correlation'?valueColorFor(this.options,m.tone,[-1,1],fallback):fallback;}
+    if(Number.isInteger(m.nativePcaGroup)){const i=m.nativePcaGroup,fallback=this.theme.custom||this.theme.categorical?this.theme.color(i):[this.theme.accent,this.theme.fg,this.theme.color(2),this.theme.color(4),this.theme.secondary][i%5];return resolveBoundColor(this.options,this.colorKey(m),fallback);}
+    const nativeColor=['accent','fg'].includes(m.nativeColorRole)?this.theme[m.nativeColorRole]:Number.isInteger(m.nativeColorIndex)?this.theme.colors[((m.nativeColorIndex%this.theme.colors.length)+this.theme.colors.length)%this.theme.colors.length]:null;
+    if(nativeColor)return resolveBoundColor(this.options,this.colorKey(m),nativeColor);
     return resolveBoundColor(this.options,this.colorKey(m),this.theme.colors[this.colorIndices.get(this.colorKey(m))%this.theme.colors.length]);
   }
   paint(layout){
@@ -222,7 +241,7 @@ export class ScientificMorphChart extends MorphChart{
   }
   interpolateMark(old,next,q,{effect,from}={}){
     if(!old)return null;
-    if(effect==='guided'){const network=interpolateNetworkMark(from||old.points,old,next,q);if(network)return network;}
+    if(effect==='guided'){const extended=interpolateMultivariateExtendedMark(from||old.points,old,next,q);if(extended)return extended;const relations=interpolateAdvancedRelationsMark(from||old.points,old,next,q);if(relations)return relations;const network=interpolateNetworkMark(from||old.points,old,next,q);if(network)return network;}
     const serial=interpolateSerialMark(from||old.points,old,next,q);if(serial)return serial;
     if(effect==='guided'){const process=interpolateProcessMark(from||old.points,old,next,q);if(process)return process;}
     if(effect==='guided'){const matrix=interpolateMatrixCell(from||old.points,old,next,q);if(matrix)return matrix;}
@@ -249,6 +268,8 @@ export class ScientificMorphChart extends MorphChart{
     return interpolateDensityContour(start,end,q);
   }
   interpolateResumedMark(points,mark,q,{old}={}){
+    const extended=interpolateMultivariateExtendedMark(points,old,mark,q);if(extended)return extended;
+    const relations=interpolateAdvancedRelationsMark(points,old,mark,q);if(relations)return relations;
     const network=interpolateNetworkMark(points,old,mark,q);if(network)return network;
     const serial=interpolateSerialMark(points,old,mark,q);if(serial)return serial;
     const process=interpolateProcessMark(points,old,mark,q);if(process)return process;
@@ -281,11 +302,11 @@ export class ScientificMorphChart extends MorphChart{
     this.text(this.guideLayer,header.x,15,short(heading,layout.w<500?29:34),{'font-family':'Manrope,"PingFang SC",sans-serif','font-size':10.5,fill:this.theme.fg});
     if(layout.doc.family==='serial'){const node=[...this.guideLayer.querySelectorAll('text')].find(n=>n.getAttribute('y')==='15'&&n.getAttribute('x')===String(header.x));node?.setAttribute('data-serial-estimator','');}
     if(layout.w>=580)this.text(this.guideLayer,header.x+header.w,15,short(layout.details,40),{'text-anchor':'end','font-size':10});
-    if(layout.groups?.length>1||layout.groupLabels)layout.groups.forEach((g,i)=>{const columns=layout.groupLegendColumns||layout.groups.length,slot=layout.plot.w/columns,x=layout.plot.x+(i%columns)*slot,y=32+Math.floor(i/columns)*18,id=layout.groupKeys?.[i]??g,color=resolveBoundColor(this.options,id,this.theme.colors[this.colorIndices.get(id)%this.theme.colors.length]),name=layout.groupLabels?.[i]||g;this.el('circle',{cx:x+3,cy:y,r:2.5,fill:color},this.guideLayer);const label=this.text(this.guideLayer,x+12,y+3,short(name,layout.groupLegendColumns?Math.max(3,Math.floor((slot-18)/10)):Math.max(6,Math.floor(slot/7))),{'font-size':10});if(layout.groupLegendColumns)this.el('title',{},label,name);});
+    if(layout.groups?.length>1||layout.groupLabels)layout.groups.forEach((g,i)=>{const columns=layout.groupLegendColumns||layout.groups.length,slot=layout.plot.w/columns,x=layout.plot.x+(i%columns)*slot,y=32+Math.floor(i/columns)*18,id=layout.groupKeys?.[i]??g,color=this.markColor({...layout.groupColorMarks?.[i],colorIdentity:id,group:g}),name=layout.groupLabels?.[i]||g;this.el('circle',{cx:x+3,cy:y,r:2.5,fill:color},this.guideLayer);const label=this.text(this.guideLayer,x+12,y+3,short(name,layout.groupLegendColumns?Math.max(3,Math.floor((slot-18)/10)):Math.max(6,Math.floor(slot/7))),{'font-size':10});if(layout.groupLegendColumns)this.el('title',{},label,name);});
     if(layout.divergingLegend){const width=Math.min(120,layout.plot.w*.45),x=layout.plot.x+layout.plot.w-width,y=layout.h-11;for(let i=0;i<40;i++){const tone=i/39*2-1;this.el('rect',{x:x+i*width/40,y,width:width/40+.2,height:4,fill:this.markColor({tone}),'data-value-color-swatch':''},this.guideLayer);}for(const [q,text]of [[0,'−1'],[.5,'0'],[1,'+1']])this.text(this.guideLayer,x+width*q,y-5,text,{'font-size':8,'text-anchor':'middle'});if(this.options.valueColors?.mode==='diverging')this.text(this.guideLayer,x+width,y-18,uiMessage`参考中心 ${fmt(this.options.valueColors.center)}`,{'font-size':8,'text-anchor':'end'});}
     if(layout.valueDomain){
       const [low,high]=layout.valueDomain,width=Math.min(170,layout.plot.w*.45),x=layout.plot.x+layout.plot.w-width,y=layout.h-12;
-      for(let i=0;i<48;i++){const value=low+(high-low)*i/47,tone=low<0?value/(Math.max(Math.abs(low),Math.abs(high))||1):(value-low)/(high-low||1);this.el('rect',{x:x+i*width/48,y,width:width/48+.2,height:5,fill:this.markColor({value,valueDomain:layout.valueDomain,tone}),'data-value-color-swatch':''},this.guideLayer);}
+      for(let i=0;i<48;i++){const value=low+(high-low)*i/47,tone=layout.valueLegendTone?mix(...layout.valueLegendTone,i/47):low<0?value/(Math.max(Math.abs(low),Math.abs(high))||1):(value-low)/(high-low||1);this.el('rect',{x:x+i*width/48,y,width:width/48+.2,height:5,fill:this.markColor({value,valueDomain:layout.valueDomain,tone,nativeColorRole:layout.valueLegendRole}),'data-value-color-swatch':''},this.guideLayer);}
       const labels=[[0,fmt(low)],[1,fmt(high)]],scheme=this.options.valueColors;
       if(scheme?.mode==='diverging'&&scheme.center>=low&&scheme.center<=high&&high>low)labels.push([(scheme.center-low)/(high-low),fmt(scheme.center)]);
       for(const [q,label] of labels)this.text(this.guideLayer,x+width*q,y-5,label,{'font-size':8,'text-anchor':'middle'});

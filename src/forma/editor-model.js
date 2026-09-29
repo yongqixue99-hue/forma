@@ -1,3 +1,5 @@
+import {multivariateExtendedOrderFields} from './multivariate-extended-rules.js';
+import {temporalOrderFields} from './temporal-series-rules.js';
 import {resolveCountry,countryName} from './country-input.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {entityReferences} from './entity-identity.js';
@@ -27,11 +29,11 @@ function safeDraft(draft,doc){
     draft.cells.every(row=>Array.isArray(row)&&row.length===findTemplate(doc.template).fields.length&&row.every(v=>typeof v==='string'&&v.length<=2000000));
 }
 
-// Group names are labels; the saved comparison direction belongs to populations.
+// Group and category names are labels; a declared order belongs to populations.
 // Keep membership only in draft/history snapshots so a multi-cell rename can
 // finish after an invalid intermediate state, undo/redo, or session recovery.
-function groupOrderMembers(snapshot,column){
-  const order=snapshot.meta.groupOrder;if(column<0||!Array.isArray(order)||!order.length||new Set(order).size!==order.length)return null;
+function groupOrderMembers(snapshot,column,key){
+  const order=snapshot.meta[key];if(column<0||!Array.isArray(order)||!order.length||new Set(order).size!==order.length)return null;
   const groups=new Map(order.map(name=>[name,[]])),ids=[];
   for(const [i,row]of snapshot.cells.entries()){
     const name=String(row[column]??'').trim(),id=snapshot.rowMeta?.[i]?._id;if(!groups.has(name)||typeof id!=='string'||!id)return null;
@@ -40,23 +42,24 @@ function groupOrderMembers(snapshot,column){
   if(new Set(ids).size!==ids.length||[...groups.values()].some(rows=>!rows.length))return null;
   return [...groups.values()].map(rows=>rows.sort());
 }
-function reconcileGroupOrder(current,next,column,original){
-  if(column<0||!Array.isArray(next.meta.groupOrder)){delete next.groupOrderMembers;return;}
-  const sameOrder=JSON.stringify(current.meta.groupOrder)===JSON.stringify(next.meta.groupOrder);
+function reconcileGroupOrder(current,next,column,original,key){
+  const read=snapshot=>key==='groupOrder'?snapshot.groupOrderMembers:snapshot.temporalOrderMembers?.[key];
+  const write=members=>{if(key==='groupOrder'){if(members)next.groupOrderMembers=members;else delete next.groupOrderMembers;}else if(members){next.temporalOrderMembers={...next.temporalOrderMembers,[key]:members};}else if(next.temporalOrderMembers){delete next.temporalOrderMembers[key];if(!Object.keys(next.temporalOrderMembers).length)delete next.temporalOrderMembers;}};
+  if(column<0||!Array.isArray(next.meta[key])){write(null);return;}
+  const sameOrder=JSON.stringify(current.meta[key])===JSON.stringify(next.meta[key]);
   let members;
   if(sameOrder){
-    members=groupOrderMembers(current,column)||current.groupOrderMembers||(JSON.stringify(original.meta.groupOrder)===JSON.stringify(current.meta.groupOrder)?groupOrderMembers(original,column):null);
-    if(!Array.isArray(members)||members.length!==next.meta.groupOrder.length||members.some(rows=>!Array.isArray(rows)||!rows.length||rows.some(id=>typeof id!=='string'))||new Set(members.flat()).size!==members.flat().length)members=null;
+    members=groupOrderMembers(current,column,key)||read(current)||(JSON.stringify(original.meta[key])===JSON.stringify(current.meta[key])?groupOrderMembers(original,column,key):null);
+    if(!Array.isArray(members)||members.length!==next.meta[key].length||members.some(rows=>!Array.isArray(rows)||!rows.length||rows.some(id=>typeof id!=='string'))||new Set(members.flat()).size!==members.flat().length)members=null;
     if(members){
       const names=new Map(next.cells.map((row,i)=>[next.rowMeta[i]._id,String(row[column]??'').trim()])),ids=members.flat();
       if(names.size===next.cells.length&&ids.length===names.size&&ids.every(id=>names.has(id))){
         const renamed=members.map(rows=>[...new Set(rows.map(id=>names.get(id)))]);
-        if(renamed.every(values=>values.length===1&&values[0])&&new Set(renamed.map(values=>values[0])).size===renamed.length)next.meta.groupOrder=renamed.map(values=>values[0]);
+        if(renamed.every(values=>values.length===1&&values[0])&&new Set(renamed.map(values=>values[0])).size===renamed.length)next.meta[key]=renamed.map(values=>values[0]);
       }
     }
   }
-  const complete=groupOrderMembers(next,column);
-  if(complete)next.groupOrderMembers=complete;else if(members)next.groupOrderMembers=members;else delete next.groupOrderMembers;
+  write(groupOrderMembers(next,column,key)||members);
 }
 
 /** A draft may be incomplete. Only validated documents become renderable/exportable. */
@@ -66,7 +69,7 @@ export function createEditorModel(original, draft, {viewValidation,session}={}) 
   const initial=safeDraft(draft,lastValid)?structuredClone(draft):snapshotOf(lastValid);
   if(lastValid.entities&&!initial.meta.entities)initial.meta.entities=structuredClone(lastValid.entities);
   if(lastValid.template==='splom')for(const key of ['sampleEntities','selectedPair','variableUnits'])if(lastValid[key]!==undefined&&initial.meta[key]===undefined)initial.meta[key]=structuredClone(lastValid[key]);
-  const originalSnapshot=snapshotOf(lastValid),originalRowMeta=originalSnapshot.rowMeta,groupColumn=findTemplate(original.template).fields.findIndex(field=>field[0]==='group');
+  const originalSnapshot=snapshotOf(lastValid),originalRowMeta=originalSnapshot.rowMeta,orderColumns=Object.entries({groupOrder:'group',...temporalOrderFields(original),...multivariateExtendedOrderFields(original)}).map(([key,name])=>[key,findTemplate(original.template).fields.findIndex(field=>field[0]===name)]);
   initial.rowMeta=initial.cells.map((_,i)=>initial.rowMeta?.[i]||originalRowMeta[i]||{_id:newRecordId()});
   bindEntitySnapshot(initial,findTemplate(original.template).fields);
   const initialIds=initial.rowMeta.map(row=>row?._id);
@@ -95,7 +98,7 @@ export function createEditorModel(original, draft, {viewValidation,session}={}) 
     if(userData&&next.meta.source.type==='public'){next.meta.source={...next.meta.source,type:'user'};next.meta.provenance={...next.meta.provenance,origin:'public',partialEdit:true};}
     next.rowMeta=next.cells.map((_,i)=>next.rowMeta?.[i]||{_id:newRecordId()});
     bindEntitySnapshot(next,findTemplate(original.template).fields);
-    reconcileGroupOrder(current,next,groupColumn,originalSnapshot);
+    for(const [key,column]of orderColumns)reconcileGroupOrder(current,next,column,originalSnapshot,key);
     history.set(next);current=history.value;return review();
   }
   review();

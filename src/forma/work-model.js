@@ -1,3 +1,5 @@
+import {multivariateExtendedOrderFields} from './multivariate-extended-rules.js';
+import {temporalOrderFields} from './temporal-series-rules.js';
 import {isEnglish} from './locale.js';
 import {englishDemo} from './locale-catalog.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
@@ -32,11 +34,16 @@ function migrateSeriesBindings(options,original,identified){
   return {...options,colorBindings:options.colorBindings.map(b=>({...b,id:ids.get(b.id)||b.id}))};
 }
 
-// Persist the initial comparison direction before table sorting can reorder groups.
+// Persist categorical directions before table sorting can reorder groups.
 // Existing declarations are user metadata and must never be silently replaced.
 function identifyWorkDocument(doc,options){
   const identified=withRecordIds(doc,options),family=scientificFamily(scientificViewMap[doc.template]);
   if(family?.startsWith('comparison-')&&family!=='comparison-counts'&&identified.groupOrder===undefined)identified.groupOrder=[...new Set(identified.data.map(r=>r.group))];
+  for(const [key,field]of Object.entries({...temporalOrderFields(doc),...multivariateExtendedOrderFields(doc)})){
+    // ISO dates always derive chronological order; date edits need no stale declaration.
+    if(key==='periodOrder'&&['streamgraph','horizon'].includes(doc.template)||key==='variables'&&doc.template==='andrews')continue;
+    if(identified[key]===undefined)identified[key]=[...new Set(identified.data.map(r=>r[field]))];
+  }
   return identified;
 }
 

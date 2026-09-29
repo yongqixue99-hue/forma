@@ -18,6 +18,7 @@ export {stepName,stepIcon,createStepScene} from './work-scene.js';
 
 // Avoid rebuilding accessible headings and controls at animation-frame frequency.
 function updateText(node,value){const text=String(value??'');if(node.textContent!==text)node.textContent=text;}
+function updateAttribute(node,name,value){const text=String(value);if(node.getAttribute(name)!==text)node.setAttribute(name,text);}
 
 /** One stage owns one visible chart. Matched data use persistent contour nodes;
  * unrelated documents meet only at the collapsed midpoint. */
@@ -118,10 +119,13 @@ export function mountWorkPlayer(host,value,{onStep=()=>{},onFrame=()=>{},showSte
   const win=host.ownerDocument.defaultView,events=new win.AbortController(),media=win.matchMedia?.('(prefers-reduced-motion: reduce)');
   host.innerHTML=uiMarkup`<section class="wp-player"><div data-wp-stage></div>${showSteps?uiText('<div class="wp-step-strip" role="group" aria-label="点击预览步骤"></div>'):''}<footer class="wp-controls"><div class="wp-clock"><button data-wp-play aria-label="自动播放全部步骤"></button><time data-wp-time></time><div class="wp-scrubber"><div class="wp-segments" aria-hidden="true">${timeline.segments.map(s=>`<i style="flex:${s.end-s.start}"><b style="width:${s.duration/(s.end-s.start)*100}%"></b></i>`).join('')}</div><input type="range" data-wp-seek min="0" max="${timeline.duration}" step="10" value="0" aria-label="整段作品时间轴"></div><time data-wp-duration>${timelineTime(timeline.duration)}</time><button data-wp-restart title="从头播放所有步骤与过渡" aria-label="从头播放所有步骤与过渡"><span aria-hidden="true">↺</span><span>播放全部</span></button></div><div class="wp-clock-caption"><span data-wp-position></span><span data-wp-status role="status"></span><span class="wp-clock-hint">拖动查看 · 从此处播放</span></div></footer></section>`;
   const $=s=>host.querySelector(s),stage=new WorkStage($('[data-wp-stage]'),current,{steps:work.steps});
+  // These controls live outside the chart and survive every scene replacement.
+  // Finding them from host on every frame would scan the entire SVG first.
+  const controlRoot=$('.wp-controls'),controls=Object.fromEntries(['play','restart','position','status','time','seek','duration'].map(key=>[key,controlRoot.querySelector(`[data-wp-${key}]`)])),stepStrip=$('.wp-step-strip');
   const viewport=mountPlayerViewport($('.wp-player'));
   const speed=win.document.createElement('select');speed.dataset.wpRate='';speed.className='wp-rate';speed.setAttribute('aria-label',isEnglish()?'Motion speed':'演变速度');speed.title=isEnglish()?'Preview animation speed; static holds keep their duration. Export uses authored timing.':'预览动画倍率；静态停留保持设定时长。导出使用作品原定动画时长。';
   speed.innerHTML=rates.map(r=>`<option value="${r}">${r}×</option>`).join('');speed.value=String(rate);$('.wp-clock').insertBefore(speed,$('[data-wp-restart]'));
-  let holdDrag=null;
+  let holdDrag=null,stepButtons=[];
   const holdText=(zh,en)=>isEnglish()?en:zh;
   if(editableTiming){
     const row=win.document.createElement('div');row.className='wp-hold-track';
@@ -152,22 +156,23 @@ export function mountWorkPlayer(host,value,{onStep=()=>{},onFrame=()=>{},showSte
   function changeHold(id,milliseconds){
     const step=work.steps.find(s=>s.id===id);if(!step)return;stop();manualFrame=null;
     const before=timelineFrame(timeline,time),offset=time-before.start;step.hold=holdDuration(milliseconds);timeline=workTimeline(work);
-    $('[data-wp-seek]').max=String(timeline.duration);$('[data-wp-duration]').textContent=timelineTime(timeline.duration);
+    controls.seek.max=String(timeline.duration);updateText(controls.duration,timelineTime(timeline.duration));
     $('.wp-segments').innerHTML=timeline.segments.map(s=>`<i style="flex:${s.end-s.start}"><b style="width:${s.duration/(s.end-s.start)*100}%"></b></i>`).join('');
     refreshHolds();const after=timeline.segments[before.index];drawAt(Math.min(after.end-1,after.start+offset));
   }
   function stop(){running=false;automatic=false;win.cancelAnimationFrame(raf);win.clearTimeout(pairTimer);raf=null;lastTick=null;status();}
   function status(){
     if(disposed)return;
-    const nextPlayMarkup=`<span class="wp-play-symbol">${running?'Ⅱ':'▷'}</span><span>${running?uiText('暂停'):uiText('播放')}</span>`;
-    if(playMarkup!==nextPlayMarkup){$('[data-wp-play]').innerHTML=nextPlayMarkup;playMarkup=nextPlayMarkup;}
-    $('[data-wp-play]').setAttribute('aria-pressed',String(running));$('[data-wp-play]').setAttribute('aria-label',running?uiText('暂停播放'):uiText('从当前位置播放全部步骤'));$('[data-wp-play]').disabled=!!media?.matches;$('[data-wp-restart]').disabled=!!media?.matches;
-    updateText($('[data-wp-position]'),`${String(work.steps.findIndex(s=>s.id===current.id)+1).padStart(2,'0')} / ${String(work.steps.length).padStart(2,'0')}`);
+    const nextPlayMarkup=`<span class="wp-play-symbol">${running?'Ⅱ':'▷'}</span><span>${running?uiText('暂停'):uiText('播放')}</span>`,reduced=!!media?.matches,index=work.steps.findIndex(s=>s.id===current.id),name=stepName(current),clock=timelineTime(time);
+    if(playMarkup!==nextPlayMarkup){controls.play.innerHTML=nextPlayMarkup;playMarkup=nextPlayMarkup;}
+    updateAttribute(controls.play,'aria-pressed',running);updateAttribute(controls.play,'aria-label',running?uiText('暂停播放'):uiText('从当前位置播放全部步骤'));
+    if(controls.play.disabled!==reduced)controls.play.disabled=reduced;if(controls.restart.disabled!==reduced)controls.restart.disabled=reduced;
+    updateText(controls.position,`${String(index+1).padStart(2,'0')} / ${String(work.steps.length).padStart(2,'0')}`);
     const f=displayFrame||timelineFrame(timeline,time),phase=f.progress===1?uiText('停留'):f.from?(f.plan.mode==='morph'?uiText('连续形变'):uiText('图表入场')):uiText('图表入场');
-    updateText($('[data-wp-status]'),media?.matches?uiText('已开启减少动态效果'):`${stepName(current)} · ${phase}`);
-    updateText($('[data-wp-time]'),timelineTime(time));$('[data-wp-seek]').value=String(time);
-    $('[data-wp-seek]').setAttribute('aria-valuetext',uiMessage`${timelineTime(time)}，第 ${work.steps.findIndex(s=>s.id===current.id)+1} 步，${stepName(current)}`);
-    host.querySelectorAll('[data-wp-step]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wpStep===current.id)));
+    updateText(controls.status,reduced?uiText('已开启减少动态效果'):`${name} · ${phase}`);
+    updateText(controls.time,clock);if(controls.seek.value!==String(time))controls.seek.value=String(time);
+    updateAttribute(controls.seek,'aria-valuetext',uiMessage`${clock}，第 ${index+1} 步，${name}`);
+    stepButtons.forEach(b=>updateAttribute(b,'aria-pressed',b.dataset.wpStep===current.id));
   }
   function drawAt(ms){
     time=Math.min(timeline.duration,Math.max(0,ms));
@@ -211,17 +216,17 @@ export function mountWorkPlayer(host,value,{onStep=()=>{},onFrame=()=>{},showSte
     const plan=from.id===target.id?null:transitionPlan(from,target,{steps:work.steps});
     manualFrame={...segment,clockDuration:plan?.duration??segment.duration,from:plan?from:null,plan,retarget,phase:plan?'transition':'entrance'};
     drawAt(segment.start);run(!manual);
-    const strip=$('.wp-step-strip'),button=host.querySelector(`[data-wp-step="${id}"]`);
+    const strip=stepStrip,button=stepButtons.find(button=>button.dataset.wpStep===id);
     if(strip&&button){const x=button.offsetLeft-strip.offsetLeft;if(x<strip.scrollLeft)strip.scrollLeft=x;else if(x+button.offsetWidth>strip.scrollLeft+strip.clientWidth)strip.scrollLeft=x+button.offsetWidth-strip.clientWidth;}
   }
-  if(showSteps)$('.wp-step-strip').innerHTML=work.steps.map((s,i)=>`<button data-wp-step="${s.id}" aria-pressed="${s.id===current.id}"><small>${String(i+1).padStart(2,'0')}</small>${stepIcon(s)}<span>${esc(stepName(s))}</span></button>`).join('');
+  if(showSteps){stepStrip.innerHTML=work.steps.map((s,i)=>`<button data-wp-step="${s.id}" aria-pressed="${s.id===current.id}"><small>${String(i+1).padStart(2,'0')}</small>${stepIcon(s)}<span>${esc(stepName(s))}</span></button>`).join('');stepButtons=[...stepStrip.querySelectorAll('[data-wp-step]')];}
   host.addEventListener('click',e=>{
     const button=e.target.closest('button');if(!button)return;
     if(button.dataset.wpStep)select(button.dataset.wpStep);
     else if(button.hasAttribute('data-wp-play')){if(running)stop();else play();}
     else if(button.hasAttribute('data-wp-restart')){seek(0);play();}
   },{signal:events.signal});
-  $('[data-wp-seek]').addEventListener('input',e=>seek(Number(e.target.value)),{signal:events.signal});
+  controls.seek.addEventListener('input',e=>seek(Number(e.target.value)),{signal:events.signal});
   speed.addEventListener('change',e=>setPlaybackRate(e.target.value),{signal:events.signal});
   win.document.addEventListener('visibilitychange',()=>{if(win.document.hidden)stop();},{signal:events.signal});
   const reduce=()=>{if(media.matches){stop();drawAt(time);}status();};media?.addEventListener('change',reduce);

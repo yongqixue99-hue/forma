@@ -1,5 +1,5 @@
 import {uiText,uiMarkup,uiMessage} from './locale.js';
-const properties={modelName:uiText('外部分析模型'),groupOrder:uiText('分组比较顺序'),referenceMean:uiText('参考模型均值'),referenceSD:uiText('参考模型标准差'),alpha:uiText('显著水平参数'),minExceedances:uiText('最少超额样本数'),bandLabels:uiText('定性区间名称'),maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
+const properties={referenceImpedance:uiText("参考阻抗"),heightUnit:uiText("高度单位"),systemDomain:uiText("系统域"),phaseConvention:uiText("相位与幅值约定"),frequency:uiText("相量频率"),phasorOrder:uiText("相量连接顺序"),calmThreshold:uiText("静风阈值"),windSectors:uiText("风向分区数"),speedBreaks:uiText("风速分段"),orders:uiText("阶次参考"),nodes:uiText("矩阵节点顺序"),leftNodes:uiText("左侧节点顺序"),rightNodes:uiText("右侧节点顺序"),ego:uiText("中心节点"),sets:uiText("集合顺序"),axisOrder:uiText("轴顺序"),dimensionOrder:uiText("维度顺序"),variableOrder:uiText("变量次序"),variables:uiText("曲线变量顺序"),componentOrder:uiText("主成分顺序"),sampleOrder:uiText("样本顺序"),objectOrder:uiText("对象顺序"),seriesOrder:uiText("系列顺序"),seasonOrder:uiText("季节顺序"),cycleOrder:uiText("周期顺序"),periodOrder:uiText("时期顺序"),cohortOrder:uiText("同期群顺序"),max:uiText("雷达刻度上限"),pc1Variance:uiText("PC1 解释方差"),pc2Variance:uiText("PC2 解释方差"),parameterCount:uiText("模型参数数（含截距）"),coefficient:uiText("外部模型线性系数"),referenceEffect:uiText("参考效应"),rankOrder:uiText("排名方向"),periodUnit:uiText("群龄单位"),modelName:uiText('外部分析模型'),groupOrder:uiText('分组比较顺序'),referenceMean:uiText('参考模型均值'),referenceSD:uiText('参考模型标准差'),alpha:uiText('显著水平参数'),minExceedances:uiText('最少超额样本数'),bandLabels:uiText('定性区间名称'),maxLag:uiText('最大滞后'),variableUnits:uiText('变量单位'),unit:uiText('单位'),frequencyUnit:uiText('频率单位'),source:uiText('来源'),axes:uiText('坐标含义'),periodLabels:uiText('前后观测'),pairLabels:uiText('配对观测'),methodLabels:uiText('测量方法'),intervalLabel:uiText('区间定义'),positiveLabel:uiText('正类定义'),doseUnit:uiText('剂量单位')};
 export function semanticChanges(before,after){
   const display=(doc,key)=>key==='variableUnits'?Object.fromEntries(Object.entries(doc.variableUnits||{}).map(([id,unit])=>[doc.entities?.items.find(v=>v.id===id)?.name||id,unit])):doc[key];
   const changes=Object.entries(properties).flatMap(([key,label])=>JSON.stringify(before[key])===JSON.stringify(after[key])?[]:[{key,label,before:display(before,key),after:display(after,key)}]);
@@ -21,6 +21,74 @@ export function semanticValue(value){
   return String(value);
 }
 export function encodingMeaning(view){
+  if(view==="relationx-adjacency")return uiText("每格对应原始节点对与权重；零值保留，缺边不补造");
+  if(view==="relationx-adjacency-radial")return uiText("同一批节点对展开到环形；布局距离不表示关系强弱");
+  if(view==="relationx-bipartite")return uiText("连线保留左右集合身份与原权重");
+  if(view==="relationx-bipartite-circle")return uiText("双集合沿环排列；节点身份和连线权重保持不变");
+  if(view==="relationx-ego")return uiText("以指定中心展示原始关系；不推断未输入的联系");
+  if(view==="relationx-ego-arc")return uiText("同一网络展开为弧线；弧线高度不表示距离");
+  if(view==="relationx-bundle")return uiText("捆绑仅改变连线路径，不合并边或修改权重");
+  if(view==="relationx-bundle-linear")return uiText("层次关系展开排列；全部原始连线仍一一对应");
+  if(view==="relationx-hive")return uiText("节点按原分组分轴；位置使用输入的 0–1 属性");
+  if(view==="relationx-hive-parallel")return uiText("蜂巢轴展开为平行轴；关系与节点次序保持不变");
+  if(view==="relationx-parallelsets")return uiText("带宽表示原始路径数量，不把类别当作连续数值");
+  if(view==="relationx-parallelsets-radial")return uiText("同一批类别路径绕环展开；总量与各路径记录保留");
+  if(view==="relationx-upset")return uiText("显示排他交集计数，不把包含交集误作排他交集");
+  if(view==="relationx-intersections")return uiText("逐项保留集合组合和原始计数，包括零交集");
+  if(view==="relationx-venn")return uiText("圆面积不编码数量；以各排他区域的原始计数为准");
+  if(view==="mvx-parallel")return uiText("各维度保留原值和对应刻度；折线连接同一对象");
+  if(view==="mvx-profile-matrix")return uiText("原始对象与维度展开为矩阵；各维度量纲保持不变");
+  if(view==="mvx-radar")return uiText("雷达各轴共用声明尺度；轮廓面积不作总分");
+  if(view==="mvx-radar-unfold")return uiText("同一批雷达观测展开为平行刻度；不重算数据");
+  if(view==="mvx-ternary")return uiText("三成分位置由原始比例确定，总和约束保持不变");
+  if(view==="mvx-composition")return uiText("三项成分逐一展开；原始比例和样本身份保留");
+  if(view==="mvx-pca")return uiText("展示已输入的主成分得分；不在动画中重新拟合模型");
+  if(view==="mvx-pca-components")return uiText("把同一得分点展开为 PC1、PC2 分量，保留正负号");
+  if(view==="mvx-loadings")return uiText("箭头表示输入的相关载荷，不是样本得分");
+  if(view==="mvx-loading-components")return uiText("变量载荷按两个主成分展开；保留相关系数正负");
+  if(view==="mvx-scree")return uiText("单项解释率使用全部输入特征值为分母");
+  if(view==="mvx-cumulative")return uiText("累计解释率沿声明的主成分次序累加，不覆盖原特征值");
+  if(view==="mvx-andrews")return uiText("傅里叶曲线依赖变量固定顺序；曲线位置不是原始量纲");
+  if(view==="mvx-coefficients")return uiText("显示构成曲线的原始系数；变量顺序保持不变");
+  if(view==="mvx-radviz")return uiText("使用原生逐变量归一化与锚点；位置不等于原始数值");
+  if(view==="mvx-normalized-profiles")return uiText("展开同一批归一化分量，原值仍完整保留在表格中");
+  if(view==="engineering-smith")return uiText("原阻抗映射到反射系数平面；原始欧姆值不被覆盖");
+  if(view==="engineering-impedance")return uiText("展开原始电阻与电抗；参考阻抗保持不变");
+  if(view==="engineering-polar")return uiText("方位角北起顺时针，半径保留原始单位");
+  if(view==="engineering-bearing-radius")return uiText("方位与半径展开为两轴，保留原始观测");
+  if(view==="engineering-phasor")return uiText("相量保留同频约定、实部与虚部，不自动改变幅值定义");
+  if(view==="engineering-phasor-chain")return uiText("仅平移同一组向量首尾相接；向量和不冒充原观测");
+  if(view==="engineering-iq")return uiText("原始 I/Q 符号保留，不额外推断调制类型");
+  if(view==="engineering-symbol-polar")return uiText("幅相来自原实部与虚部；零符号相位标为未定义");
+  if(view==="engineering-polezero")return uiText("极点和零点身份保持不变；稳定性参考沿用原系统域");
+  if(view==="engineering-root-polar")return uiText("同一组根展开为模和辐角；零根相位未定义");
+  if(view==="engineering-hodograph")return uiText("风矢量位置表示 u/v，颜色表示测量高度");
+  if(view==="engineering-height-speed")return uiText("从原 u/v 计算风速并按原高度排列；不插补层位");
+  if(view==="engineering-windrose")return uiText("频率分母包含静风观测；方向缺失不被补成北风");
+  if(view==="engineering-wind-sectors")return uiText("相同方向和速度区间展开；每条原观测仍可追踪");
+  if(view==="engineering-campbell")return uiText("气泡面积对应幅值；转速、频率与模态来自原记录");
+  if(view==="engineering-speed-amplitude")return uiText("转速与幅值展开比较；频率仍保留在原始表格中");
+
+  if(view==='temporal-stream')return uiText("带厚表示原值，河流基线用于布局；不将纵坐标当作单个系列值");
+  if(view==='temporal-horizon')return uiText("色带折叠保留正负方向和原值；未采集处保持断点");
+  if(view==='temporal-lines')return uiText("各系列使用共同原值尺度；缺失记录不连接或补零");
+  if(view==='temporal-season')return uiText("按输入季节顺序比较各周期；不把季节间距当作连续时间");
+  if(view==='temporal-season-lines')return uiText("同一批季节观测展开为趋势；保留周期和季节归属");
+  if(view==='temporal-rankclock')return uiText("半径仅表示竞争名次；并列保留，不补出下一期");
+  if(view==='temporal-ranklines')return uiText("名次差不等于原值差；全部原始数值仍保留");
+  if(view==='temporal-cohort')return uiText("颜色表示同期群当期比例；分母保留原始起始人数");
+  if(view==='temporal-retention')return uiText("比例按各群固定起始人数计算；不同群体不合并");
+  if(view==='regression-scale-location')return uiText("纵轴为标准化残差绝对值的平方根；不重新拟合原模型");
+  if(view==='regression-fitted-residual')return uiText("保留外部拟合值与带正负号的标准化残差");
+  if(view==='regression-leverage')return uiText("杠杆与残差来自同一模型；Cook 等值线不是删除规则");
+  if(view==='regression-cook')return uiText("Cook 距离保留每个观测身份；参考线不代表自动剔除阈值");
+  if(view==='regression-added')return uiText("比较控制同一批协变量后的残差对；条件关系不代表因果");
+  if(view==='regression-adjusted-deviation')return uiText("展示偏回归平面的偏离；保留原始残差对");
+  if(view==='regression-component')return uiText("部分残差等于原残差加已知线性成分；系数来自外部模型");
+  if(view==='regression-ordinary')return uiText("显示外部完整模型残差；不把部分残差当作预测值");
+  if(view==='regression-funnel')return uiText("研究效应对照标准误；漏斗形态不直接判定发表偏倚");
+  if(view==='regression-study-standardized')return uiText("效应相对参考值按标准误缩放；参考带不是单项研究置信区间");
+
   if(view==='network-chord')return uiText("无向关系宽度表示权重；端点名称不表示方向");
   if(view==='network-arc')return uiText("弧宽表示关系权重；弧高仅用于布局");
   if(view==='network-force')return uiText("连线宽度表示权重，节点距离不代表数值差异");
@@ -102,5 +170,5 @@ export function encodingMeaning(view){
 export function frameMeaning(view,{progress=1,mode,fromView}={}){
   if(mode==='morph'&&progress>0&&progress<1&&fromView==='series-rank'&&view!=='series-rank')return uiText('变形中，请在停稳后读数。由名次返回原值，名次差不表示数值差。');
   const meaning=encodingMeaning(view);
-  return mode==='morph'&&progress>0&&progress<1&&/^(network|flow|compare|stat|structural|target|metric|paired|eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
+  return mode==='morph'&&progress>0&&progress<1&&/^(relationx|mvx|engineering|temporal|regression|network|flow|compare|stat|structural|target|metric|paired|eval|corr|hierarchy|sample|distribution|freq|matrix|ordered|spatial|series|process|multivariate)-/.test(view)?uiMessage`变形中，请在停稳后读数。${meaning}`:meaning;
 }
