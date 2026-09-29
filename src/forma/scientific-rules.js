@@ -1,3 +1,5 @@
+import {qualityViews,qualityFamily,qualityViewMap,qualityDocument,qualityEligibility,qualityCompatibility,qualityBounds,qualityRecipe,qualityGuide,isQualityView} from './quality-series-rules.js';
+import {timePlanningViews,timePlanningFamily,timePlanningViewMap,timePlanningDocument,timePlanningEligibility,timePlanningCompatibility,timePlanningBounds,timePlanningRecipe,timePlanningGuide,isTimePlanningView} from './time-planning-rules.js';
 import {engineeringViews,engineeringFamily,engineeringViewMap,engineeringDocument,engineeringEligibility,engineeringCompatibility,engineeringBounds,engineeringRecipe,engineeringGuide,isEngineeringView} from './engineering-series-rules.js';
 import {multivariateExtendedViews,multivariateExtendedFamily,multivariateExtendedViewMap,multivariateExtendedDocument,multivariateExtendedEligibility,multivariateExtendedCompatibility,multivariateExtendedBounds,multivariateExtendedRecipe,multivariateExtendedGuide,isMultivariateExtendedView} from './multivariate-extended-rules.js';
 import {advancedRelationsViews,advancedRelationsFamily,advancedRelationsViewMap,advancedRelationsDocument,advancedRelationsEligibility,advancedRelationsCompatibility,advancedRelationsBounds,advancedRelationsRecipe,advancedRelationsGuide,isAdvancedRelationsView} from './advanced-relations-rules.js';
@@ -44,11 +46,11 @@ export const estimateViews=[
   {id:'estimate-horizontal',name:uiText('横向区间图'),en:'Horizontal intervals',note:uiText('从估计点向输入上下界展开区间；不根据样本量重新计算置信区间。较长的对象名称适合横向排列。')},
   {id:'estimate-vertical',name:uiText('纵向误差区间图'),en:'Vertical intervals',note:uiText('把同一组点估计和输入区间转向纵轴。区间水平、单位与线性或对数尺度均保持不变。')}
 ];
-export const scientificViews=[...engineeringViews,...multivariateExtendedViews,...advancedRelationsViews,...regressionDiagnosticViews,...temporalViews,...comparisonViews,...networkViews,...businessSeriesViews,...structuralViews,...statisticalViews,...distributionViews,...frequencyViews,...serialViews,...observationViews,...sampleViews,...estimateViews,...analyticalViews,...diagnosticViews,...exploratoryViews,...processViews,...multivariateViews];
+export const scientificViews=[...qualityViews,...timePlanningViews,...engineeringViews,...multivariateExtendedViews,...advancedRelationsViews,...regressionDiagnosticViews,...temporalViews,...comparisonViews,...networkViews,...businessSeriesViews,...structuralViews,...statisticalViews,...distributionViews,...frequencyViews,...serialViews,...observationViews,...sampleViews,...estimateViews,...analyticalViews,...diagnosticViews,...exploratoryViews,...processViews,...multivariateViews];
 const families=new Map([...observationViews.map(v=>[v.id,'observations']),...sampleViews.map(v=>[v.id,'samples']),...estimateViews.map(v=>[v.id,'estimates'])]);
-export const scientificFamily=view=>engineeringFamily(view)||multivariateExtendedFamily(view)||advancedRelationsFamily(view)||regressionDiagnosticFamily(view)||temporalFamily(view)||comparisonFamily(view)||networkFamily(view)||businessSeriesFamily(view)||structuralFamily(view)||statisticalFamily(view)||(isSerialView(view)?'serial':null)||frequencyFamily(view)||distributionFamily(view)||families.get(view)||analyticalFamily(view)||diagnosticFamily(view)||exploratoryFamily(view)||processFamily(view)||multivariateFamily(view);
-export const isScientificView=view=>isEngineeringView(view)||isMultivariateExtendedView(view)||isAdvancedRelationsView(view)||isRegressionDiagnosticView(view)||isTemporalView(view)||isComparisonView(view)||isNetworkView(view)||isBusinessSeriesView(view)||isStructuralView(view)||isStatisticalView(view)||isSerialView(view)||isFrequencyView(view)||isDistributionView(view)||families.has(view)||isAnalyticalView(view)||isDiagnosticView(view)||isExploratoryView(view)||isProcessView(view)||isMultivariateView(view);
-export const scientificViewMap={...engineeringViewMap,...multivariateExtendedViewMap,...advancedRelationsViewMap,...regressionDiagnosticViewMap,...temporalViewMap,...comparisonViewMap,...networkViewMap,...businessSeriesViewMap,...structuralViewMap,...statisticalViewMap,...distributionViewMap,...frequencyViewMap,...serialViewMap,...processViewMap,...multivariateViewMap,...exploratoryViewMap,...diagnosticViewMap,...analyticalViewMap,xy:'obs-scatter',scatter:'obs-bubble',regression:'obs-confidence',ridges:'sample-ridge',swarm:'sample-swarm',boxplot:'sample-box',violin:'sample-violin',raincloud:'sample-raincloud',errorbar:'sample-sd',interval:'estimate-horizontal',forest:'estimate-horizontal'};
+export const scientificFamily=view=>qualityFamily(view)||timePlanningFamily(view)||engineeringFamily(view)||multivariateExtendedFamily(view)||advancedRelationsFamily(view)||regressionDiagnosticFamily(view)||temporalFamily(view)||comparisonFamily(view)||networkFamily(view)||businessSeriesFamily(view)||structuralFamily(view)||statisticalFamily(view)||(isSerialView(view)?'serial':null)||frequencyFamily(view)||distributionFamily(view)||families.get(view)||analyticalFamily(view)||diagnosticFamily(view)||exploratoryFamily(view)||processFamily(view)||multivariateFamily(view);
+export const isScientificView=view=>isQualityView(view)||isTimePlanningView(view)||isEngineeringView(view)||isMultivariateExtendedView(view)||isAdvancedRelationsView(view)||isRegressionDiagnosticView(view)||isTemporalView(view)||isComparisonView(view)||isNetworkView(view)||isBusinessSeriesView(view)||isStructuralView(view)||isStatisticalView(view)||isSerialView(view)||isFrequencyView(view)||isDistributionView(view)||families.has(view)||isAnalyticalView(view)||isDiagnosticView(view)||isExploratoryView(view)||isProcessView(view)||isMultivariateView(view);
+export const scientificViewMap={...qualityViewMap,...timePlanningViewMap,...engineeringViewMap,...multivariateExtendedViewMap,...advancedRelationsViewMap,...regressionDiagnosticViewMap,...temporalViewMap,...comparisonViewMap,...networkViewMap,...businessSeriesViewMap,...structuralViewMap,...statisticalViewMap,...distributionViewMap,...frequencyViewMap,...serialViewMap,...processViewMap,...multivariateViewMap,...exploratoryViewMap,...diagnosticViewMap,...analyticalViewMap,xy:'obs-scatter',scatter:'obs-bubble',regression:'obs-confidence',ridges:'sample-ridge',swarm:'sample-swarm',boxplot:'sample-box',violin:'sample-violin',raincloud:'sample-raincloud',errorbar:'sample-sd',interval:'estimate-horizontal',forest:'estimate-horizontal'};
 const key=(...parts)=>JSON.stringify(parts),finite=x=>typeof x==='number'&&Number.isFinite(x)&&Math.abs(x)<=1e15,text=x=>typeof x==='string'&&!!x.trim();
 
 export function scientificDocument(step){
@@ -58,6 +60,8 @@ export function scientificDocument(step){
   if(isAdvancedRelationsView(scientificViewMap[doc.template]))return advancedRelationsDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isMultivariateExtendedView(scientificViewMap[doc.template]))return multivariateExtendedDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isEngineeringView(scientificViewMap[doc.template]))return engineeringDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
+  if(isTimePlanningView(scientificViewMap[doc.template]))return timePlanningDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
+  if(isQualityView(scientificViewMap[doc.template]))return qualityDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isTemporalView(scientificViewMap[doc.template]))return temporalDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isRegressionDiagnosticView(scientificViewMap[doc.template]))return regressionDiagnosticDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
   if(isNetworkView(scientificViewMap[doc.template]))return networkDocument(withRecordIds(doc,{legacyNamespace:step.dataGroup||'legacy-native:'+doc.template}),common);
@@ -96,6 +100,8 @@ export function scientificEligibility(doc,view){
   if(isAdvancedRelationsView(view))return advancedRelationsEligibility(doc,view);
   if(isMultivariateExtendedView(view))return multivariateExtendedEligibility(doc,view);
   if(isEngineeringView(view))return engineeringEligibility(doc,view);
+  if(isTimePlanningView(view))return timePlanningEligibility(doc,view);
+  if(isQualityView(view))return qualityEligibility(doc,view);
   if(isTemporalView(view))return temporalEligibility(doc,view);
   if(isRegressionDiagnosticView(view))return regressionDiagnosticEligibility(doc,view);
   if(isNetworkView(view))return networkEligibility(doc,view);
@@ -136,6 +142,8 @@ export function scientificCompatibility(a,b){
   if(a.family?.startsWith('relationx-'))return advancedRelationsCompatibility(a,b);
   if(a.family?.startsWith('mvx-'))return multivariateExtendedCompatibility(a,b);
   if(a.family?.startsWith('engineering-'))return engineeringCompatibility(a,b);
+  if(a.family?.startsWith('planning-'))return timePlanningCompatibility(a,b);
+  if(a.family?.startsWith('quality-'))return qualityCompatibility(a,b);
   if(a.family?.startsWith('temporal-'))return temporalCompatibility(a,b);
   if(a.family?.startsWith('regression-'))return regressionDiagnosticCompatibility(a,b);
   if(['network-undirected', 'network-directed'].includes(a.family))return networkCompatibility(a,b);
@@ -160,6 +168,8 @@ export function scientificBounds(doc,view){
   if(isAdvancedRelationsView(view))return advancedRelationsBounds(doc,view);
   if(isMultivariateExtendedView(view))return multivariateExtendedBounds(doc,view);
   if(isEngineeringView(view))return engineeringBounds(doc,view);
+  if(isTimePlanningView(view))return timePlanningBounds(doc,view);
+  if(isQualityView(view))return qualityBounds(doc,view);
   if(isTemporalView(view))return temporalBounds(doc,view);
   if(isRegressionDiagnosticView(view))return regressionDiagnosticBounds(doc,view);
   if(isNetworkView(view))return networkBounds(doc,view);
@@ -190,6 +200,8 @@ export function scientificRecipe(from,to){
   if(isAdvancedRelationsView(to))return advancedRelationsRecipe(from,to);
   if(isMultivariateExtendedView(to))return multivariateExtendedRecipe(from,to);
   if(isEngineeringView(to))return engineeringRecipe(from,to);
+  if(isTimePlanningView(to))return timePlanningRecipe(from,to);
+  if(isQualityView(to))return qualityRecipe(from,to);
   if(isTemporalView(to))return temporalRecipe(from,to);
   if(isRegressionDiagnosticView(to))return regressionDiagnosticRecipe(from,to);
   if(isNetworkView(to))return networkRecipe(from,to);
@@ -216,6 +228,8 @@ export function scientificGuide(doc,view){
   if(isAdvancedRelationsView(view))return advancedRelationsGuide(doc,view);
   if(isMultivariateExtendedView(view))return multivariateExtendedGuide(doc,view);
   if(isEngineeringView(view))return engineeringGuide(doc,view);
+  if(isTimePlanningView(view))return timePlanningGuide(doc,view);
+  if(isQualityView(view))return qualityGuide(doc,view);
   if(isTemporalView(view))return temporalGuide(doc,view);
   if(isRegressionDiagnosticView(view))return regressionDiagnosticGuide(doc,view);
   if(isNetworkView(view))return networkGuide(doc,view);

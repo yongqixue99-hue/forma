@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Window } from 'happy-dom';
 import { getExample } from '../../src/forma/catalog.js';
+import {withRecordIds} from '../../src/forma/data-identity.js';
+import {staticSVG} from '../../src/forma/export.js';
 import {
   MAX_SELECTION, selectionKey, makeSelectionItem, normalizeSelection,
   normalizeChartOptions, createSelectionBundle, formatRecipe,
@@ -65,6 +67,67 @@ test('options reject inherited palette names, preserve explicit light and normal
   assert.equal(normalizeChartOptions({ duration: 0 }).duration, 1);
   assert.equal(normalizeChartOptions({ duration: Infinity }).duration, 8);
   assert.equal(normalizeChartOptions({ palette: 'graphite' }).palette, 'mono');
+});
+
+test('selected charts retain independent identity colors and numeric color scales through storage and bundles', () => {
+  const doc=withRecordIds(getExample('column')),options={
+    colorBindings:[{id:doc.data[0]._id,color:'#3355AA'}],
+    valueColors:{mode:'diverging',low:'#2244AA',middle:'#EEEEEE',high:'#CC6655',center:0}
+  };
+  const expected={colorBindings:[{id:doc.data[0]._id,color:'#3355aa'}],valueColors:{mode:'diverging',low:'#2244aa',middle:'#eeeeee',high:'#cc6655',center:0}};
+  const item=makeSelectionItem(doc,options,'saved-color-chart');
+  options.colorBindings[0].color='#ffffff';options.valueColors.center=10;
+  const restored=normalizeSelection(JSON.stringify([item]));
+  const bundle=createSelectionBundle(restored);
+  for(const snapshot of [item,...restored,...bundle.charts]){
+    assert.deepEqual(snapshot.options.colorBindings,expected.colorBindings);
+    assert.deepEqual(snapshot.options.valueColors,expected.valueColors);
+    assert.deepEqual(snapshot.doc,doc,'palette persistence must not modify values or identities');
+  }
+  bundle.charts[0].options.colorBindings[0].color='#000000';bundle.charts[0].options.valueColors.center=12;
+  assert.deepEqual(restored[0].options.colorBindings,expected.colorBindings);
+  assert.deepEqual(restored[0].options.valueColors,expected.valueColors);
+});
+
+test('invalid color mappings are rejected and one damaged stored selection does not reset valid chart colors',()=>{
+  const doc=withRecordIds(getExample('column')),good=makeSelectionItem(doc,{colorBindings:[{id:doc.data[0]._id,color:'#335577'}]},'good');
+  for(const settings of [
+    {colorBindings:[{id:'a',color:'#112233'},{id:'a',color:'#445566'}]},
+    {colorBindings:[{id:'a',color:'red'}]},
+    {valueColors:{mode:'diverging',low:'#112233',middle:'#ffffff',high:'#cc6655',center:NaN}}
+  ]){
+    assert.throws(()=>makeSelectionItem(doc,settings),/配色对应或色阶设置无效/);
+    assert.throws(()=>formatRecipe(doc,settings),/配色对应或色阶设置无效/);
+    assert.throws(()=>createSelectionBundle([{doc,options:settings}]),/配色对应或色阶设置无效/);
+    assert.deepEqual(normalizeSelection([{key:'saved:damaged',doc,options:settings},good]),[good]);
+  }
+});
+
+test('copied SVG and Agent instructions preserve exact object colors and numeric color scales',async t=>{
+  const writes=[];replaceGlobal(t,'navigator',{clipboard:{async writeText(value){writes.push(value);}}});
+  const fixtures=[
+    {doc:withRecordIds(getExample('column')),option:'colorBindings',value:doc=>[{id:doc.data[0]._id,color:'#335577'}]},
+    {doc:getExample('heatmap'),option:'valueColors',value:()=>({mode:'diverging',low:'#223355',middle:'#eeeeee',high:'#bb7755',center:0})}
+  ];
+  for(const {doc,option,value}of fixtures){
+    const settings={palette:'ink',dark:false,ratio:'wide',duration:8,[option]:value(doc)};
+    await copyChartContent('svg',doc,settings);
+    const stableIds=svg=>svg.replace(/forma-\d+-/g,'forma-scene-');
+    assert.equal(stableIds(writes.at(-1)),stableIds(staticSVG(doc,settings)),'copied SVG must match a direct export of the visible settings');
+    const brief=formatRecipe(doc,settings),blocks=[...brief.matchAll(/^(`{3,})json\n([\s\S]*?)\n\1(?=\n|$)/gm)].map(match=>JSON.parse(match[2]));
+    assert.deepEqual(blocks.at(-1)[option],settings[option]);
+    await copyChartContent('recipe',doc,settings);assert.equal(writes.at(-1),brief);
+  }
+});
+
+test('PNG clipboard captures identity colors before the asynchronous image render',async t=>{
+  const env=pngEnvironment(t),items=[];
+  replaceGlobal(t,'ClipboardItem',class {constructor(data){this.data=data;}});
+  replaceGlobal(t,'navigator',{clipboard:{async write(next){items.push(...next);await next[0].data['image/png'];}}});
+  const doc=withRecordIds(getExample('column')),options={colorBindings:[{id:doc.data[0]._id,color:'#335577'}]};
+  const pending=copyChartContent('png',doc,options);options.colorBindings[0].color='#ff0000';await pending;
+  const svg=await env.urls[0].text();assert.match(svg,/#335577/);assert.doesNotMatch(svg,/#ff0000/);
+  assert.equal((await items[0].data['image/png']).type,'image/png');
 });
 
 test('selection rejects invalid chart data and JSON values that would silently change', () => {

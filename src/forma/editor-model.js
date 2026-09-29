@@ -1,3 +1,4 @@
+import {timePlanningOrderFields} from './time-planning-rules.js';
 import {multivariateExtendedOrderFields} from './multivariate-extended-rules.js';
 import {temporalOrderFields} from './temporal-series-rules.js';
 import {resolveCountry,countryName} from './country-input.js';
@@ -69,7 +70,7 @@ export function createEditorModel(original, draft, {viewValidation,session}={}) 
   const initial=safeDraft(draft,lastValid)?structuredClone(draft):snapshotOf(lastValid);
   if(lastValid.entities&&!initial.meta.entities)initial.meta.entities=structuredClone(lastValid.entities);
   if(lastValid.template==='splom')for(const key of ['sampleEntities','selectedPair','variableUnits'])if(lastValid[key]!==undefined&&initial.meta[key]===undefined)initial.meta[key]=structuredClone(lastValid[key]);
-  const originalSnapshot=snapshotOf(lastValid),originalRowMeta=originalSnapshot.rowMeta,orderColumns=Object.entries({groupOrder:'group',...temporalOrderFields(original),...multivariateExtendedOrderFields(original)}).map(([key,name])=>[key,findTemplate(original.template).fields.findIndex(field=>field[0]===name)]);
+  const originalSnapshot=snapshotOf(lastValid),originalRowMeta=originalSnapshot.rowMeta,orderColumns=Object.entries({groupOrder:'group',...temporalOrderFields(original),...multivariateExtendedOrderFields(original),...timePlanningOrderFields(original)}).map(([key,name])=>[key,findTemplate(original.template).fields.findIndex(field=>field[0]===name)]);
   initial.rowMeta=initial.cells.map((_,i)=>initial.rowMeta?.[i]||originalRowMeta[i]||{_id:newRecordId()});
   bindEntitySnapshot(initial,findTemplate(original.template).fields);
   const initialIds=initial.rowMeta.map(row=>row?._id);

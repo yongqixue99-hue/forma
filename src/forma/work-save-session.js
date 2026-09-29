@@ -3,9 +3,11 @@ import {uiText,uiMarkup,uiMessage} from './locale.js';
 // transaction so two independent tabs cannot both win the same revision.
 export function createWorkSaveSession(repository,record,{onState=()=>{},onConflict=()=>{},onCommit=()=>{}}={}){
   let revision=record?.revision||0,id=record?.id,pending=null,running=null,error=null;
+  const merge=(previous,next)=>({...next,saved:!!previous?.saved||!!next.saved,checkpoint:!!previous?.checkpoint||!!next.checkpoint,label:next.label||previous?.label});
   function stage(work,syncHistory=[],options={}){
-    pending={work:structuredClone(work),syncHistory:structuredClone(syncHistory),...options,saved:!!pending?.saved||!!options.saved,checkpoint:!!pending?.checkpoint||!!options.checkpoint,label:options.label||pending?.label};
-    if(id&&pending.work.id!==id)throw new Error(uiText('保存对象已切换，请重新打开作品。'));
+    const next={work:structuredClone(work),syncHistory:structuredClone(syncHistory),...options};
+    if(id&&next.work.id!==id)throw new Error(uiText('保存对象已切换，请重新打开作品。'));
+    pending=merge(pending,next);
     id=work.id;onState('pending');
   }
   function flush(){
@@ -22,7 +24,11 @@ export function createWorkSaveSession(repository,record,{onState=()=>{},onConfli
             onConflict(result,pending?.work||result.record.work);
           }
           onCommit(result.record);
-        }catch(e){error=e;pending=pending||input;onState('error',e);return false;}
+        }catch(e){
+          // Keep the latest typed data, but retry the failed manual save's
+          // checkpoint too. A later autosave must not erase that intent.
+          error=e;pending=merge(input,pending||input);onState('error',e);return false;
+        }
       }
       onState('saved');return true;
     })().finally(()=>running=null);

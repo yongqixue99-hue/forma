@@ -5,7 +5,7 @@ import {volume14Renderers} from './volume14-charts.js';
 import {volume15Renderers} from './volume15-charts.js';
 import {volume16Renderers} from './volume16-charts.js';
 import {labelFont,labelInk,areaDataLabel} from './chart-readability.js';
-import {chartTheme} from './color-semantics.js';
+import {chartTheme,valueColorFor} from './color-semantics.js';
 import {volume10Renderers} from './volume10-charts.js';
 import {volume11Renderers} from './volume11-charts.js';
 import {volume12Renderers} from './volume12-charts.js';
@@ -261,7 +261,7 @@ function scatter(s,doc){
 function calendar(s,doc){
   const{w,h,theme:t}=s;const sorted=[...doc.data].sort((a,b)=>a.date.localeCompare(b.date));const start=d3.utcMonday.floor(new Date(sorted[0].date)),end=d3.utcDay.offset(new Date(sorted.at(-1).date),1);const days=d3.utcDay.range(start,end);const nWeeks=Math.ceil(days.length/7);const x0=32;const cell=Math.min((w-x0-10)/nWeeks,(h-65)/7);const gap=cell>10?3:1.5;const y0=(h-cell*7)/2-7;
   const vals=new Map(doc.data.map(r=>[r.date,r.value]));const max=d3.max(doc.data,r=>r.value)||1;
-  const color=d3.scaleLinear([0,max],[t.soft,t.color(0)]).interpolate(d3.interpolateLab);
+  const nativeColor=d3.scaleLinear([0,max],[t.soft,t.color(0)]).interpolate(d3.interpolateLab),color=value=>valueColorFor(s.options,value,[0,max],nativeColor(value));
   const pattern=s.el('pattern',{id:`${s.id}-missing`,width:4,height:4,patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'},s.defs);s.line(0,0,0,4,{stroke:t.secondary,'stroke-width':1,opacity:.5},pattern);
   let prevMonth=-1;
   days.forEach((date,i)=>{

@@ -1,0 +1,18 @@
+import {getExample} from './catalog.js';
+import {withRecordIds} from './data-identity.js';
+import {timePlanningText as t} from './time-planning-rules.js';
+const preset=(id,template,views,zh,en,zhDescription,enDescription,zhNote,enNote)=>({id,template,views,category:'regular',get name(){return t(zh,en);},get description(){return t(zhDescription,enDescription);},get dataNote(){return t(zhNote,enNote);},get relation(){return t('同一日期与原始记录','Same dates and original records');}});
+export const timePlanningPresets=[
+ preset('planning-daily-story','calendar',['planning-calendar','planning-barcode','planning-daily-line'],'日历方格展开每日轨迹','Calendar cells unfold into daily trajectories','从星期日历展开每日刻线，再连接为真实日期间距的原值轨迹，缺测仍保留。','Weekday cells unfold into daily stems and an original-value trajectory with actual date spacing; missing observations remain missing.','省略日与 null 均断线，零值仍可读取；未补造数据行。','Absent days and nulls break lines; zero remains readable. No data rows are fabricated.'),
+ preset('planning-daily-rhythm-story','barcode',['planning-barcode','planning-calendar'],'每日高峰与星期节律','Daily peaks and weekday rhythms','每日访问量从原生刻线映射到周历，既看高峰也看一周中的分布。','Daily visits move from native barcode stems into a calendar, revealing both peaks and weekday distribution.','日期和原值不变；日期先后与星期位置来自 UTC。','Dates and original values stay unchanged; chronological and weekday positions use UTC.'),
+ preset('planning-task-story','gantt',['planning-gantt','planning-duration'],'项目排期平移比较时长','Project intervals translate into duration comparisons','计划区间连续平移至共同起点，同步保留每项任务实际完成比例。','Scheduled intervals translate to a common origin while retaining each task’s supplied completion percentage.','结束日不计入时长；完成率不是已经过去的时间。','End is excluded from duration; completion is not elapsed time.'),
+ preset('planning-event-story','eventline',['planning-eventline','planning-event-rings'],'分组事件线卷成开口环','Grouped event lines curl into open rings','同一批里程碑事件用共同日期尺度连续卷起，分组、名称和实际日期保留。','The same milestone events curl using one common date scale while retaining groups, labels and actual dates.','首尾不闭合，不把事件虚构为周期或持续区间。','Open ends do not fabricate a cycle or event duration.'),
+ preset('planning-ledger-story','ledger',['planning-ledger','planning-monthly-lines'],'趋势台账展开月度比较','Sparkline ledgers unfold into monthly comparisons','精确台账中的原生迷你趋势展开至共同月度坐标，全部原观测均可编辑。','Native sparklines in a precise ledger unfold onto shared monthly axes; every original observation remains editable.','共同从零尺度；基期为零时相对变化未定义。','Shared zero-based scale; relative change is undefined for a zero baseline.'),
+ preset('planning-cycle-story','spiralheatmap',['planning-spiral','planning-cycle-grid'],'螺旋热图展开周期矩阵','Spiral heatmaps unfold into cycle matrices','按原生阿基米德螺旋排列的等间隔观测，连续展开为逐周期矩阵。','Equally spaced observations in the native Archimedean spiral continuously unfold into a cycle-by-position matrix.','周期长度、输入次序、原值与缺测单元保持不变。','Cycle length, input order, original values and missing cells remain unchanged.')
+];
+export function timePlanningRecords(id,palette='ink'){
+ const preset=timePlanningPresets.find(p=>p.id===id);if(!preset)return null;let doc={...getExample(preset.template),title:preset.name};
+ if(id==='planning-daily-story')doc={...doc,data:doc.data.slice(0,84).filter((_,i)=>i!==19&&i!==45).map((r,i)=>({...r,value:i===11?null:i===27?0:r.value}))};
+ if(id==='planning-ledger-story'){const label=doc.data[0].label,period=doc.data[0].period;doc={...doc,data:doc.data.map(r=>({...r,value:r.label===label&&r.period===period?0:r.value}))};}
+ const identified=withRecordIds(doc,{legacyNamespace:`scenario:${id}`});return preset.views.map(view=>({doc:structuredClone(identified),view,dataGroup:`scenario:${id}`,relation:'auto',scale:'shared',options:{palette}}));
+}

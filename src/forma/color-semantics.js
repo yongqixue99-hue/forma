@@ -1,3 +1,5 @@
+import {qualityColorSubjects,qualityViewMap} from './quality-series-rules.js';
+import {timePlanningColorSubjects,timePlanningViewMap} from './time-planning-rules.js';
 import {engineeringColorSubjects,engineeringViewMap} from './engineering-series-rules.js';
 import {multivariateExtendedColorSubjects,multivariateExtendedViewMap} from './multivariate-extended-rules.js';
 import {advancedRelationsColorSubjects,advancedRelationsViewMap} from './advanced-relations-rules.js';
@@ -17,7 +19,7 @@ const statisticalSamples=new Set('scalelocation residualleverage cooksdistance a
 const businessTargets=new Set('progress fan bullet gauge kpi'.split(' '));
 const businessPairs=new Set('comboline difference learning'.split(' '));
 const structuralTrees=new Set('circlehierarchy radialtree treetable'.split(' '));
-export const valueColorTemplates=new Set(['heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency','spectrogram','radialheatmap','spiralheatmap','hodograph']);
+export const valueColorTemplates=new Set(['calendar','heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency','spectrogram','radialheatmap','spiralheatmap','hodograph']);
 export function normalizeColorBindings(value){
  if(value===undefined)return undefined;
  if(!Array.isArray(value)||value.length>1500||value.some(r=>!r||typeof r.id!=='string'||!r.id||r.id.length>100000||!hex(r.color))||new Set(value.map(r=>r.id)).size!==value.length)return null;
@@ -33,6 +35,8 @@ export function colorSubjects(doc){
  if(advancedRelationsViewMap[doc?.template]&&doc.data.every(r=>r._id))return advancedRelationsColorSubjects(doc);
  if(multivariateExtendedViewMap[doc?.template]&&doc.data.every(r=>r._id))return multivariateExtendedColorSubjects(doc);
  if(engineeringViewMap[doc?.template]&&doc.data.every(r=>r._id))return engineeringColorSubjects(doc);
+ if(timePlanningViewMap[doc?.template]&&doc.data.every(r=>r._id))return timePlanningColorSubjects(doc);
+ if(qualityViewMap[doc?.template]&&doc.data.every(r=>r._id))return qualityColorSubjects(doc);
  if(temporalViewMap[doc?.template]&&doc.data.every(r=>r._id))return temporalColorSubjects(doc);
  if(networkViewMap[doc?.template]&&doc.data.every(r=>r._id))return networkColorSubjects(doc);
  const rows=doc?.data||[],spec=entitySpec(doc);

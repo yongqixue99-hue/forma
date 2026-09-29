@@ -3905,5 +3905,17 @@
   "雷达刻度上限": "Radar scale maximum",
   "PC1 解释方差": "PC1 explained variance",
   "PC2 解释方差": "PC2 explained variance",
-  "节点按原分组分轴；位置使用输入的 0–1 属性": "Nodes follow their original group axes and supplied 0–1 attributes"
+  "节点按原分组分轴；位置使用输入的 0–1 属性": "Nodes follow their original group axes and supplied 0–1 attributes",
+  "指标排列顺序": "Metric order",
+  "每圈期数": "Intervals per turn",
+  "过程目标值": "Process target",
+  "已知过程标准差": "Known process standard deviation",
+  "累积和参考量": "CUSUM reference allowance",
+  "累积和决策界限": "CUSUM decision threshold",
+  "指数平滑权重": "Exponential smoothing weight",
+  "控制限标准差倍数": "Control-limit standard deviation multiplier",
+  "参考比例": "Reference proportion",
+  "基线名称": "Baseline name",
+  "过程名称": "Process name",
+  "暴露量单位": "Exposure unit"
 }

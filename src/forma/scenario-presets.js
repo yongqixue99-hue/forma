@@ -1,3 +1,5 @@
+import {qualityPresets,qualityRecords} from './quality-series-presets.js';
+import {timePlanningPresets,timePlanningRecords} from './time-planning-presets.js';
 import {engineeringPresets,engineeringRecords} from './engineering-series-presets.js';
 import {multivariateExtendedPresets,multivariateExtendedRecords} from './multivariate-extended-presets.js';
 import {advancedRelationsPresets,advancedRelationsRecords} from './advanced-relations-presets.js';
@@ -28,6 +30,8 @@ export const scenarioPresets=[
   ...advancedRelationsPresets,
   ...multivariateExtendedPresets,
   ...engineeringPresets,
+  ...timePlanningPresets,
+  ...qualityPresets,
   ...temporalPresets,
   ...regressionDiagnosticPresets,
   ...networkPresets,
@@ -79,6 +83,8 @@ export function scenarioRecords(id,palette){
   const advancedRelations=advancedRelationsRecords(id,palette);if(advancedRelations)return advancedRelations;
   const multivariateExtended=multivariateExtendedRecords(id,palette);if(multivariateExtended)return multivariateExtended;
   const engineering=engineeringRecords(id,palette);if(engineering)return engineering;
+  const timePlanning=timePlanningRecords(id,palette);if(timePlanning)return timePlanning;
+  const quality=qualityRecords(id,palette);if(quality)return quality;
   const temporal=temporalRecords(id,palette);if(temporal)return temporal;
   const regressionDiagnostic=regressionDiagnosticRecords(id,palette);if(regressionDiagnostic)return regressionDiagnostic;
   const network=networkRecords(id,palette);if(network)return network;

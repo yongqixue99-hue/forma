@@ -5,6 +5,7 @@ import {cleanAnnotations} from './annotations.js';
 import { findTemplate } from './catalog.js';
 import { validateDocument } from './data.js';
 import { normalizePalette, normalizeColors,palettes } from './palettes.js';
+import {normalizeColorBindings,normalizeValueColors} from './color-semantics.js';
 import { cameraState } from './spatial-charts.js';
 import { staticSVG } from './export.js';
 import {agentBrief} from './data-guides.js';
@@ -35,12 +36,18 @@ function copyJSON(value, ancestors = new Set()) {
 export function normalizeChartOptions(options = {}, doc) {
   options = options && typeof options === 'object' ? options : {};
   const palette = normalizePalette(options.palette);
+  const colorBindings=normalizeColorBindings(options.colorBindings),valueColors=normalizeValueColors(options.valueColors);
+  // The selection/clipboard snapshot must preserve the same identity-bound
+  // colors as the editor and exports. Invalid settings must not silently reset.
+  if(colorBindings===null||valueColors===null)throw new Error(uiText('配色对应或色阶设置无效，请检查作品文件。'));
   return {
     ...(findTemplate(doc?.template)?.dimension==='3d'?{camera3d:cameraState(options.camera3d)}:{}),
     palette: Object.hasOwn(palettes, palette) ? palette : 'ink',
     ...(options.brand?{brand:cleanBrandStamp(options.brand)}:{}),
     ...(options.annotations?{annotations:cleanAnnotations(options.annotations)}:{}),
     ...(normalizeColors(options.colors)?{colors:normalizeColors(options.colors)}:{}),
+    ...(colorBindings!==undefined?{colorBindings}:{}),
+    ...(valueColors!==undefined?{valueColors}:{}),
     ...(['categorical','emphasis'].includes(options.colorMode)?{colorMode:options.colorMode}:{}),
     dark: typeof options.dark === 'boolean' ? options.dark : !!findTemplate(doc?.template)?.dark,
     ratio: ['wide', 'square', 'portrait','landscape','story'].includes(options.ratio) ? options.ratio : 'wide',

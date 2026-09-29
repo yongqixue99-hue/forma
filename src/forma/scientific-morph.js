@@ -1,3 +1,7 @@
+import {layoutQuality} from './quality-series-morph.js';
+import {isQualityView} from './quality-series-rules.js';
+import {layoutTimePlanning,interpolateTimePlanningMark} from './time-planning-morph.js';
+import {isTimePlanningView} from './time-planning-rules.js';
 import {layoutEngineering} from './engineering-series-morph.js';
 import {isEngineeringView} from './engineering-series-rules.js';
 import {layoutMultivariateExtended,interpolateMultivariateExtendedMark} from './multivariate-extended-morph.js';
@@ -35,7 +39,7 @@ import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {recordId,populationId} from './data-identity.js';
 import {layoutDiagnostic} from './diagnostic-morph.js';
 import {isDiagnosticView} from './diagnostic-rules.js';
-import {scaleLinear,scaleLog,extent,interpolateRgb,color as parseColor} from 'd3';
+import {scaleLinear,scaleLog,extent,interpolateRgb,interpolateLab,color as parseColor} from 'd3';
 import {MorphChart,circlePoints,rectPoints,polygonPoints} from './morph.js';
 import {boxStatistics,packSwarm} from './editorial-data.js';
 import {violinDensity} from './volume4-data.js';
@@ -151,6 +155,8 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
   if(isAdvancedRelationsView(view))return layoutAdvancedRelations(doc,view,w,h,options);
   if(isMultivariateExtendedView(view))return layoutMultivariateExtended(doc,view,w,h,options);
   if(isEngineeringView(view))return layoutEngineering(doc,view,w,h,options);
+  if(isTimePlanningView(view))return layoutTimePlanning(doc,view,w,h,options);
+  if(isQualityView(view))return layoutQuality(doc,view,w,h,options);
   if(isTemporalView(view))return layoutTemporal(doc,view,w,h,options);
   if(isRegressionDiagnosticView(view))return layoutRegressionDiagnostic(doc,view,w,h,options);
   if(isNetworkView(view))return layoutNetwork(doc,view,w,h,options);
@@ -186,9 +192,14 @@ export class ScientificMorphChart extends MorphChart{
   markColor(m){
     if(m.neutral)return this.theme.secondary;
     const colorValue=m.colorValue??m.value;
+    if(m.valueDomain&&colorValue!==null&&m.nativeColorRole==='calendar')return valueColorFor(this.options,colorValue,m.valueDomain,interpolateLab(this.theme.soft,this.theme.color(0))(Math.max(0,Math.min(1,m.tone||0))));
     if(m.valueDomain&&colorValue!==null)return valueColorFor(this.options,colorValue,m.valueDomain,interpolateRgb(this.theme.bg,m.nativeColorRole==='accent'?this.theme.accent:this.theme.colors[(colorValue<0?0:1)%this.theme.colors.length])(Math.max(.08,Math.abs(m.tone||0))));
     if(m.accent)return this.theme.colors[1]||this.theme.colors[0];
     if(Object.hasOwn(m,'tone')){if(m.tone===null)return this.theme.secondary;const end=this.theme.colors[m.tone>=0?1:0]||this.theme.colors[0],fallback=interpolateRgb(this.theme.bg,end)(m.solidTone?1:Math.abs(m.tone));return this.doc.family==='correlation'?valueColorFor(this.options,m.tone,[-1,1],fallback):fallback;}
+    if(Number.isInteger(m.nativeDataColorIndex)){
+      const categorical=this.options.colorMode==='categorical'||this.options.colorMode!=='emphasis'&&(this.theme.custom||this.theme.categorical);
+      return resolveBoundColor(this.options,this.colorKey(m),categorical?this.theme.color(m.nativeDataColorIndex):this.theme[m.nativeColorRole||'fg']);
+    }
     if(Number.isInteger(m.nativePcaGroup)){const i=m.nativePcaGroup,fallback=this.theme.custom||this.theme.categorical?this.theme.color(i):[this.theme.accent,this.theme.fg,this.theme.color(2),this.theme.color(4),this.theme.secondary][i%5];return resolveBoundColor(this.options,this.colorKey(m),fallback);}
     const nativeColor=['accent','fg'].includes(m.nativeColorRole)?this.theme[m.nativeColorRole]:Number.isInteger(m.nativeColorIndex)?this.theme.colors[((m.nativeColorIndex%this.theme.colors.length)+this.theme.colors.length)%this.theme.colors.length]:null;
     if(nativeColor)return resolveBoundColor(this.options,this.colorKey(m),nativeColor);
@@ -241,7 +252,7 @@ export class ScientificMorphChart extends MorphChart{
   }
   interpolateMark(old,next,q,{effect,from}={}){
     if(!old)return null;
-    if(effect==='guided'){const extended=interpolateMultivariateExtendedMark(from||old.points,old,next,q);if(extended)return extended;const relations=interpolateAdvancedRelationsMark(from||old.points,old,next,q);if(relations)return relations;const network=interpolateNetworkMark(from||old.points,old,next,q);if(network)return network;}
+    if(effect==='guided'){const planning=interpolateTimePlanningMark(from||old.points,old,next,q);if(planning)return planning;const extended=interpolateMultivariateExtendedMark(from||old.points,old,next,q);if(extended)return extended;const relations=interpolateAdvancedRelationsMark(from||old.points,old,next,q);if(relations)return relations;const network=interpolateNetworkMark(from||old.points,old,next,q);if(network)return network;}
     const serial=interpolateSerialMark(from||old.points,old,next,q);if(serial)return serial;
     if(effect==='guided'){const process=interpolateProcessMark(from||old.points,old,next,q);if(process)return process;}
     if(effect==='guided'){const matrix=interpolateMatrixCell(from||old.points,old,next,q);if(matrix)return matrix;}
@@ -268,6 +279,7 @@ export class ScientificMorphChart extends MorphChart{
     return interpolateDensityContour(start,end,q);
   }
   interpolateResumedMark(points,mark,q,{old}={}){
+    const planning=interpolateTimePlanningMark(points,old,mark,q);if(planning)return planning;
     const extended=interpolateMultivariateExtendedMark(points,old,mark,q);if(extended)return extended;
     const relations=interpolateAdvancedRelationsMark(points,old,mark,q);if(relations)return relations;
     const network=interpolateNetworkMark(points,old,mark,q);if(network)return network;

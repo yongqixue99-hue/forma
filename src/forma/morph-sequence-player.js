@@ -9,6 +9,31 @@ import {seriesViews} from './series-rules.js';
 import {relationalViews} from './relational-rules.js';
 const icons={columns:'<path d="M3 18V9h4v9m3 0V3h4v15m3 0V6h4v12"/>',line:'<path d="m3 16 6-7 5 4 7-9"/><circle cx="9" cy="9" r="1.3"/><circle cx="14" cy="13" r="1.3"/>',area:'<path d="m3 16 6-7 5 4 7-9v14H3Z"/>',bars:'<path d="M3 5h18M3 11h13M3 17h8"/>',bubbles:'<circle cx="8" cy="12" r="6"/><circle cx="18" cy="6" r="3"/><circle cx="19" cy="16" r="2"/>',pie:'<circle cx="12" cy="11" r="9"/><path d="M12 2v9h9m-9 0-6 6"/>',donut:'<circle cx="12" cy="11" r="9"/><circle cx="12" cy="11" r="4"/><path d="M12 2v5m9 4h-5"/>',treemap:'<path d="M2 3h20v16H2Zm12 0v16m0-8h8"/>',rose:'<path d="m12 11-6-7a9 9 0 0 1 12 0Zm0 0 9 1a9 9 0 0 1-7 8Zm0 0-2 8a8 8 0 0 1-7-6Z"/>',stacked:'<path d="M2 6h20v11H2Zm8 0v11m6-11v11"/>'};
 Object.assign(icons,{
+  "planning-calendar": "<path d=\"M3 4h18v17H3Zm0 5h18M8 2v5m8-5v5M9 9v12m6-12v12M3 15h18\"/>",
+  "planning-barcode": "<path d=\"M3 9v8m3-12v16m3-14v12m3-8v4m3-12v20m3-16v12m3-9v6\"/>",
+  "planning-daily-line": "<path d=\"M3 3v18h18M4 15l4-6 4 3m4-7 5 3\"/><circle cx=\"8\" cy=\"9\" r=\"1.5\"/><circle cx=\"16\" cy=\"5\" r=\"1.5\"/>",
+  "planning-gantt": "<path d=\"M3 3v18h19M4 5h9v4H4Zm5 6h9v4H9Zm5 6h7v4h-7Z\"/>",
+  "planning-duration": "<path d=\"M3 3v18h19M3 5h16v3H3Zm0 6h9v3H3Zm0 6h13v3H3Z\"/>",
+  "planning-eventline": "<path d=\"M2 7h20M2 18h20M6 4v6m10-6v6m-6 5v6m10-6v6\"/><circle cx=\"6\" cy=\"7\" r=\"2\"/><circle cx=\"20\" cy=\"18\" r=\"2\"/>",
+  "planning-event-rings": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"3\" r=\"2\"/><circle cx=\"17\" cy=\"12\" r=\"2\"/>",
+  "planning-ledger": "<path d=\"M3 4h18M3 11h18M3 18h18M8 3v18m7-18v18M9 9l2-3 3 1m-5 8 2 2 3-4m2 2 4 3\"/>",
+  "planning-monthly-lines": "<path d=\"M3 2v19h19M4 16l5-7 5 3 7-8M4 12l5 5 5-9 7 5\"/>",
+  "planning-spiral": "<path d=\"M12 12c2-3 6 0 3 4-5 5-13-1-11-7C7-2 25 2 21 16c-2 5-6 6-10 6\"/>",
+  "planning-cycle-grid": "<path d=\"M3 3h18v18H3Zm6 0v18m6-18v18M3 9h18M3 15h18\"/>",
+  "quality-proportion": "<path d=\"M3 2v19h19M3 7h19M3 16h19M4 12l4-3 4 6 4-4 5 2\"/>",
+  "quality-proportion-size": "<path d=\"M3 2v19h19M4 3q8 5 17 5M4 19q8-5 17-5\"/><circle cx=\"8\" cy=\"10\" r=\"1.5\"/><circle cx=\"16\" cy=\"13\" r=\"1.5\"/>",
+  "quality-defects": "<path d=\"M3 2v19h19M3 7l6 2 6-3 6 2M3 16h19M4 12l4-2 4 5 4-3 5 1\"/>",
+  "quality-defects-exposure": "<path d=\"M3 2v19h19M4 3q5 5 17 6M4 19q5-5 17-6\"/><circle cx=\"9\" cy=\"11\" r=\"1.5\"/><circle cx=\"17\" cy=\"10\" r=\"1.5\"/>",
+  "quality-cusum": "<path d=\"M3 2v19h19M3 12h19M3 12l4-3 5 1 4-6 5 1M3 12l5 4 4-2 5 6 4-1\"/>",
+  "quality-cusum-contributions": "<path d=\"M3 2v19h19M3 12h19M6 12V7m4 5v5m4-5V4m4 8v7\"/>",
+  "quality-ewma": "<path d=\"M3 2v19h19M3 15l4-8 4 9 4-12 6 5M3 14q4-3 7-2t11-4\"/>",
+  "quality-ewma-decomposition": "<path d=\"M3 3v18h19M3 12h19M6 7v9m6-12v10m6-6v11\"/><circle cx=\"6\" cy=\"10\" r=\"1.5\"/><circle cx=\"12\" cy=\"9\" r=\"1.5\"/><circle cx=\"18\" cy=\"13\" r=\"1.5\"/>",
+  "quality-xbar": "<path d=\"M3 2v19h19M3 12h19M3 8l5-3 5 3 8-4M3 18l5-4 5 3 8-2\"/>",
+  "quality-subgroup-residuals": "<path d=\"M3 2v19h19M3 11h19M7 5v11m6-9v8m6-11v14\"/><circle cx=\"7\" cy=\"7\" r=\"1.5\"/><circle cx=\"13\" cy=\"13\" r=\"1.5\"/><circle cx=\"19\" cy=\"8\" r=\"1.5\"/>",
+  "quality-funnel": "<path d=\"M3 2v19h19M4 3q5 5 17 6M4 20q5-5 17-6M3 11h19\"/><circle cx=\"7\" cy=\"8\" r=\"1.5\"/><circle cx=\"16\" cy=\"13\" r=\"1.5\"/>",
+  "quality-funnel-standardized": "<path d=\"M3 2v19h19M3 5h19M3 11h19M3 17h19\"/><circle cx=\"8\" cy=\"8\" r=\"1.5\"/><circle cx=\"16\" cy=\"14\" r=\"1.5\"/>"
+});
+Object.assign(icons,{
  "relationx-adjacency": "<path d=\"M3 3h18v18H3Zm6 0v18m6-18v18M3 9h18M3 15h18\"/>",
  "relationx-adjacency-radial": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m5 6 14 12M4 15 19 5M3 12h18\"/>",
  "relationx-bipartite": "<path d=\"M4 3h3v4H4Zm0 14h3v4H4ZM17 3h3v4h-3Zm0 14h3v4h-3ZM7 5h10M7 19l10-14M7 5l10 14\"/>",
