@@ -251,3 +251,6 @@ body:has(.is-editor)>.ft-tray,body:has(.is-editor) .site-footer{display:none!imp
 .dw-country-picker button{display:block;width:100%;text-align:left;padding:10px 12px;font:13px var(--sans);min-height:40px;border-radius:3px}
 .dw-country-picker button:hover,.dw-country-picker [aria-selected=true]{background:#efe2d7;color:#a74730}
 .dw-country-picker p{font:11px/1.6 var(--sans);color:var(--muted);padding:8px 12px;margin:0}
+
+#dw-preview-state{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 16px 12px;padding:10px 12px;border:1px solid #d1b28d;background:#f5eddf;color:#705539;font-size:12px;line-height:1.6}#dw-preview-state[hidden]{display:none}#dw-preview-state strong{font-size:12px}#dw-preview-state .text-button{margin-left:auto;font-size:12px}#dw-chart.dw-stale-preview{opacity:.68;pointer-events:none}.dw-data-actions{flex-wrap:wrap}.dw-data-actions [data-workspace=recommend]{white-space:nowrap}
+@media(max-width:600px){#dw-preview-state{margin-inline:12px}.dw-data-actions{gap:6px}.dw-data-actions .button{font-size:11px;padding-inline:9px}}

@@ -1,5 +1,6 @@
 import {uiText,uiMarkup,uiMessage} from './locale.js';
-import {withRecordIds} from './data-identity.js';
+import {withRecordIds,newRecordId} from './data-identity.js';
+import {bindEntitySnapshot} from './entity-identity.js';
 import {fieldLabel, dataContract,withDataUnit} from './data-contract.js';
 import { createElement, X, Plus, Trash2, Undo2, Redo2, Upload, ClipboardPaste, ArrowLeft, ArrowRight, Check } from 'lucide';
 import { findTemplate } from './catalog.js';
@@ -10,15 +11,22 @@ const icon = i => createElement(i,{width:16,height:16,'stroke-width':1.5,'aria-h
 export function openTableEditor(original, { onApply, startWithPaste = false } = {}) {
   let doc = withRecordIds(original), cells = documentCells(doc), history = tableHistory({doc,cells}), page = 0, errors = [], report = null, dirty = false, mode = startWithPaste ? 'paste' : 'grid', matrix = null, hasHeader = true, table = null, mapping = [], pasteText = '';
   const fields = findTemplate(doc.template).fields, pageSize = 30;
-  let metaOpen = false,idColumn=-1;
+  let metaOpen = false,idColumn=-1,composing=false;
   const dialog = document.createElement('dialog'); dialog.className = 'workflow-dialog table-workflow'; dialog.setAttribute('aria-labelledby','table-title');
   (document.querySelector('#studio[open]') || document.body).append(dialog);
   const $ = q => dialog.querySelector(q);
   const label = f => dataContract(doc).fields.find(x=>x.key===f[0]).header;
   function close() { const toast=dialog.querySelector('#toast');if(toast)dialog.parentElement.append(toast);dialog.close(); dialog.remove(); }
   function requestClose() { if (!dirty && !pasteText) return close(); $('#table-message').innerHTML = uiText('有尚未应用的修改。<button class="text-button" data-table="discard">放弃修改</button>'); }
-  function commit(next,metadata=doc) { const nextDoc=withRecordIds(cellsToDocument(metadata,next).doc);history.set({doc:nextDoc,cells:next});({doc,cells}=history.value);dirty=true;errors=[];report=null; }
-  function restore(action){({doc,cells}=history[action]());}
+  function commit(next,metadata=doc) {
+    // Drafts may be incomplete. Keep their raw cells and persistent identities;
+    // only the Apply action validates the resulting document for publication.
+    const draft={meta:metadata,cells:next,rowMeta:next.map((_,i)=>structuredClone(metadata.data[i]||{_id:newRecordId()}))};
+    bindEntitySnapshot(draft,fields);
+    const nextDoc=cellsToDocument(metadata,next,draft.rowMeta).doc;
+    history.set({doc:nextDoc,cells:next});({doc,cells}=history.value);dirty=true;errors=[];report=null;
+  }
+  function restore(action){({doc,cells}=history[action]());errors=[];report=null;}
   function message(text) { $('#table-message').textContent = text; }
   function metadata() {
     return uiMarkup`<div class="table-meta"><label class="field">标题<input data-meta="title" maxlength="80" value="${esc(doc.title)}"></label><label class="field">单位<input data-meta="unit" maxlength="20" value="${esc(doc.unit)}"></label><label class="field">数据来源<input data-meta="source" maxlength="80" placeholder="例如：2026 年销售台账" value="${esc(doc.source.type==='demo' ? '' : doc.source.name)}"></label><label class="field table-subtitle">副标题<input data-meta="subtitle" maxlength="160" value="${esc(doc.subtitle)}" placeholder="时间范围、统计口径等，可留空"></label></div>`;
@@ -36,13 +44,17 @@ export function openTableEditor(original, { onApply, startWithPaste = false } = 
   function recognize() { matrix = parseTable(pasteText); table = splitTable(matrix,hasHeader); mapping = suggestMapping(table.headers,table.rows,fields); render(); }
   function importTable() { if (!table) throw new Error(uiText('请先识别粘贴的列。')); const imported=importedTableDocument(doc,table,mapping,{idColumn});commit(imported.cells,imported.doc); mode='grid';page=0;pasteText='';table=null;render();const report=validateDocument(doc);message(report.dataValid&&!report.layoutValid?report.layoutErrors.join(' '):uiText('已替换数据表，请核对后应用。')); }
   dialog.addEventListener('toggle', e=>{if(e.target.matches('.table-import-meta'))metaOpen=e.target.open;}, true);
-  dialog.addEventListener('input', e=>{
+  function onInput(e){
+    if(composing||e.isComposing)return;
     if(e.target.id==='table-paste'){pasteText=e.target.value;table=null;}
     if(e.target.dataset.meta){const k=e.target.dataset.meta,next=k==='unit'?withDataUnit(doc,e.target.value):structuredClone(doc);if(k==='source')next.source={name:e.target.value,type:'user'};else next[k]=e.target.value;commit(cells,next);$('[data-table="undo"]').disabled=!history.canUndo;$('[data-table="redo"]').disabled=!history.canRedo;}
     if(e.target.matches('[data-row][data-col]')){const next=structuredClone(cells);next[+e.target.dataset.row][+e.target.dataset.col]=e.target.value;commit(next);e.target.removeAttribute('aria-invalid');$('[data-table="undo"]').disabled=!history.canUndo;$('[data-table="redo"]').disabled=!history.canRedo;message(uiText('有修改待应用'));}
-  });
+  }
+  dialog.addEventListener('input',onInput);
+  dialog.addEventListener('compositionstart',()=>{composing=true;});
+  dialog.addEventListener('compositionend',e=>{composing=false;onInput(e);});
   dialog.addEventListener('change', e=>{
-    if(e.target.matches('[data-row][data-col]')){const next=structuredClone(cells);next[+e.target.dataset.row][+e.target.dataset.col]=e.target.value;commit(next);e.target.removeAttribute('aria-invalid');$('[data-table="undo"]').disabled=!history.canUndo;$('[data-table="redo"]').disabled=!history.canRedo;message(uiText('有修改待应用'));}
+    if(e.target.matches('[data-row][data-col]'))onInput(e);
     if(e.target.id==='table-id-column')idColumn=Number(e.target.value);
     if(e.target.dataset.mapping!==undefined)mapping[+e.target.dataset.mapping]=+e.target.value;
     if(e.target.id==='table-header'){hasHeader=e.target.checked;table=null;try{if(pasteText)recognize();}catch(error){message(error.message);}}
@@ -53,6 +65,7 @@ export function openTableEditor(original, { onApply, startWithPaste = false } = 
     e.preventDefault();try{commit(pasteCells(cells,parseTable(text,{delimiter:'\t',preserveEmpty:true}),+input.dataset.row,+input.dataset.col,fields.length));render();message(uiText('已粘贴单元格，可撤销。'));}catch(error){message(error.message);}
   });
   dialog.addEventListener('keydown',e=>{
+    if(composing||e.isComposing||e.keyCode===229)return;
     if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!e.target.matches('textarea')){e.preventDefault();e.target.blur();restore(e.shiftKey?'redo':'undo');dirty=true;render();}
     if(e.key==='Enter'&&e.target.matches('[data-row][data-col]')){e.preventDefault();const r=+e.target.dataset.row,c=+e.target.dataset.col;e.target.blur();if(r+1<cells.length){page=Math.floor((r+1)/pageSize);render();$(`[data-row="${r+1}"][data-col="${c}"]`)?.focus();}}
   });
