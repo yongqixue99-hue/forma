@@ -3,7 +3,7 @@ import {resolveBoundColor} from './color-semantics.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {entityNames,entityKey} from './entity-identity.js';
 import {recordId} from './data-identity.js';
-import {hierarchy,treemap,treemapSquarify} from 'd3';
+import {hierarchy,treemap,treemapSquarify,interpolateRgb} from 'd3';
 import {MorphChart,rectPoints,sectorPoints} from './morph.js';
 import {hierarchyViews,relationalEligibility,relationKey} from './relational-rules.js';
 
@@ -93,13 +93,13 @@ export class HierarchyMorphChart extends MorphChart{
   paintTransition(from,to,p){
     this.bandContour=(this.resumedBandContour||from.view==='hierarchy-sunburst'||to.view==='hierarchy-sunburst')&&p>0&&p<1;
     const a=from.view==='hierarchy-treemap'?0:.87,b=to.view==='hierarchy-treemap'?0:.87;
-    for(const mark of to.marks.filter(m=>m.branch)){const node=this.nodes.get(mark.key),saved=this.resumedBranches?.get(mark.key),tree=(p<.5?from:to).view==='hierarchy-treemap',start=saved?.opacity??a;node.shape.setAttribute('fill-opacity',(start+(b-start)*p)*(1-.92*Math.sin(Math.PI*p)**2));node.shape.setAttribute('stroke',p===0&&saved?saved.stroke:tree?resolveBoundColor(this.options,this.colorKey(mark),this.theme.colors[this.colorIndices.get(this.colorKey(mark))%this.theme.colors.length]):this.theme.bg);node.shape.setAttribute('stroke-width',p===0&&saved?saved['stroke-width']:tree?1.4:1.2);}
+    for(const mark of to.marks.filter(m=>m.branch)){const node=this.nodes.get(mark.key),saved=this.resumedBranches?.get(mark.key),color=resolveBoundColor(this.options,this.colorKey(mark),this.theme.colors[this.colorIndices.get(this.colorKey(mark))%this.theme.colors.length]),start=saved?.opacity??a,fromStroke=saved?.stroke??(from.view==='hierarchy-treemap'?color:this.theme.bg),toStroke=to.view==='hierarchy-treemap'?color:this.theme.bg,fromWidth=Number(saved?.['stroke-width']??(from.view==='hierarchy-treemap'?1.4:1.2)),toWidth=to.view==='hierarchy-treemap'?1.4:1.2;node.shape.setAttribute('fill-opacity',(start+(b-start)*p)*(1-.92*Math.sin(Math.PI*p)**2));node.shape.setAttribute('stroke',p===0?fromStroke:p===1?toStroke:interpolateRgb(fromStroke,toStroke)(p));node.shape.setAttribute('stroke-width',fromWidth+(toWidth-fromWidth)*p);}
     if(p===0||p===1)return;
     for(const mark of to.marks.filter(m=>!m.branch))this.nodes.get(mark.key).shape.setAttribute('fill-opacity',.12+.23*Math.sin(Math.PI*p));
     // Reordering full-area bands obscures sibling identity. Keep their keyed
     // outlines visible but compact while travelling; expand at the endpoints.
     // Intermediate area is deliberately not a data-reading state.
-    const clearance=1-(this.resumedBranches?.size ? .38 : .65)*Math.sin(Math.PI*p);
+    const clearance=1-(this.resumedBranches?.size ? .18 : .3)*Math.sin(Math.PI*p);
     if(from.view!==to.view||this.resumedBandContour)for(const [key,contour]of this.current){
       const cx=contour.reduce((s,v)=>s+v[0]/contour.length,0),cy=contour.reduce((s,v)=>s+v[1]/contour.length,0);
       this.writeShape(key,contour.map(([x,y])=>[cx+(x-cx)*clearance,cy+(y-cy)*clearance]));

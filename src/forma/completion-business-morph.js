@@ -13,8 +13,8 @@ import {completionBusinessText as t,completionBusinessBounds,businessWaterfall} 
 const unique=a=>[...new Set(a)],domain=(a,zero=false)=>measurementDomain(a,{zero,padding:.065});
 const roles={fg:{nativeColorRole:'fg'},accent:{nativeColorRole:'accent'},secondary:{nativeColorRole:'secondary'},line:{nativeColorRole:'line'}};
 const defaultRole=(options,role)=>options.nativeColorIndex!==undefined||options.nativeDataColorIndex!==undefined||options.nativeTornadoLow?{}:role;
-function frame(w,h){return{x:w<500?48:68,y:54,w:w-(w<500?69:92),h:Math.max(54,h-103)};}
-function init(doc,view,w,h){return base(doc,view,w,h,frame(w,h));}
+function frame(doc,w,h){const template=doc.template||doc.family?.slice('complete-business-'.length),count=template==='marimekko'?(doc.seriesOrder||unique(doc.data.map(r=>r.series))).length:template==='likert'?doc.responses.length:template==='stackedwaterfall'?doc.components.length:template==='pyramid'?doc.sideLabels.length:0,columns=template==='marimekko'?Math.min(count,w<500?3:5):template==='likert'?(w<500?3:5):template==='stackedwaterfall'?(w<500?3:6):count,y=54+(count>1?Math.ceil(count/columns)*18:0);return{x:w<500?48:68,y,w:w-(w<500?69:92),h:Math.max(12,h-y-49)};}
+function init(doc,view,w,h){return base(doc,view,w,h,frame(doc,w,h));}
 const original=(r,i)=>({identity:recordId(r),row:r.row,index:i,transitionIndex:i,group:'business'});
 const derived=(identity,rows,i=0)=>({identity,recordIds:rows.map(recordId),index:i,transitionIndex:i,group:'business'});
 function rect(l,m,role,x0,y0,x1,y1,options={}){return glyph(l,m,role,polygonPoints([[x0,y0],[x1,y0],[x1,y1],[x0,y1]]),[(x0+x1)/2,(y0+y1)/2],options);}
@@ -22,7 +22,7 @@ function rawRect(l,r,i,role,x0,y0,x1,y1,field,options={}){return rect(l,original
 function rawDot(l,r,i,role,p,field,{radius=l.w<500?2.2:3,...options}={}){return dot(l,original(r,i),role,p,radius,{original:true,editable:field,value:r[field],opacity:.9,...defaultRole(options,roles.fg),tooltip:`${r.label??r.period??r.variable??r.parameter??''} · ${field}: ${fmt(r[field])} ${l.doc.unit}`,...options});}
 function derivedLine(l,identity,rows,role,a,b,options={}){return line(l,derived(identity,rows),'business-'+role,a,b,[(a[0]+b[0])/2,(a[1]+b[1])/2],{derived:true,opacity:.36,width:1,...defaultRole(options,roles.secondary),...options});}
 function orderLabels(l,rows,x,field='label'){const n=Math.min(rows.length,l.w<500?4:9),indices=[...new Set(Array.from({length:n},(_,i)=>Math.round(i*(rows.length-1)/Math.max(1,n-1))))];for(const i of indices)l.labels.push({x:x(i),y:l.plot.y+l.plot.h+17,text:short(rows[i][field],l.w<500?5:10),anchor:'middle',fontSize:9});}
-function percentAxis(l,scale,horizontal,title){const start=l.labels.length;axis(l,scale,horizontal,{title});for(const a of l.labels.slice(start))if(a.small)a.text=fmt(scale.invert(horizontal?a.x:a.y-3)*100)+'%';}
+function percentAxis(l,scale,horizontal,title){const start=l.labels.length;axis(l,scale,horizontal,{title});const epsilon=Math.max(...scale.domain().map(Math.abs))*1e-12;for(const a of l.labels.slice(start))if(a.small){const value=scale.invert(horizontal?a.x:a.y-3);a.text=fmt((Math.abs(value)<epsilon?0:value)*100)+'%';}}
 function barFrom(l,r,i,role,x,yy,height,from,to,field,options={}){return rawRect(l,r,i,role,Math.min(x(from),x(to)),yy-height/2,Math.max(x(from),x(to)),yy+height/2,field,{projection:{start:from,end:to},...options});}
 
 function waterfall(doc,view,w,h,bounds){

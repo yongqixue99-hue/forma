@@ -77,7 +77,12 @@ export function layoutOrderedEstimates(doc,view,w,h,{domain}={}){
     if(!missing){
       const left=pointMix(at(prev,'estimate'),anchor,.5),right=pointMix(anchor,at(next,'estimate'),.5);
       trend=polygonPoints([...([left,anchor,right].map(([a,b])=>[a,b-.9])),...([right,anchor,left].map(([a,b])=>[a,b+.9]))]);
-      contour=band?polygonPoints([pointMix(at(prev,'high'),at(r,'high'),.5),at(r,'high'),pointMix(at(r,'high'),at(next,'high'),.5),pointMix(at(r,'low'),at(next,'low'),.5),at(r,'low'),pointMix(at(prev,'low'),at(r,'low'),.5)]):intervals?segment(at(r,'low'),at(r,'high'),1.3):collapsed(anchor);
+      // Give upper and lower bounds the same stations in both encodings.
+      // Each full date cell contracts horizontally into its own interval;
+      // pairing six polygon edges with four interval edges produced spikes.
+      const bound=(field,q)=>q<.5?pointMix(pointMix(at(prev,field),at(r,field),.5),at(r,field),q*2):pointMix(at(r,field),pointMix(at(r,field),at(next,field),.5),q*2-1);
+      const flank=(field,reverse=false)=>Array.from({length:64},(_,i)=>{const q=reverse?1-i/63:i/63;return band?bound(field,q):[xx-.65+1.3*q,y(r[field])];});
+      contour=band||intervals?[...flank('high'),...flank('low',true)]:collapsed(anchor);
     }
     const estimateAt=xx=>{const a=xx<anchor[0]?at(prev,'estimate'):anchor,b=xx<anchor[0]?anchor:at(next,'estimate');return a[1]+(b[1]-a[1])*(xx-a[0])/(b[0]-a[0]||1);};
     const entrance=band&&!missing?contour.map(([xx])=>[xx,estimateAt(xx)]):collapsed(anchor);

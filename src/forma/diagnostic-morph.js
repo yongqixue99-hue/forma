@@ -3,6 +3,7 @@ import {recordId} from './data-identity.js';
 import {scaleLinear} from 'd3';
 import {rectPoints,circlePoints} from './morph.js';
 import {blandAltman} from './volume8-data.js';
+import {confusionCountBridge} from './research-motion-geometry.js';
 import {diagnosticFamily,diagnosticBounds,predictionStatistics,confusionStatistics} from './diagnostic-rules.js';
 import {base,axis,glyph,dot,line,key,fmt,short,padded,compactNames} from './scientific-geometry.js';
 
@@ -79,7 +80,7 @@ export function layoutConfusion(doc,view,w,h,{domain}={}){
     const points=stacked?rectPoints(px-width/2,py-height/2,width,height):bubbles?circlePoints(px,py,cell*.41*Math.sqrt(r.count/maximum)):rectPoints(px-width/2,py-height/2,width,height);
     const group=stacked?(columns?r.actual:r.predicted):uiText('计数'),tone=r.count/maximum,common={identity:key('confusion',r.actual,r.predicted),index:r.row,transitionIndex:r.row,row:r.row,group};
     const tooltip=uiMessage`真实 ${r.actual} → 预测 ${r.predicted} · ${fmt(r.count)} 个样本${stacked?share===null?uiText(' · 无预测样本'):` · ${(share*100).toFixed(2)}% / ${columns?uiText('该预测类别'):uiText('该真实类别')}`:''}`;
-    glyph(layout,common,'count-cell',points,anchor,{opacity:stacked?(r.count?1:0):1,stroke:stacked?.7:bubbles?.65:.45,...(!stacked?{tone,bubbles,solidTone:bubbles}:{}),value:r.count,quantity:stacked?columns?'column-proportion':'row-proportion':'count',entrance:stacked?rectPoints(plot.x+offset,py-height/2,0,height):points.map(()=>[px,py]),editable:'count',tooltip});
+    glyph(layout,common,'count-cell',points,anchor,{opacity:stacked?(r.count?1:0):1,stroke:stacked?.7:bubbles?.65:.45,...(!stacked?{tone,bubbles,solidTone:bubbles}:{}),value:r.count,quantity:stacked?columns?'column-proportion':'row-proportion':'count',entrance:stacked?rectPoints(plot.x+offset,py-height/2,0,height):points.map(()=>[px,py]),editable:'count',tooltip,confusionCount:{radius:Math.max(1.5,Math.min(3.5,band*.12,plot.w/(n*n)*.19))}});
     if(stacked){if(width>=38)layout.labels.push({x:px,y:py+3,text:`${Math.round((share||0)*100)}%`,anchor:'middle',fontSize:10,dataLabel:true,contrastMark:{group}});}
     else {const tiny=bubbles&&r.count>0&&cell*.41*Math.sqrt(r.count/maximum)<10;layout.labels.push({x:px,y:tiny?py+cell*.41*Math.sqrt(r.count/maximum)+11:py+3,text:fmt(r.count),anchor:'middle',fontSize:cell<42?8:11,dataLabel:true,...(!bubbles?{toneText:true,tone}:r.count&&!tiny?{contrastMark:{tone,solidTone:true}}:{})});}
     if(stacked)offset+=width;
@@ -88,3 +89,5 @@ export function layoutConfusion(doc,view,w,h,{domain}={}){
   return layout;
 }
 export function layoutDiagnostic(doc,view,w=800,h=440,options={}){return diagnosticFamily(view)==='method'?layoutMethod(doc,view,w,h,options):diagnosticFamily(view)==='prediction'?layoutPrediction(doc,view,w,h,options):layoutConfusion(doc,view,w,h,options);}
+
+export function interpolateConfusionMark(points,old,next,q){return confusionCountBridge(points,old,next,q);}

@@ -3,7 +3,7 @@ import {table7,horizonSamples} from './volume7-data.js';
 import {rankClock16} from './volume16-data.js';
 import {recordId} from './data-identity.js';
 import {rectPoints,circlePoints,polygonPoints} from './morph.js';
-import {base,axis,glyph,dot,line,segment,key,fmt,compactNames} from './scientific-geometry.js';
+import {base,axis,glyph,dot,line,segment,key,fmt,compactNames,pointMix} from './scientific-geometry.js';
 import {measurementDomain} from './axis-policy.js';
 import {temporalText as t,temporalBounds,temporalGroups,temporalGroupKey} from './temporal-series-rules.js';
 const zeroRange=v=>measurementDomain(v,{zero:true,padding:.07}),pair=(a,b)=>JSON.stringify([a,b]),clamp=v=>Math.max(0,Math.min(1,v));
@@ -56,3 +56,15 @@ function retentionLayout(doc,view,w,h,{domain}={}){
  layout.heading=t('固定同期群分母 · 未来群龄留白','Fixed cohort denominators · future ages remain blank');layout.details=t('比例=活跃/初始人数 · 允许回访反弹','Ratio = active / initial size · returning-user rebounds retained');layout.labels.push({x:plot.x+plot.w,y:h-10,text:t('群龄 / ','Cohort age / ')+doc.ageUnit,anchor:'end',fontSize:9});layout.scales={x,y};layout.marks.sort((a,b)=>Number(!a.derived)-Number(!b.derived));return matrix?layout:legend(layout,groups);
 }
 export function layoutTemporal(doc,view,w=800,h=440,options={}){return doc.family==='temporal-series'?seriesLayout(doc,view,w,h,options):doc.family==='temporal-season'?seasonLayout(doc,view,w,h,options):doc.family==='temporal-rank'?rankLayout(doc,view,w,h):retentionLayout(doc,view,w,h,options);}
+
+// Every band retains the real time samples on both flanks. Auxiliary horizon
+// layers unfurl from their own centreline, instead of growing as a rectangle
+// around one midpoint and temporarily covering neighbouring observations.
+export function interpolateTemporalMark(fromPoints,oldMark,nextMark,q){
+ if(!oldMark||!nextMark.role.startsWith('temporal-band-')||!oldMark.role.startsWith('temporal-band-'))return null;
+ if(q===0)return fromPoints;if(q===1)return nextMark.points;
+ const skeleton=points=>points.map((p,i)=>pointMix(p,points[points.length-1-i],.5));
+ const start=oldMark.opacity===0&&nextMark.opacity>0?skeleton(fromPoints):fromPoints;
+ const end=nextMark.opacity===0&&oldMark.opacity>0?skeleton(nextMark.points):nextMark.points;
+ return end.map((p,i)=>pointMix(start[i],p,q));
+}

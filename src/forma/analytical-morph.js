@@ -6,6 +6,7 @@ import {scaleLinear,extent} from 'd3';
 import {rectPoints,circlePoints} from './morph.js';
 import {empiricalDistribution} from './atlas-data.js';
 import {classificationCurve,calibrationBins} from './volume8-data.js';
+import {confusionCountBridge} from './research-motion-geometry.js';
 import {pearsonMatrix} from './volume4-data.js';
 import {analyticalFamily,fixedBins} from './analytical-rules.js';
 import {key,fmt,compactNames,padded,base,axis,glyph,dot,line,pointMix} from './scientific-geometry.js';
@@ -32,10 +33,10 @@ export function layoutUnivariate(doc,view,w=800,h=440,{domain}={}){
     glyph(layout,{identity:key('observation',recordId(r)),index,transitionIndex:index,group:uiText('分布'),row:r.row},'observation',ecdf?circlePoints(...p,w<500?1.25:1.7):rectPoints(p[0]-.4,p[1],.8,3),anchor,{opacity:ecdf?.2:.32,editable:'value',value:r.value,tooltip:`${r.label} · ${fmt(r.value)} ${doc.unit}${ecdf?uiMessage` · 累计 ${fmt(probabilities.get(r.value)*100)}%`:''}`});
   });
   histogram.bins.forEach((b,index)=>{
-    const center=x((b.low+b.high)/2),value=cumulative?b.probability:b.count,p=[center,y(value)],anchor=[center,bottom],common={identity:key('bin',b.low,b.high),index,transitionIndex:index,group:uiText('分布')};
-    const bx=x(b.low)+.7,bw=Math.max(.5,x(b.high)-x(b.low)-1.4),shape=polygon?circlePoints(...p,3):rectPoints(bx,y(value),bw,bottom-y(value)),tip=uiMessage`[${fmt(b.low)}, ${fmt(b.high)}${index===histogram.bins.length-1?']':')'} ${doc.unit} · ${b.count} 个样本${cumulative?uiMessage` · 累计 ${b.cumulative}/${doc.data.length}（${fmt(b.probability*100)}%）`:''}`;
-    glyph(layout,common,'bin',shape,anchor,{opacity:ecdf?0:polygon?.88:.78,quantity:cumulative?'cumulative':'frequency',accent:index===peak,derived:true,entrance:shape.map(([px])=>[px,bottom]),value,tooltip:tip});
-    const previous=histogram.bins[index-1],a=previous?[x((previous.low+previous.high)/2),y(cumulative?previous.probability:previous.count)]:p;
+    const center=x((b.low+b.high)/2),value=cumulative?b.probability:b.count,p=[center,y(ecdf?b.probability:value)],anchor=[center,bottom],common={identity:key('bin',b.low,b.high),index,transitionIndex:index,group:uiText('分布')};
+    const bx=x(b.low)+.7,bw=Math.max(.5,x(b.high)-x(b.low)-1.4),shape=ecdf?rectPoints(bx,bottom,bw,0):polygon?circlePoints(...p,3):rectPoints(bx,y(value),bw,bottom-y(value)),tip=uiMessage`[${fmt(b.low)}, ${fmt(b.high)}${index===histogram.bins.length-1?']':')'} ${doc.unit} · ${b.count} 个样本${cumulative?uiMessage` · 累计 ${b.cumulative}/${doc.data.length}（${fmt(b.probability*100)}%）`:''}`;
+    glyph(layout,common,'bin',shape,anchor,{opacity:ecdf?0:polygon?.88:.78,quantity:cumulative?'cumulative':'frequency',accent:index===peak,derived:true,entrance:shape.map(([px])=>[px,bottom]),value,binToken:{radius:Math.max(1.5,Math.min(4,bw*.2)),count:b.count,cumulative:b.cumulative},tooltip:tip});
+    const previous=histogram.bins[index-1],a=previous?[x((previous.low+previous.high)/2),y(cumulative||ecdf?previous.probability:previous.count)]:p;
     line(layout,common,'frequency-link',a,p,p,{opacity:polygon&&index>0?.85:0,width:1.6,derived:true,tooltip:tip});
     if(!ecdf&&!polygon&&w>=650&&doc.binCount<=16)layout.labels.push({x:center,y:p[1]-7,text:cumulative?`${Math.round(value*100)}%`:String(b.count),anchor:'middle',fontSize:9,dataLabel:true});
   });
@@ -142,3 +143,11 @@ export function layoutCorrelation(doc,view,w=800,h=440){
   layout.pairs=uniquePairs;layout.scales={x};return layout;
 }
 export function layoutAnalytical(doc,view,w,h,options){return ({univariate:layoutUnivariate,evaluation:layoutEvaluation,correlation:layoutCorrelation}[analyticalFamily(view)])(doc,view,w,h,options);}
+
+// Bin boundaries keep their identities while the measured summary changes.
+// A visible token bridges frequency and cumulative probability instead of
+// erasing every positive bin at the same midpoint. Dormant helpers stay dormant.
+export function interpolateAnalyticalMark(points,old,next,q){
+ if(old?.role!=='bin'||next?.role!=='bin'||!old.binToken||!next.binToken||old.opacity<=0||next.opacity<=0)return null;
+ return confusionCountBridge(points,{...old,role:'count-cell',confusionCount:old.binToken},{...next,role:'count-cell',confusionCount:next.binToken},q);
+}

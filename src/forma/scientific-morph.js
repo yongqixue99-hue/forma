@@ -1,8 +1,8 @@
-import {layoutCompletionNative} from './completion-native-morph.js';
+import {layoutCompletionNative,interpolateCompletionNativeMark} from './completion-native-morph.js';
 import {isCompletionNativeView} from './completion-native-rules.js';
 import {layoutCompletionSpatial} from './completion-spatial-morph.js';
 import {isCompletionSpatialView} from './completion-spatial-rules.js';
-import {layoutCompletionResearch} from './completion-research-morph.js';
+import {layoutCompletionResearch,interpolateCompletionResearchMark} from './completion-research-morph.js';
 import {isCompletionResearchView} from './completion-research-rules.js';
 import {layoutCompletionBusiness} from './completion-business-morph.js';
 import {isCompletionBusinessView} from './completion-business-rules.js';
@@ -16,17 +16,17 @@ import {layoutMultivariateExtended,interpolateMultivariateExtendedMark} from './
 import {isMultivariateExtendedView} from './multivariate-extended-rules.js';
 import {layoutAdvancedRelations,interpolateAdvancedRelationsMark} from './advanced-relations-morph.js';
 import {isAdvancedRelationsView} from './advanced-relations-rules.js';
-import {layoutTemporal} from './temporal-series-morph.js';
+import {layoutTemporal,interpolateTemporalMark} from './temporal-series-morph.js';
 import {isTemporalView} from './temporal-series-rules.js';
 import {layoutRegressionDiagnostic} from './regression-diagnostic-morph.js';
 import {isRegressionDiagnosticView} from './regression-diagnostic-rules.js';
 import {layoutComparison} from './comparison-series-morph.js';
 import {isComparisonView} from './comparison-series-rules.js';
-import {layoutNetwork,interpolateNetworkMark} from './network-series-morph.js';
+import {layoutNetwork,interpolateNetworkMark,paintNetworkAttachments} from './network-series-morph.js';
 import {isNetworkView} from './network-series-rules.js';
-import {layoutBusinessSeries} from './business-series-morph.js';
+import {layoutBusinessSeries,interpolateBusinessSeriesMark} from './business-series-morph.js';
 import {isBusinessSeriesView} from './business-series-rules.js';
-import {layoutStructural} from './structural-series-morph.js';
+import {layoutStructural,interpolateStructuralMark} from './structural-series-morph.js';
 import {isStructuralView} from './structural-series-rules.js';
 import {layoutStatistical} from './statistical-series-morph.js';
 import {isStatisticalView} from './statistical-series-rules.js';
@@ -45,17 +45,19 @@ import {layoutMultivariate} from './multivariate-morph.js';
 import {isMultivariateView} from './multivariate-rules.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {recordId,populationId} from './data-identity.js';
-import {layoutDiagnostic} from './diagnostic-morph.js';
+import {layoutDiagnostic,interpolateConfusionMark} from './diagnostic-morph.js';
 import {isDiagnosticView} from './diagnostic-rules.js';
 import {scaleLinear,scaleLog,extent,interpolateRgb,interpolateLab,color as parseColor} from 'd3';
 import {MorphChart,circlePoints,rectPoints,polygonPoints} from './morph.js';
 import {boxStatistics,packSwarm} from './editorial-data.js';
 import {violinDensity} from './volume4-data.js';
 import {groupStats,linearFit} from './volume8-data.js';
-import {scientificViews,scientificFamily,scientificEligibility,scientificBounds} from './scientific-rules.js';
+import {scientificViews,scientificFamily,scientificEligibility,scientificBounds,scientificRecipe} from './scientific-rules.js';
+import {interpolateStrokeFrame,interpolateStrokeEndpoints} from './motion-geometry.js';
+const rotatingCaps=new Set(['lower','upper','cap-low','cap-high','sd-low','sd-high']);
 
 import {clamp,mix,pointMix,key,short,fmt,hash,compactNames,padded,base,axis,glyph,dot,line,compactContour,interpolateDensityContour} from './scientific-geometry.js';
-import {layoutAnalytical} from './analytical-morph.js';
+import {layoutAnalytical,interpolateAnalyticalMark} from './analytical-morph.js';
 import {isAnalyticalView} from './analytical-rules.js';
 import {isExploratoryView} from './exploratory-rules.js';
 import {layoutExploratory,interpolateMatrixCell} from './exploratory-morph.js';
@@ -188,8 +190,8 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
 }
 
 export class ScientificMorphChart extends MorphChart{
-  setView(view,options={}){if(this.layout?.spatialPose)return this.setDocument(this.doc,view,{...this.options,...options});return super.setView(view,options);}
-  seekTransition(from,to,progress){if(!this.layout?.spatialPose)return super.seekTransition(from,to,progress);const key=`${from}:${to}:${this.dimensions().w}:${this.dimensions().h}`;if(this.spatialSeekKey!==key){this.setDocument(this.doc,from,{...this.options,animate:false});this.spatialSeek=this.setDocument(this.doc,to,{...this.options,manual:true});this.spatialSeekKey=key;}this.spatialSeek(progress);}
+  setView(view,options={}){if(this.destroyed)return;return this.setDocument(this.doc,view,{...this.options,effect:this.options.effect||'guided',recipe:scientificRecipe(this.view,view).id,...options,resume:this.isIntermediateFrame()});}
+  seekTransition(from,to,progress){if(this.destroyed)return;const {w,h}=this.dimensions(),key=`${from}:${to}:${w}:${h}`;if(this.spatialSeekKey!==key){this.setDocument(this.doc,from,{...this.options,animate:false});this.spatialSeek=this.setDocument(this.doc,to,{...this.options,manual:true,effect:'guided',recipe:scientificRecipe(from,to).id});this.spatialSeekKey=key;}this.spatialSeek(progress);}
   setDocument(doc,view,options={}){this.spatialSeekKey=null;this.spatialResume=options.resume?this.spatialLayer?.pose:null;this.options.annotations=options.annotations||[];const result=super.setDocument(doc,view,options);if(this.layout?.spatialPose&&!options.manual&&(options.animate===false||this.reducedMotion))this.drawSpatial(this.layout.spatialPose);return result;}
   eligibility(doc,view){return scientificEligibility(doc,view);}
   layoutFor(doc,view,w,h,options){return layoutScientific(doc,view,w,h,{...options,annotations:this.options.annotations});}
@@ -268,23 +270,43 @@ export class ScientificMorphChart extends MorphChart{
     if(layout.spatialPose)this.drawSpatial(this.spatialLayer?.pose||layout.spatialPose,layout);
   }
   drawSpatial(pose,layout=this.layout){this.spatialLayer??=new SpatialMorphLayer(this);this.spatialLayer.draw(pose,layout);}
+  transitionTiming(mark,{from,to,progress,effect,defaultQ}){
+    if(effect!=='cascade')return defaultQ;
+    if(mark.intersectionBar||mark.intersectionMembership)return defaultQ;
+    // A curve is one connected object: stagger whole series, not individual
+    // endpoints. Independent observations still use their per-record timing.
+    if(this.timingLayout!==to){
+      const connected=new Set([...from.marks,...to.marks].filter(m=>m.opacity>0&&(m.ribbonSegment||m.role?.endsWith('-link')||m.role==='reference-axis')).map(m=>this.colorKey(m)));
+      this.timingLayout=to;this.connectedTiming=new Map([...new Set(to.marks.map(m=>this.colorKey(m)))].filter(k=>connected.has(k)).map((k,i)=>[k,i]));
+    }
+    const group=this.connectedTiming.get(this.colorKey(mark));
+    const together=to.doc?.family==='complete-native-costcurve';
+    if(group===undefined&&!together)return defaultQ;
+    const delay=together?0:group/Math.max(1,this.connectedTiming.size)*.22,p=clamp((progress-delay)/(1-delay));
+    return p<.5?4*p*p*p:1-(-2*p+2)**3/2;
+  }
   paintTransition(from,to,p){
     const old=new Map(from.marks.map(m=>[m.key,m]));
-    for(const m of to.marks){const a=old.get(m.key),n=this.nodes.get(m.key),color=this.markColor(m);
+    for(const m of to.marks){const a=old.get(m.key),n=this.nodes.get(m.key);
       if(a?.opacity===0&&m.opacity===0)continue;
-      const opacity=processMarkOpacity(a,m,p) ?? (m.clusterBranch?(p<.15?(a?.opacity||0)*(1-p/.15):m.opacity*clamp((p-.82)/.18)):mix(a?.opacity||0,m.opacity,p));
-      n.shape.setAttribute('fill-opacity',opacity);n.shape.setAttribute('stroke-opacity',opacity);n.shape.setAttribute('stroke-width',mix(a?.stroke||0,m.stroke,p));
-      n.shape.setAttribute('fill',interpolateRgb(a?.paper?this.theme.bg:a?this.markColor(a):color,m.paper?this.theme.bg:color)(p));
-      n.shape.setAttribute('stroke',interpolateRgb(a?.strokeColorRole?this.theme[a.strokeColorRole]:a?this.markColor(a):color,m.strokeColorRole?this.theme[m.strokeColorRole]:color)(p));
+      const opacity=processMarkOpacity(a,m,p) ?? (m.clusterBranch?(p<.15?(a?.opacity||0)*(1-p/.15):m.opacity*clamp((p-.82)/.18)):null);
+      // Ordinary appearance is already interpolated from the captured SVG
+      // styles. Recomputing the old color in the new theme causes a flash.
+      if(opacity!==null){n.shape.setAttribute('fill-opacity',opacity);n.shape.setAttribute('stroke-opacity',opacity);}
     }
     if(to.spatialPose){const q=p<.5?4*p*p*p:1-(-2*p+2)**3/2;this.drawSpatial(mixSpatialPose(this.spatialResume||from.spatialPose,to.spatialPose,q),to);}
+    paintNetworkAttachments(this,from,to,p);
   }
   interpolateMark(old,next,q,{effect,from}={}){
     if(!old)return null;
-    if(effect==='guided'){const planning=interpolateTimePlanningMark(from||old.points,old,next,q);if(planning)return planning;const extended=interpolateMultivariateExtendedMark(from||old.points,old,next,q);if(extended)return extended;const relations=interpolateAdvancedRelationsMark(from||old.points,old,next,q);if(relations)return relations;const network=interpolateNetworkMark(from||old.points,old,next,q);if(network)return network;}
+    const start=from||old.points;
+    if(['guided','smooth','cascade'].includes(effect)){
+      for(const interpolate of [interpolateCompletionResearchMark,interpolateCompletionNativeMark,interpolateConfusionMark,interpolateAnalyticalMark,interpolateBusinessSeriesMark,interpolateTemporalMark,interpolateStructuralMark,interpolateNetworkMark,interpolateAdvancedRelationsMark]){const points=interpolate(start,old,next,q);if(points)return points;}
+    }
+    if(['guided','smooth','cascade'].includes(effect)){const planning=interpolateTimePlanningMark(from||old.points,old,next,q);if(planning)return planning;const extended=interpolateMultivariateExtendedMark(from||old.points,old,next,q);if(extended)return extended;}
     const serial=interpolateSerialMark(from||old.points,old,next,q);if(serial)return serial;
-    if(effect==='guided'){const process=interpolateProcessMark(from||old.points,old,next,q);if(process)return process;}
-    if(effect==='guided'){const matrix=interpolateMatrixCell(from||old.points,old,next,q);if(matrix)return matrix;}
+    if(['guided','smooth','cascade'].includes(effect)){const process=interpolateProcessMark(from||old.points,old,next,q);if(process)return process;const matrix=interpolateMatrixCell(from||old.points,old,next,q);if(matrix)return matrix;}
+    if(['guided','smooth','cascade'].includes(effect)&&old.ribbonSegment&&next.ribbonSegment&&old.opacity>0&&next.opacity>0){const strip=(rotatingCaps.has(next.role)?interpolateStrokeFrame:interpolateStrokeEndpoints)(start,next.points,q);if(strip)return strip;}
     let points=next.points.map((p,i)=>pointMix((from||old.points)[i],p,q));
     if(effect==='guided'&&old.opacity===0&&next.opacity>0)points=next.points.map((p,i)=>pointMix(next.entrance[i],p,q));
     if(effect==='guided'&&next.opacity===0&&old.opacity>0)points=old.points.map((p,i)=>pointMix(p,old.entrance[i],q));
@@ -308,6 +330,7 @@ export class ScientificMorphChart extends MorphChart{
     return interpolateDensityContour(start,end,q);
   }
   interpolateResumedMark(points,mark,q,{old}={}){
+    for(const interpolate of [interpolateCompletionResearchMark,interpolateCompletionNativeMark,interpolateConfusionMark,interpolateAnalyticalMark,interpolateBusinessSeriesMark,interpolateTemporalMark,interpolateStructuralMark]){const result=interpolate(points,old,mark,q);if(result)return result;}
     const planning=interpolateTimePlanningMark(points,old,mark,q);if(planning)return planning;
     const extended=interpolateMultivariateExtendedMark(points,old,mark,q);if(extended)return extended;
     const relations=interpolateAdvancedRelationsMark(points,old,mark,q);if(relations)return relations;
@@ -315,6 +338,7 @@ export class ScientificMorphChart extends MorphChart{
     const serial=interpolateSerialMark(points,old,mark,q);if(serial)return serial;
     const process=interpolateProcessMark(points,old,mark,q);if(process)return process;
     const matrix=interpolateMatrixCell(points,old,mark,q);if(matrix)return matrix;
+    if(old?.ribbonSegment&&mark.ribbonSegment&&old.opacity>0&&mark.opacity>0){const strip=(rotatingCaps.has(mark.role)?interpolateStrokeFrame:interpolateStrokeEndpoints)(points,mark.points,q);if(strip)return strip;}
     if(mark.role==='density')return this.densityTransition(points,mark,q,old);
     // A helper that was invisible has no displayed location to carry across.
     // Grow its own target geometry instead of exposing an old hidden outline.

@@ -2,14 +2,19 @@ import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {entityNames,entityKey} from './entity-identity.js';
 import {recordId} from './data-identity.js';
 import {scaleLinear} from 'd3';
-import {MorphChart,rectPoints,polygonPoints,circlePoints,POINTS} from './morph.js';
+import {MorphChart,POINTS} from './morph.js';
 import {mixOutline} from './morph-foundation.js';
 import {seriesViews,seriesEligibility,seriesDomain,seriesKey,seriesPeriods,isSeriesDatePeriod} from './series-rules.js';
 import {resolveBoundColor} from './color-semantics.js';
+import {interpolateDensityContour} from './scientific-geometry.js';
 
 const unique=a=>[...new Set(a)];
 import {formatNumber as fmt,formatDecimal} from './number-format.js';
 const short=(s,n=8)=>[...s].length>n?[...s].slice(0,n-1).join('')+'…':s;
+const flank=(points,i)=>{const at=points.length===3?(i<=32?i/32:1+(i-32)/31):i/63*(points.length-1),j=Math.min(points.length-2,Math.floor(at)),q=at-j;return [points[j][0]+(points[j+1][0]-points[j][0])*q,points[j][1]+(points[j+1][1]-points[j][1])*q];};
+const seriesBand=(top,bottom)=>[...Array.from({length:64},(_,i)=>flank(top,i)),...Array.from({length:64},(_,i)=>flank(bottom,63-i))];
+const seriesRect=(x,y,width,height)=>seriesBand([[x,y],[x+width,y]],[[x,y+height],[x+width,y+height]]);
+const endpointCircle=(point,r=2.5)=>[...Array.from({length:64},(_,i)=>{const angle=Math.PI*(1-i/63);return [point[0]+r*Math.cos(angle),point[1]-r*Math.sin(angle)];}),...Array.from({length:64},(_,i)=>{const angle=Math.PI*i/63;return [point[0]+r*Math.cos(angle),point[1]+r*Math.sin(angle)];})];
 function legendLayout(series,w,left){
   const limit=Math.max(4,Math.min(14,Math.floor((w-70)/(Math.min(series.length,3)*11)-3)));
   let x=left,y=16;
@@ -50,14 +55,14 @@ export function layoutSeries(doc,view,w=800,h=440,{domain}={}){
     if(!isArea&&!isLine){
       const width=stacked?step*.62:step*.76/m,x=stacked?e.cx-width/2:plot.x+i*step+step*.12+j*width;
       const height=Math.abs(e.high-e.low),yy=Math.min(e.high,e.low),barW=stacked?width:width*.87;
-      points=rectPoints(x,yy,barW,height);geometry={type:'rect',x,y:yy,width:barW,height,baseline:y(0),valueY:e.high};
+      points=seriesRect(x,yy,barW,height);geometry={type:'rect',x,y:yy,width:barW,height,baseline:y(0),valueY:e.high};
       if(n<=8&&m<=4&&step>70)label={x:x+barW/2,y:stacked?(e.high+e.low)/2+4:e.high+(row.value<0?14:-7),text:row.value===null?'—':percent?formatDecimal(e.share*100,1)+'%':fmt(row.value),inside:stacked,visible:!stacked||height>22,anchor:'middle',fontSize:10};
     }else{
       const neighbor=k=>k<0||k>=n?e:endpoints.get(seriesKey(periods[k],row.series));
       let prev=neighbor(i-1),next=neighbor(i+1);if(prev.row.value===null)prev=e;if(next.row.value===null)next=e;
       const left=[(e.cx+prev.cx)/2,(e.high+prev.high)/2],right=[(e.cx+next.cx)/2,(e.high+next.high)/2];
       const ridge=[left,[e.cx,e.high],right],floor=[[right[0],(e.low+next.low)/2],[e.cx,e.low],[left[0],(e.low+prev.low)/2]];
-      points=polygonPoints(isLine?[...ridge.map(([x,yy])=>[x,yy-1.15]),...ridge.toReversed().map(([x,yy])=>[x,yy+1.15])]:[...ridge,...floor]);
+      points=seriesBand(isLine?ridge.map(([x,yy])=>[x,yy-1.15]):ridge,isLine?ridge.map(([x,yy])=>[x,yy+1.15]):floor.toReversed());
       geometry={type:view,cx:e.cx,cy:e.high,baseline:rank?bottom:y(0),left,right};
     }
     if(row.value===null)points=Array.from({length:POINTS},()=>[e.cx,bottom]);
@@ -81,7 +86,7 @@ function layoutSmallMultiples(doc,view,w,h,{domain}){
     periods.forEach((period,i)=>{
       const row=lookup.get(seriesKey(period,name)),cy=row.value===null?bottom:y(row.value),cx=xp(i),prev=i>0?lookup.get(seriesKey(periods[i-1],name)):row,next=i<n-1?lookup.get(seriesKey(periods[i+1],name)):row;
       const leftPoint=prev.value===null?[cx,cy]:[(cx+xp(Math.max(0,i-1)))/2,(cy+y(prev.value))/2],rightPoint=next.value===null?[cx,cy]:[(cx+xp(Math.min(n-1,i+1)))/2,(cy+y(next.value))/2];
-      const ridge=[leftPoint,[cx,cy],rightPoint],points=row.value===null?Array.from({length:POINTS},()=>[cx,bottom]):polygonPoints([...ridge.map(([a,b])=>[a,b-.9]),...ridge.toReversed().map(([a,b])=>[a,b+.9])]);
+      const ridge=[leftPoint,[cx,cy],rightPoint],points=row.value===null?Array.from({length:POINTS},()=>[cx,bottom]):seriesBand(ridge.map(([a,b])=>[a,b-.9]),ridge.map(([a,b])=>[a,b+.9]));
       marks.push({key:recordId(row),index:doc.data.indexOf(row),value:row.value,series:name,seriesId:entityKey(row,'series'),period,periodIndex:i,row:row.row,tooltipLabel:`${period} · ${name}`,points,geometry:{type:view,cx,cy,baseline:bottom,left:leftPoint,right:rightPoint},label:{visible:false}});
     });
   });
@@ -103,7 +108,7 @@ function layoutHorizontal(doc,view,w,h,{domain}){
       const row=lookup.get(seriesKey(period,name)),v=percent?row.value/totals[i]*100:row.value??0,low=stacked?running:0,high=low+v;running+=v;
       const height=stacked?step*.6:step*.78/m,cy=plot.y+(i+.5)*step,yy=stacked?cy-height/2:plot.y+i*step+step*.11+j*height;
       const start=x(low),end=x(high),xx=Math.min(start,end),width=Math.abs(end-start),bh=stacked?height:height*.87;
-      const points=row.value===null?Array.from({length:POINTS},()=>[x(0),yy]):rectPoints(xx,yy,width,bh);
+      const points=row.value===null?Array.from({length:POINTS},()=>[x(0),yy]):seriesRect(xx,yy,width,bh);
       byKey.set(row.label,{points,geometry:{type:'rect',x:xx,y:yy,width,height:bh,baseline:x(0),valueX:end,scale:(x.range()[1]-x.range()[0])/(x.domain()[1]-x.domain()[0]),low,high},label:{x:stacked?(start+end)/2:end+(v<0?-7:7),y:yy+bh/2+3,text:row.value===null?'—':percent?fmt(v)+'%':fmt(row.value),inside:stacked,anchor:stacked?'middle':v<0?'end':'start',fontSize:10,visible:bh>14&&(!stacked||width>30)}});
     });
   });
@@ -112,20 +117,33 @@ function layoutHorizontal(doc,view,w,h,{domain}){
 }
 
 export class SeriesMorphChart extends MorphChart{
-  // Reorient many series through their own small endpoints. Interpolating
-  // full line/area strips into horizontal bars creates crossing wedges.
+  // A change from a filled quantity to a thin trend/rank passes through that
+  // record's real endpoint, rather than carrying a fat wedge across the plot.
   endpoint(mark){const g=mark.geometry;return g.type==='rect'?(g.valueX===undefined?[g.x+g.width/2,g.valueY??g.y]:[g.valueX,g.y+g.height/2]):[g.cx,g.cy];}
   reorient(points,old,mark,q,resume=false){
     if(!old||old.value===null||mark.value===null)return null;
     const horizontal=m=>m.geometry.type==='rect'&&m.geometry.valueX!==undefined;
-    if(horizontal(old)===horizontal(mark))return null;
-    const start=resume?points.reduce((a,p)=>[a[0]+p[0]/points.length,a[1]+p[1]/points.length],[0,0]):this.endpoint(old),end=this.endpoint(mark),a=circlePoints(...start,2.5),b=circlePoints(...end,2.5);
-    if(q<.28)return mixOutline(points,a,q/.28);
-    if(q<.7){const t=(q-.28)/.42;return circlePoints(start[0]+(end[0]-start[0])*t,start[1]+(end[1]-start[1])*t,2.5);}
-    return mixOutline(b,mark.points,(q-.7)/.3);
+    const thin=m=>['multi-line','small-multiples','series-rank'].includes(m.geometry.type);
+    // Adjacent records share the midpoint between their real observations.
+    // Move those samples together; rotating each half-segment independently
+    // separates a continuous trajectory while changing its chart frame.
+    if(thin(old)&&thin(mark))return mark.points.map((p,i)=>[points[i][0]+(p[0]-points[i][0])*q,points[i][1]+(p[1]-points[i][1])*q]);
+    if(horizontal(old)===horizontal(mark)&&thin(old)===thin(mark))return interpolateDensityContour(points,mark.points,q);
+    const start=resume?points.reduce((a,p)=>[a[0]+p[0]/points.length,a[1]+p[1]/points.length],[0,0]):this.endpoint(old),end=this.endpoint(mark),a=endpointCircle(start),b=endpointCircle(end);
+    if(q<.24)return mixOutline(points,a,q/.24);
+    if(q<.6){const t=(q-.24)/.36;return endpointCircle([start[0]+(end[0]-start[0])*t,start[1]+(end[1]-start[1])*t]);}
+    return interpolateDensityContour(b,mark.points,(q-.6)/.4);
   }
-  interpolateMark(old,mark,q,{from}){return this.reorient(from,old,mark,q);}
+  interpolateMark(old,mark,q,{from,effect}){return ['guided','smooth','cascade'].includes(effect)?this.reorient(from,old,mark,q):null;}
   interpolateResumedMark(points,mark,q,{old}){return this.reorient(points,old,mark,q,true);}
+  transitionTiming(mark,{from,to,progress,effect,defaultQ}){
+    if(effect!=='cascade'||![from.view,to.view].some(v=>v.includes('area')||['multi-line','small-multiples','series-rank'].includes(v)))return defaultQ;
+    // A connected time series cascades as one object. Delaying adjacent
+    // observations separately would separate their shared segment endpoints.
+    if(this.seriesTimingLayout!==to){this.seriesTimingLayout=to;this.seriesTimingGroups=new Map([...new Set(to.marks.map(m=>this.colorKey(m)))].map((key,i)=>[key,i]));}
+    const delay=(this.seriesTimingGroups.get(this.colorKey(mark))??0)/Math.max(1,this.seriesTimingGroups.size)*.22,p=Math.max(0,Math.min(1,(progress-delay)/(1-delay)));
+    return p<.5?4*p*p*p:1-(-2*p+2)**3/2;
+  }
   dimensions(){return {w:Math.max(280,this.options.width||this.host.clientWidth||800),h:Math.max(160,this.options.height||this.host.clientHeight||440)};}
   eligibility(doc,view){return seriesEligibility(doc,view);}
   layoutFor(doc,view,w,h,options){return layoutSeries(doc,view,w,h,options);}

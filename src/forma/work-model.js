@@ -87,7 +87,12 @@ export function stepEligibility(step,view=stepView(step)){
 export function morphReady(step){return !!stepView(step)&&stepEligibility(step).valid;}
 export function recommendedTransitions(step){
   const from=stepView(step),family=viewFamily(from),priority=['serial-acf','serial-pacf','process-individual','process-imr','multivariate-focus','multivariate-matrix','series-rank','small-multiples','multi-line','sample-ridge','sample-raincloud','matrix-clustered','matrix-bubbles','matrix-heatmap','ordered-estimate-band','ordered-estimate-intervals','ordered-estimate-line','trajectory-path','trajectory-points','spatial-surface','spatial-bubbles','spatial-3d','spatial-xy','spatial-xz','spatial-yz'];
-  return workViews.filter(v=>v.id!==from&&viewFamily(v.id)===family&&stepEligibility(step,v.id).valid).sort((a,b)=>(priority.includes(a.id)?priority.indexOf(a.id):100)-(priority.includes(b.id)?priority.indexOf(b.id):100)).slice(0,6).map(v=>{
+  // Prefer a nearby encoding of the same measure before a derived ranking or
+  // a major rearrangement. This changes suggestions, never saved work steps.
+  const nearby={pie:['donut','semidonut','stacked'],donut:['pie','semidonut','stacked'],semidonut:['donut','pie'],rose:['donut','pie'],waffle:['stacked','treemap'],stacked:['waffle','donut'],treemap:['bubbles','squares'],bubbles:['treemap','squares'],columns:['bars','lollipop','line'],bars:['columns','dot','lollipop'],line:['area','step','columns'],area:['line','step'],step:['line','area'],
+    'grouped-columns':['grouped-bars','multi-line','small-multiples'],'grouped-bars':['grouped-columns','multi-line','small-multiples'],'stacked-columns':['stacked-bars','stacked-area'],'stacked-bars':['stacked-columns','stacked-area'],'percent-columns':['percent-bars','percent-area'],'percent-bars':['percent-columns','percent-area'],'multi-line':['small-multiples','grouped-columns','series-rank'],'small-multiples':['multi-line','grouped-columns'],'stacked-area':['stacked-columns','stacked-bars'],'percent-area':['percent-columns','percent-bars'],'series-rank':['multi-line','small-multiples']}[from]||[];
+  const rank=id=>nearby.includes(id)?nearby.indexOf(id)-100:priority.includes(id)?priority.indexOf(id):100;
+  return workViews.filter(v=>v.id!==from&&viewFamily(v.id)===family&&stepEligibility(step,v.id).valid).sort((a,b)=>rank(a.id)-rank(b.id)).slice(0,6).map(v=>{
     const recipe=isScientificView(v.id)?scientificRecipe(from,v.id):isSeriesView(v.id)?seriesRecipe(from,v.id):isRelationalView(v.id)?relationalRecipe(from,v.id):pairRecipe(from,v.id);
     return {view:v.id,name:v.name,note:v.note,reason:recipe.description,recipe:recipe.id};
   });

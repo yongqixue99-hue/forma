@@ -5,7 +5,9 @@ import {getExample} from '../../src/forma/catalog.js';
 import {withRecordIds,recordId} from '../../src/forma/data-identity.js';
 import {setLocale} from '../../src/forma/locale.js';
 import {networkViews,networkViewMap,networkDocument,networkEligibility,networkCompatibility,networkNodes,networkBounds,networkColorKeys,networkColorSubjects,networkGuide,networkAgentGuide} from '../../src/forma/network-series-rules.js';
-import {layoutNetwork,interpolateNetworkMark} from '../../src/forma/network-series-morph.js';
+import {layoutNetwork,interpolateNetworkMark,networkAttachmentPoint} from '../../src/forma/network-series-morph.js';
+import {interpolateDensityContour} from '../../src/forma/scientific-geometry.js';
+import {scientificMotionState} from '../../src/forma/scientific-motion-state.js';
 import {networkPresets,networkRecords} from '../../src/forma/network-series-presets.js';
 const raw=template=>withRecordIds(getExample(template),{legacyNamespace:'network-test'}),doc=template=>networkDocument(raw(template));
 const finite=l=>{const keys=new Set();for(const m of l.marks){assert.equal(m.points.length,128,m.key);assert.equal(m.entrance.length,128,m.key);assert.ok(m.points.flat().every(Number.isFinite),m.key);assert.ok(m.anchor.every(Number.isFinite),m.key);assert.ok(!keys.has(m.key),m.key);keys.add(m.key);}for(const label of l.labels)assert.ok(Number.isFinite(label.x)&&Number.isFinite(label.y));};
@@ -77,8 +79,8 @@ test('shared width bounds keep arc and force weights comparable across changed-v
 
 test('connection end caps keep their source and target attachment points throughout every morph',()=>{
  for(const preset of networkPresets){const d=networkDocument(networkRecords(preset.id)[0].doc),layouts=preset.views.map(v=>layoutNetwork(d,v));
-  for(const layout of layouts)for(const mark of layout.marks.filter(m=>m.role==='network-edge'))for(const [index,end]of[[16,0],[80,1]]){near(mark.points[index][0],mark.networkEndpoints[end][0]);near(mark.points[index][1],mark.networkEndpoints[end][1]);}
-  for(const a of layouts)for(const b of layouts){const old=new Map(a.marks.map(m=>[m.key,m]));for(const mark of b.marks.filter(m=>m.role==='network-edge'))for(const q of[.25,.5,.75])for(const [index,end]of[[16,0],[80,1]])for(const k of[0,1]){const prior=old.get(mark.key),actual=interpolateNetworkMark(prior.points,prior,mark,q)[index][k],expected=prior.networkEndpoints[end][k]*(1-q)+mark.networkEndpoints[end][k]*q;near(actual,expected);}}
+  for(const layout of layouts)for(const mark of layout.marks.filter(m=>m.role==='network-edge'))for(const [index,end]of[[16,0],[80,1]]){near(mark.points[index][0],mark.networkEndpoints[end][0]);near(mark.points[index][1],mark.networkEndpoints[end][1]);const ref=mark.networkAttachments[end],node=layout.marks.find(m=>m.key===ref.nodeKey);assert.equal(node.group,end?mark.originalTarget:mark.originalSource);assert.ok(Math.hypot(...ref.offset)<.03,'Only native tessellation error is corrected, never a detached node or a rotated sector');const attached=networkAttachmentPoint(ref,node.points);near(mark.points[index][0],attached[0]);near(mark.points[index][1],attached[1]);}
+  for(const a of layouts)for(const b of layouts){const old=new Map(a.marks.map(m=>[m.key,m]));for(const mark of b.marks.filter(m=>m.role==='network-edge'))for(const q of[.25,.5,.75])for(const [index,end]of[[16,0],[80,1]])for(const k of[0,1]){const prior=old.get(mark.key),actual=interpolateNetworkMark(prior.points,prior,mark,q)[index][k],a=prior.networkAttachments[end],b=mark.networkAttachments[end],expected=networkAttachmentPoint({nodeKey:a.nodeKey,nodePoints:interpolateDensityContour(a.nodePoints,b.nodePoints,q),station:a.station*(1-q)+b.station*q,side:a.side*(1-q)+b.side*q,offset:a.offset.map((v,j)=>v*(1-q)+b.offset[j]*q)})[k];assert.equal(a.nodeKey,b.nodeKey);near(actual,expected);}}
  }
 });
 
@@ -89,5 +91,5 @@ test('chord-to-arc middle frames retain connected ribbon flanks instead of foldi
 });
 
 test('cyclic self-links retain finite live contours during changed-flow updates',()=>{
- const a=doc('sankeycycle');a.data.push({_id:'self',source:a.data[0].source,target:a.data[0].source,value:12,inputIndex:a.data.length});const b=structuredClone(a);b.data.forEach((r,i)=>r.value*=1+i*.1);const before=layoutNetwork(a,'flow-cycle'),after=layoutNetwork(b,'flow-cycle'),old=new Map(before.marks.map(m=>[m.key,m]));for(const mark of after.marks.filter(m=>m.role==='network-edge'))for(const q of[0,.1,.5,.9,1]){const prior=old.get(mark.key),points=interpolateNetworkMark(prior.points,prior,mark,q);assert.ok(points.flat().every(Number.isFinite));for(const index of[16,80])for(const k of[0,1])near(points[index][k],prior.points[index][k]*(1-q)+mark.points[index][k]*q);}
+ const a=doc('sankeycycle');a.data.push({_id:'self',source:a.data[0].source,target:a.data[0].source,value:12,inputIndex:a.data.length});const b=structuredClone(a);b.data.forEach((r,i)=>r.value*=1+i*.1);const before=layoutNetwork(a,'flow-cycle'),after=layoutNetwork(b,'flow-cycle'),old=new Map(before.marks.map(m=>[m.key,m]));for(const mark of after.marks.filter(m=>m.role==='network-edge'))for(const q of[0,.1,.5,.9,1]){const prior=old.get(mark.key),points=interpolateNetworkMark(prior.points,prior,mark,q);assert.ok(points.flat().every(Number.isFinite));for(const [index,end]of[[16,0],[80,1]]){const ref=scientificMotionState(points)?.networkAttachments[end]||mark.networkAttachments[end],expected=q===0?prior.points[index]:q===1?mark.points[index]:networkAttachmentPoint(ref);for(const k of[0,1])near(points[index][k],expected[k]);}}
 });

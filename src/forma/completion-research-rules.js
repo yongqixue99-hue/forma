@@ -7,11 +7,11 @@ import {taylor14,target14,volume14MethodNotes} from './volume14-data.js';
 import {volume15MethodNotes} from './volume15-data.js';
 export const completionResearchText=(zh,en)=>isEnglish()?en:zh;
 const t=completionResearchText,unique=items=>[...new Set(items)],specs=[
- ['volcano','火山图','Volcano plot','横置差异证据','Horizontal differential evidence','log₂FC 与 −log₁₀ padj 互换显示轴；预设筛选和原始校正 p 值不变。','Swap display axes for log₂FC and −log₁₀ padj while retaining original adjusted p-values and explicit thresholds.'],
- ['ma','MA 图','MA plot','横置表达量','Horizontal expression levels','平均表达量保持真实对数轴，倍数变化与原 padj 不变。','Retain the actual logarithmic mean-expression axis, fold changes and original padj.'],
+ ['volcano','火山图','Volcano plot','横置差异证据','Horizontal differential evidence','log₂FC 与 −log₁₀ padj 连续转向 90°；备选纵轴从上到下递增，预设筛选和原始校正 p 值不变。','Rotate the display axes for log₂FC and −log₁₀ padj by 90°; the alternate vertical axis increases downwards. Retain original adjusted p-values and explicit thresholds.'],
+ ['ma','MA 图','MA plot','横置表达量','Horizontal expression levels','平均表达量保持真实对数轴；备选表达量纵轴从上到下递增，倍数变化与原 padj 不变。','Retain the actual logarithmic mean-expression axis; the alternate expression axis increases downwards. Fold changes and original padj remain unchanged.'],
  ['dose','剂量响应','Dose response','横置剂量响应','Horizontal dose response','每个重复原值与均值 ± 样本 SD 一起旋转；备选剂量纵轴从上到下递增，只连接均值，不拟合 4PL。','Rotate every original replicate together with mean ± sample SD; the alternate dose axis increases downwards. Connect means without fitting 4PL.'],
  ['enrichment','富集比例气泡','Enrichment-ratio bubbles','富集命中气泡','Enrichment-count bubbles','横轴在 count/total 与 count 间切换；面积始终为 count，颜色始终为 −log₁₀ padj。','Switch X between count/total and count; bubble area remains count and color remains −log₁₀ padj.'],
- ['manhattan','曼哈顿图','Manhattan plot','横置基因组证据','Horizontal genomic evidence','保持染色体顺序、真实 bp 长度和间隔，仅交换显示轴。','Retain chromosome order, actual bp lengths and gaps while swapping display axes.'],
+ ['manhattan','曼哈顿图','Manhattan plot','横置基因组证据','Horizontal genomic evidence','保持染色体顺序、真实 bp 长度和间隔；备选物理位置纵轴从上到下递增，连续转向 90°。','Retain chromosome order, actual bp lengths and gaps; rotate the display axes by 90° with the alternate physical-position axis increasing downwards.'],
  ['lexis','Lexis 生命线','Lexis lifelines','出生队列生命线','Birth-cohort lifelines','出生年=entryPeriod−entryAge；同一生命线切换到出生队列与真实日历年。','Birth year=entryPeriod−entryAge; move the same lifeline to birth-cohort and calendar-year coordinates.'],
  ['swimmer','个体观察泳道','Individual observation lanes','竖置观察泳道','Vertical observation lanes','保留原始 start/end、首次 response、null 与 ongoing 标记，不延伸虚构未来。','Retain original start/end, first response, nulls and ongoing markers without inventing future intervals.'],
  ['eventhistory','状态历程泳道','State-history lanes','竖置状态历程','Vertical state histories','原 [start,end) 区间旋转，状态颜色一致，空档仍留白。','Rotate original [start,end) intervals, retain state colors and leave unrecorded gaps blank.'],

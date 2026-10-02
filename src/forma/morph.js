@@ -1,5 +1,6 @@
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import {resolveBoundColor} from './color-semantics.js';
+import {interpolateBasicStrip,interpolateBasicCompound,copyMotionContour,hasCompoundMotion} from './motion-geometry.js';
 import {areaDataLabel,sectorCallouts,spaceAxisLabels,labelInk,blendedSurface,labelFont,boundedLabel} from './chart-readability.js';
 import {fitChartLabel,chartTextWidth} from './text-wrap.js';
 import {recordId} from './data-identity.js';
@@ -9,7 +10,7 @@ import {hierarchy, pack, treemap, treemapSquarify, scaleLinear,interpolateRgb} f
 import {themeFor} from './palettes.js';
 import {extraMorphViews,layoutExtraMorph} from './morph-extra.js';
 import {foundationViews,layoutFoundation,mixContour,mixOutline,unitBridge} from './morph-foundation.js';
-import {validateMorphDocument,morphEligibility,numericDomain,shareViews} from './morph-rules.js';
+import {validateMorphDocument,morphEligibility,numericDomain,shareViews,pairRecipe} from './morph-rules.js';
 export {validateMorphDocument} from './morph-rules.js';
 
 const NS='http://www.w3.org/2000/svg';
@@ -273,33 +274,35 @@ export class MorphChart{
     this.current.set(key,points);
     const item=this.nodes.get(key),d=pathFor(points);item.shape.setAttribute('d',d);item.texture.setAttribute('d',d);
   }
+  interpolateMark(old,next,q,{from,effect}={}){if(!['guided','smooth','cascade'].includes(effect))return null;const points=from||old?.points,bounds={x:0,y:0,w:this.layout.w,h:this.layout.h};return interpolateBasicCompound(points,old,next,q)||interpolateBasicStrip(points,old,next,q,{bounds});}
+  interpolateResumedMark(points,next,q,{old}={}){const bounds={x:0,y:0,w:this.layout.w,h:this.layout.h};return interpolateBasicCompound(points,old,next,q,{resume:true})||interpolateBasicStrip(points,old,next,q,{resume:true,bounds});}
   notify(){this.svg.setAttribute('data-view',this.view);this.svg.setAttribute('aria-busy',String(this.animating));this.options.onChange?.({view:this.view,animating:this.animating});}
-  cancel(){this.generation++;if(this.frame!==null)this.win.cancelAnimationFrame(this.frame);this.frame=null;}
+  isIntermediateFrame(){const p=Number(this.svg.dataset.transitionProgress);return this.animating||Number.isFinite(p)&&p>0&&p<1;}
+  cancel(){this.generation++;if(this.frame!==null)this.win.cancelAnimationFrame(this.frame);this.frame=null;this.refreshAppearance=null;}
   // A composed canvas owns its clock. Seeking must not schedule a second loop.
   seekTransition(fromView,toView,progress){
-    if(this.destroyed)return;this.cancel();const p=clamp(progress),{w,h}=this.dimensions(),key=`${fromView}:${toView}:${w}:${h}`;
+    if(this.destroyed)return;const {w,h}=this.dimensions(),key=`${fromView}:${toView}:${w}:${h}`;
     if(this.seekKey!==key){
-      this.seekKey=key;this.seekFrom=this.layoutFor(this.doc,fromView,w,h,{showLegend:this.options.showLegend??false,domain:this.options.domain,axisLabels:this.options.axisLabels});this.seekTo=this.layoutFor(this.doc,toView,w,h,{showLegend:this.options.showLegend??false,domain:this.options.domain,axisLabels:this.options.axisLabels});
-      this.syncNodes(this.seekTo);this.paint(this.seekTo);this.svg.setAttribute('viewBox',`0 0 ${w} ${h}`);this.seekDecorated=null;
+      this.setDocument(this.doc,fromView,{...this.options,animate:false});
+      this.seekFrame=this.setDocument(this.doc,toView,{...this.options,manual:true,effect:'guided',recipe:pairRecipe(fromView,toView).id});
+      this.seekKey=key;
     }
-    const from=new Map(this.seekFrom.marks.map(mark=>[mark.key,mark.points]));
-    for(const mark of this.seekTo.marks){const q=ease(clamp((p-mark.index/this.seekTo.marks.length*.12)/.88));this.writeShape(mark.key,p===0?from.get(mark.key):p===1?mark.points:mixContour(from.get(mark.key),mark.points,q));}
-    const decorated=p<.5?this.seekFrom:this.seekTo;if(decorated!==this.seekDecorated){this.decorate(decorated);this.seekDecorated=decorated;}
-    const opacity=p<.5?Math.max(0,1-p*4):Math.max(0,p*4-3);this.guideLayer.setAttribute('opacity',opacity);this.labelLayer.setAttribute('opacity',opacity);
-    this.view=toView;this.layout=this.seekTo;this.animating=p>0&&p<1;this.notify();
+    this.seekFrame(progress);
   }
-  setView(id,{animate=true,duration=this.options.duration||1500,effect=this.options.effect||'smooth'}={}){
+  setView(id,{animate=true,duration=this.options.duration||1500,effect=this.options.effect||'guided'}={}){
     if(this.destroyed)return;
     if(effect!=='guided'&&!morphEffects.some(e=>e.id===effect))throw new Error(uiMessage`未知变换方式：${effect}`);
+    if(effect!=='gather')return this.setDocument(this.doc,id,{...this.options,animate,duration,effect,recipe:pairRecipe(this.view,id).id,resume:this.isIntermediateFrame()});
+    const oldMarks=new Map(this.layout?.marks.map(m=>[m.key,m])||[]),resume=this.animating;
     const {w,h}=this.dimensions(),layout=this.layoutFor(this.doc,id,w,h,{showLegend:this.options.showLegend??false,domain:this.options.domain,axisLabels:this.options.axisLabels});
-    this.cancel();this.view=id;this.layout=layout;this.svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    this.cancel();this.seekKey=null;this.view=id;this.layout=layout;this.svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
     this.syncNodes(layout);this.paint(layout);
     const from=new Map(layout.marks.map(mark=>[mark.key,this.current.get(mark.key)||mark.points]));
     const changes=layout.marks.some(mark=>{const points=this.current.get(mark.key);return points&&(points.length!==mark.points.length||points.some((p,i)=>Math.abs(p[0]-mark.points[i][0])>.0001||Math.abs(p[1]-mark.points[i][1])>.0001));});
     const shouldAnimate=animate&&!this.reducedMotion&&this.current.size>0&&changes;
     if(!shouldAnimate){
       for(const mark of layout.marks)this.writeShape(mark.key,mark.points);
-      this.decorate(layout);this.guideLayer.setAttribute('opacity',1);this.labelLayer.setAttribute('opacity',1);this.animating=false;this.notify();return;
+      this.decorate(layout);this.guideLayer.setAttribute('opacity',1);this.labelLayer.setAttribute('opacity',1);this.svg.dataset.transitionProgress='1';this.animating=false;this.notify();return;
     }
     const outgoingOpacity=Number(this.guideLayer.getAttribute('opacity')??1);
     this.animating=true;this.notify();
@@ -309,10 +312,13 @@ export class MorphChart{
       if(this.destroyed||this.generation!==token)return;
       if(start===null)start=now;
       const p=clamp((now-start)/milliseconds);
+      this.svg.dataset.transitionProgress=String(p);
       for(const mark of layout.marks){
         const delay=mark.index/layout.marks.length*(effect==='cascade'?.32:.08),q=ease(clamp((p-.07-delay)/(effect==='cascade'?.49:.75)));
         const bend=effect==='arc'?Math.sin(q*Math.PI)*Math.min(48,h*.1)*(mark.index%2?1:-1):0;
-        let points=mixContour(from.get(mark.key),mark.points,q).map(([x,y])=>[x,y+bend]);
+        const a=from.get(mark.key),old=oldMarks.get(mark.key),custom=resume?this.interpolateResumedMark?.(a,mark,q,{old}):this.interpolateMark?.(old,mark,q,{effect,from:a});
+        let points=custom||mixContour(a,mark.points,q);if(bend)points=points.map(([x,y])=>[x,y+bend]);
+        if(hasCompoundMotion(points)){this.nodes.get(mark.key).shape.setAttribute('stroke-width',0);this.nodes.get(mark.key).texture.setAttribute('opacity',0);}
         if((effect==='gather'||effect==='turn')&&q>0&&q<1){
           const center=points.reduce((a,p)=>[a[0]+p[0]/points.length,a[1]+p[1]/points.length],[0,0]),pulse=Math.sin(q*Math.PI),angle=mark.index/layout.marks.length*Math.PI*2;
           if(effect==='gather'){
@@ -328,7 +334,7 @@ export class MorphChart{
       if(p>=.9&&!decorated){this.decorate(layout);decorated=true;}
       const opacity=p<.09?outgoingOpacity*(1-clamp(p/.09)):clamp((p-.9)/.1);this.guideLayer.setAttribute('opacity',opacity);this.labelLayer.setAttribute('opacity',opacity);
       if(p<1)this.frame=this.win.requestAnimationFrame(tick);
-      else {this.frame=null;this.guideLayer.setAttribute('opacity',1);this.labelLayer.setAttribute('opacity',1);for(const mark of layout.marks)this.writeShape(mark.key,mark.points);this.animating=false;this.notify();}
+      else {this.frame=null;this.guideLayer.setAttribute('opacity',1);this.labelLayer.setAttribute('opacity',1);for(const mark of layout.marks)this.writeShape(mark.key,mark.points);this.paint(layout);this.animating=false;this.notify();}
     };
     this.frame=this.win.requestAnimationFrame(tick);
   }
@@ -360,13 +366,13 @@ export class MorphChart{
       this.writeShape(mark.key,points);
     }
   }
-  setPalette(palette,dark=false){if(this.destroyed)return;this.theme=themeFor(palette,dark,this.options.colors);this.paint(this.layout);this.decorate(this.decoratedLayout||this.layout);if(this.animating){this.guideLayer.setAttribute('opacity',0);this.labelLayer.setAttribute('opacity',0);}}
+  setPalette(palette,dark=false){if(this.destroyed)return;this.seekKey=null;this.spatialSeekKey=null;this.options.palette=palette;this.options.dark=dark;this.theme=themeFor(palette,dark,this.options.colors);this.paint(this.layout);this.decorate(this.decoratedLayout||this.layout);if(this.refreshAppearance)this.refreshAppearance();else if(this.animating){this.guideLayer.setAttribute('opacity',0);this.labelLayer.setAttribute('opacity',0);}}
   // Change both data and encoding. Persistent record IDs keep their SVG node;
   // new/removed records grow/shrink instead of borrowing another record's value.
   setDocument(doc,view,{duration=1500,effect='smooth',recipe='contour',animate=true,manual=false,resume=false,palette=this.options.palette,dark=false,colors=this.options.colors,domain=this.options.domain,colorIndices,colorBindings,valueColors}={}){
     const eligibility=this.eligibility(doc,view);if(!eligibility.valid)throw new Error(eligibility.reason);if(this.destroyed)return;
     const displayedGuides=resume?this.guideLayer.cloneNode(true):null,displayedLabels=resume?this.labelLayer.cloneNode(true):null;
-    const appearance=()=>new Map([...this.nodes].map(([key,item])=>[key,{fill:item.shape.getAttribute('fill'),stroke:item.shape.getAttribute('stroke'),fillOpacity:Number(item.shape.getAttribute('fill-opacity')??1),strokeWidth:Number(item.shape.getAttribute('stroke-width')??0),texture:Number(item.texture.getAttribute('opacity')??0)}]));
+    const appearance=()=>new Map([...this.nodes].map(([key,item])=>[key,{fill:item.shape.getAttribute('fill'),stroke:item.shape.getAttribute('stroke'),fillOpacity:Number(item.shape.getAttribute('fill-opacity')??1),strokeOpacity:Number(item.shape.getAttribute('stroke-opacity')??1),strokeWidth:Number(item.shape.getAttribute('stroke-width')??0),texture:Number(item.texture.getAttribute('opacity')??0)}]));
     const previousAppearance=appearance();
     // A guided bridge starts at a settled encoding. When interrupted, resume
     // the actual displayed contours rather than jumping back to that encoding.
@@ -376,31 +382,32 @@ export class MorphChart{
     const previous=resume?{...this.layout,marks:this.layout.marks.map(m=>({...m,points:this.current.get(m.key)||m.points,opacity:Number(this.nodes.get(m.key)?.shape.getAttribute('fill-opacity')??m.opacity??1)}))}:this.layout,oldMarks=previous?.marks||[],nextKeys=new Set(next.marks.map(m=>m.key));
     const known=new Map(oldMarks.map(m=>[m.key,m]));
     const exits=[...this.current].filter(([key])=>!nextKeys.has(key)).map(([key,points],index)=>known.get(key)||{key,points,index,value:0});
-    const from=new Map([...this.current].map(([key,points])=>[key,points.map(p=>[...p])]));
+    const from=new Map([...this.current].map(([key,points])=>[key,copyMotionContour(points)]));
     const centroid=points=>points.reduce((a,p)=>[a[0]+p[0]/points.length,a[1]+p[1]/points.length],[0,0]);
     const collapse=points=>{const c=centroid(points);return points.map(()=>[...c]);};
-    this.doc=structuredClone(doc);this.view=view;this.layout=next;this.options.colors=colors;this.options.colorBindings=colorBindings;this.options.valueColors=valueColors;this.theme=themeFor(palette||'ink',dark,colors);
+    this.doc=structuredClone(doc);this.view=view;this.layout=next;this.options.palette=palette||'ink';this.options.dark=dark;this.options.colors=colors;this.options.colorBindings=colorBindings;this.options.valueColors=valueColors;this.theme=themeFor(palette||'ink',dark,colors);
     this.svg.setAttribute('aria-label',doc.title);this.svg.querySelector(':scope > desc').textContent=uiMessage`${doc.title}；按记录 ID 对应，新增和移除记录分别进出。来源：${doc.source.name}`;
     this.svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
     this.syncNodes({...next,marks:[...next.marks,...exits]});this.paint(next);
     const nextAppearance=appearance();
     for(const m of next.marks)if(!from.has(m.key))from.set(m.key,collapse(m.points));
     const targets=[...next.marks,...exits.map(m=>({...m,points:collapse(from.get(m.key)||m.points)}))];
-    const finish=()=>{for(const m of next.marks)this.writeShape(m.key,m.points);this.syncNodes(next);this.decorate(next);this.guideLayer.setAttribute('opacity',1);this.labelLayer.setAttribute('opacity',1);this.animating=false;this.frame=null;this.notify();};
+    const finish=()=>{for(const m of next.marks)this.writeShape(m.key,m.points);this.syncNodes(next);this.decorate(next);this.guideLayer.setAttribute('opacity',1);this.labelLayer.setAttribute('opacity',1);this.svg.dataset.transitionProgress='1';this.animating=false;this.frame=null;this.refreshAppearance=null;this.notify();};
     if(!manual&&(!animate||this.reducedMotion||!oldMarks.length)){finish();return;}
     this.animating=true;this.notify();const stableAxes=(previous?.doc?.family==='serial'&&next.doc?.family==='serial')||!resume&&(matchingGuideFrame(previous,next)||['endpoints','fill','update','series-stack','series-endpoints','series-band','series-contour'].includes(recipe)&&!!previous.percent===!!next.percent&&sameGuideCoordinates(previous,next));this.guideLayer.setAttribute('opacity',stableAxes?1:0);this.labelLayer.setAttribute('opacity',0);
-    const token=this.generation,ms=clamp(duration,600,5000);let start,lastDecoration;
+    const token=this.generation,ms=clamp(duration,600,5000);let start,lastDecoration,lastProgress=0;
     // Both the live clock and video encoder use this exact, reversible frame.
     // Retain the union of keyed nodes while seeking, even after visiting t=1.
     const frameAt=progress=>{
       const p=clamp(progress);
+      lastProgress=p;this.svg.dataset.transitionProgress=String(p);
       targets.forEach((m,index)=>{
         const node=this.nodes.get(m.key),styleA=previousAppearance.get(m.key)||nextAppearance.get(m.key),styleB=nextAppearance.get(m.key)||styleA,qStyle=ease(p);
-        if(styleA&&styleB){for(const [attr,key]of [['fill-opacity','fillOpacity'],['stroke-width','strokeWidth']])node.shape.setAttribute(attr,p===0?styleA[key]:p===1?styleB[key]:styleA[key]+(styleB[key]-styleA[key])*qStyle);node.texture.setAttribute('opacity',p===0?styleA.texture:p===1?styleB.texture:styleA.texture+(styleB.texture-styleA.texture)*qStyle);for(const attr of ['fill','stroke']){const a=styleA[attr],b=styleB[attr];node.shape.setAttribute(attr,p===0?a:p===1?b:a===b?a:a==='none'||b==='none'?(p<.5?a:b):interpolateRgb(a,b)(qStyle));}}
+        if(styleA&&styleB){for(const [attr,key]of [['fill-opacity','fillOpacity'],['stroke-opacity','strokeOpacity'],['stroke-width','strokeWidth']])node.shape.setAttribute(attr,p===0?styleA[key]:p===1?styleB[key]:styleA[key]+(styleB[key]-styleA[key])*qStyle);node.texture.setAttribute('opacity',p===0?styleA.texture:p===1?styleB.texture:styleA.texture+(styleB.texture-styleA.texture)*qStyle);for(const attr of ['fill','stroke']){const a=styleA[attr],b=styleB[attr];node.shape.setAttribute(attr,p===0?a:p===1?b:a===b?a:a==='none'||b==='none'?(p<.5?a:b):interpolateRgb(a,b)(qStyle));}}
         // Invisible scientific helpers keep deterministic state without
         // interpolating hidden geometry. Endpoints still write exactly.
         if(!resume&&p>0&&p<1&&!m.cutoutFor&&m.opacity===0&&known.get(m.key)?.opacity===0){this.writeShape(m.key,m.points);return;}
-        const stagger=effect==='cascade'?(m.transitionIndex??index)/(next.transitionCount??targets.length)*.22:0,q=ease(clamp((p-stagger)/(1-stagger)));
+        const stagger=effect==='cascade'?(m.transitionIndex??index)/(next.transitionCount??targets.length)*.22:0,defaultQ=ease(clamp((p-stagger)/(1-stagger))),q=this.transitionTiming?.(m,{index,from:previous,to:next,progress:p,effect,defaultQ})??defaultQ;
         const a=from.get(m.key)||collapse(m.points),bend=effect==='arc'?Math.sin(q*Math.PI)*28*(index%2?1:-1):0;
         let points;
         const old=known.get(m.key);
@@ -420,6 +427,7 @@ export class MorphChart{
         if(old?.geometry.type==='unit'||m.geometry.type==='unit'){
           const item=this.nodes.get(m.key);item.shape.setAttribute('stroke-width',p===1&&m.geometry.type!=='unit'?.9:0);item.texture.setAttribute('opacity',0);item.shape.setAttribute('fill-opacity',.91);
         }
+        if(p>0&&p<1&&hasCompoundMotion(points)){node.shape.setAttribute('stroke-width',0);node.texture.setAttribute('opacity',0);}
         if(effect==='turn'&&!m.serialEstimator&&!custom){const c=centroid(points),angle=Math.sin(q*Math.PI)*.22,cos=Math.cos(angle),sin=Math.sin(angle);points=points.map(([x,y])=>[c[0]+(x-c[0])*cos-(y-c[1])*sin,c[1]+(x-c[0])*sin+(y-c[1])*cos]);}
         this.writeShape(m.key,p===0?a:p===1?m.points:points);
       });
@@ -439,6 +447,13 @@ export class MorphChart{
         this.svg.dataset.transitionProgress=String(p);this.svg.setAttribute('aria-busy','false');this.animating=false;
       }
       this.decorateTransition?.(previous,next,p);
+    };
+    // A palette change must update an already returned manual frame function
+    // and a running clock without restarting its physical geometry.
+    this.refreshAppearance=()=>{
+      this.paint(previous);const source=appearance();this.paint(next);const target=appearance();
+      for(const [styles,newStyles]of[[previousAppearance,source],[nextAppearance,target]])for(const[key,style]of styles){const fresh=newStyles.get(key);if(fresh)Object.assign(style,fresh);}
+      frameAt(lastProgress);
     };
     if(manual){frameAt(0);return frameAt;}
     const tick=now=>{

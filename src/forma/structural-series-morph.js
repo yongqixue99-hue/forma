@@ -2,10 +2,15 @@ import {hierarchy,pack,tree,sum,max,scaleLinear} from 'd3';
 import {recordId,populationId} from './data-identity.js';
 import {circlePoints,rectPoints,sectorPoints} from './morph.js';
 import {base,glyph,segment,key,fmt,compactNames} from './scientific-geometry.js';
+import {interpolateMatrixRoll,applyMatrixRoll} from './matrix-roll-geometry.js';
 import {hierarchy13} from './volume13-data.js';
 import {contingency14} from './volume14-data.js';
 import {structuralText as t,structuralBounds,structuralMatrixNames} from './structural-series-rules.js';
 const center=points=>[sum(points,p=>p[0])/points.length,sum(points,p=>p[1])/points.length];
+// The same two flanks as a sector: left→right across the upper arc, then
+// right→left across the lower arc. A uniform circle perimeter has unrelated
+// stations and folds into splinters when it is paired with the sector's arcs.
+function matrixCircle(cx,cy,r){return [...Array.from({length:64},(_,i)=>{const a=Math.PI+i/63*Math.PI;return[cx+Math.cos(a)*r,cy+Math.sin(a)*r];}),...Array.from({length:64},(_,i)=>{const a=i/63*Math.PI;return[cx+Math.cos(a)*r,cy+Math.sin(a)*r];})];}
 function matrixLayout(doc,view,w,h,{domain}={}){
  const radial=view==='structural-radial',plot={x:w<500?40:76,y:51,w:w-(w<500?60:96),h:h-101},l=base(doc,view,w,h,plot),{rows,columns}=structuralMatrixNames(doc),range=domain?.value||structuralBounds(doc).value,maxValue=Math.max(...range,0),colorScale=Math.max(...range.map(Math.abs))||1;
  const cw=plot.w/columns.length,ch=plot.h/rows.length,cx=plot.x+plot.w/2,cy=plot.y+plot.h/2,r=Math.min(plot.w,plot.h)/2,inner=r*.23,band=(r-inner)/rows.length,angle=Math.PI*2/columns.length;
@@ -13,16 +18,16 @@ function matrixLayout(doc,view,w,h,{domain}={}){
  l.details=radial?t(`颜色：${fmt(range[0])}—${fmt(range[1])} ${doc.unit} · × 缺测 · 面积不表示数量`,`Color: ${fmt(range[0])}–${fmt(range[1])} ${doc.unit} · × missing · area is not quantity`):t('圆面积：原值 · 空心圈：0 · ×：缺测','Circle area: original value · outlined circle: 0 · ×: missing');
  for(const row of doc.data){
   const i=rows.indexOf(row.matrixRow),j=columns.indexOf(row.matrixColumn),a0=-Math.PI/2+j*angle,a1=a0+angle,mid=(a0+a1)/2,p=radial?[cx+Math.cos(mid)*(inner+(i+.5)*band),cy+Math.sin(mid)*(inner+(i+.5)*band)]:[plot.x+(j+.5)*cw,plot.y+(i+.5)*ch],radius=row.value>0?Math.min(cw,ch)*.4*Math.sqrt(row.value/(maxValue||1)):2.8;
-  const points=radial?sectorPoints(cx,cy,inner+i*band,inner+(i+1)*band,a0,a1):circlePoints(...p,radius),common={identity:recordId(row),colorIdentity:recordId(row),index:row.inputIndex,row:row.inputIndex,transitionIndex:row.inputIndex};
+  const points=radial?sectorPoints(cx,cy,inner+i*band,inner+(i+1)*band,a0,a1):matrixCircle(...p,radius),common={identity:recordId(row),colorIdentity:recordId(row),index:row.inputIndex,row:row.inputIndex,transitionIndex:j};
   const tooltip=`${row.matrixRow} × ${row.matrixColumn} · ${row.value===null?t('缺测，非零','Missing, not zero'):String(row.value)+' '+doc.unit}`;
-  glyph(l,common,'matrix-cell',points,p,{value:row.value,editable:'value',opacity:radial?.9:.78,paper:row.value===null||!radial&&row.value===0,stroke:row.value===null||row.value===0?1:.45,neutral:row.value===null,tone:row.value===null?null:row.value/colorScale,valueDomain:range,tooltip,cellAreaRepresentsValue:!radial&&row.value!==null,observedValue:row.value});
+  const cell=glyph(l,common,'matrix-cell',points,p,{value:row.value,editable:'value',opacity:radial?.9:.78,paper:row.value===null||!radial&&row.value===0,stroke:row.value===null||row.value===0?1:.45,neutral:row.value===null,tone:row.value===null?null:row.value/colorScale,valueDomain:range,tooltip,cellAreaRepresentsValue:!radial&&row.value!==null,observedValue:row.value,matrixRoll:{radial,row:i,rows:rows.length,angle:mid,flatPitch:ch,radialPitch:band,flatCenter:[plot.x+(j+.5)*cw,cy],radialCenter:[cx+Math.cos(mid)*(inner+rows.length*band/2),cy+Math.sin(mid)*(inner+rows.length*band/2)]}});
   const cross=segment([p[0]-2.4,p[1]-2.4],[p[0]+2.4,p[1]+2.4],1),cross2=segment([p[0]-2.4,p[1]+2.4],[p[0]+2.4,p[1]-2.4],1);
-  for(const [n,shape]of[cross,cross2].entries())glyph(l,common,`missing-${n}`,shape,p,{value:row.value,editable:'value',opacity:row.value===null?1:0,neutral:true,tooltip});
+  for(const [n,shape]of[cross,cross2].entries())glyph(l,common,`missing-${n}`,shape,p,{value:row.value,editable:'value',opacity:row.value===null?1:0,neutral:true,tooltip,matrixRoll:cell.matrixRoll});
  }
  const cn=compactNames(columns,radial?6:Math.max(3,Math.floor(cw/8))),rn=compactNames(rows,radial?6:w<500?4:8);
  columns.forEach((name,j)=>{const a=-Math.PI/2+(j+.5)*angle;l.labels.push(radial?{x:cx+Math.cos(a)*(r+13),y:cy+Math.sin(a)*(r+13)+3,text:cn[j],anchor:'middle',fontSize:9}:{x:plot.x+(j+.5)*cw,y:plot.y-10,text:cn[j],anchor:'middle',fontSize:10});});
  rows.forEach((name,i)=>l.labels.push(radial?{x:cx-3,y:cy-inner-(i+.5)*band+3,text:rn[i],anchor:'end',fontSize:Math.min(10,band*.65),dataLabel:true,halo:true}:{x:plot.x-7,y:plot.y+(i+.5)*ch+3,text:rn[i],anchor:'end',fontSize:10}));
- l.valueDomain=range;l.total=doc.data.filter(r=>r.value!==null).length;return l;
+ l.transitionCount=columns.length;l.valueDomain=range;l.total=doc.data.filter(r=>r.value!==null).length;return l;
 }
 function contingencyLayout(doc,view,w,h){
  const agreement=view==='structural-agreement',association=view==='structural-association',mosaic=view==='structural-mosaic',model=contingency14({...doc,template:doc.categories?'agreement':'association'}),plot={x:w<500?38:62,y:54,w:w-(w<500?54:84),h:h-99},l=base(doc,view,w,h,plot),cw=plot.w/model.columns.length,rh=plot.h/model.rows.length,maxExpected=max(model.cells,c=>Math.sqrt(c.expected)),maxResidual=Math.max(1,max(model.cells,c=>Math.abs(c.residual))),widthScale=cw*.78/maxExpected,heightScale=rh*.34/maxResidual;
@@ -76,3 +81,8 @@ function hierarchyLayout(doc,view,w,h){
  l.statistics=model;l.total=model.total;l.scales={value:valueScale};return l;
 }
 export function layoutStructural(doc,view,w=800,h=440,options={}){return doc.family==='matrix-cell'?matrixLayout(doc,view,w,h,options):doc.family==='contingency'?contingencyLayout(doc,view,w,h):hierarchyLayout(doc,view,w,h);}
+export function interpolateStructuralMark(from,old,next,q){
+ if(old?.role==='matrix-cell'&&next?.role==='matrix-cell')return interpolateMatrixRoll(from,old,next,q);
+ if(old?.role?.startsWith('missing-')&&next?.role===old.role&&old.matrixRoll&&next.matrixRoll){if(q===0)return from;if(q===1)return next.points;const points=from.map((p,i)=>p.map((v,k)=>v+(next.points[i][k]-v)*q));return applyMatrixRoll(points,from,old,next,q);}
+ return null;
+}

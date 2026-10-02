@@ -24,7 +24,7 @@ export function glyph(layout,base,role,points,anchor,{opacity=1,stroke=0,paper=f
   const mark={...base,key:key(base.identity,role),role,value,points,anchor,opacity,stroke,paper,geometry:{type:'science',anchor},label:{visible:false},entrance:entrance||points.map(()=>anchor),editable,tooltip,...rest};layout.marks.push(mark);return mark;
 }
 export function dot(layout,base,role,p,r,options={}){return glyph(layout,base,role,circlePoints(...p,r),p,{...options,point:p,radius:r});}
-export function line(layout,base,role,a,b,anchor,options={}){return glyph(layout,base,role,segment(a,b,options.width||1.2),anchor,options);}
+export function line(layout,base,role,a,b,anchor,options={}){return glyph(layout,base,role,segment(a,b,options.width||1.2),anchor,{ribbonSegment:true,...options});}
 
 // A density contour has two sampled flanks: low→high, then high→low.
 // Interpolate in its own value/width frame. Screen-coordinate interpolation
