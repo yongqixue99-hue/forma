@@ -1,3 +1,4 @@
+import {populationId} from './data-identity.js';
 import * as d3 from 'd3';
 import {t11,proportion11,defects11,cusum11,ewma11,xbar11,lagPairs11,spectrum11} from './volume11-data.js';
 import {number7 as fmt,num7 as num,label7 as label,short7 as shorten} from './volume7-utils.js';
@@ -86,18 +87,19 @@ function lagplot(s,doc){
  const points=lagPairs11(doc),margin=s.compact?46:62,size=Math.min(s.w-margin-22,s.h-70),left=margin+(s.w-margin-22-size)/2,top=29,bottom=top+size,domain=s.linearDomain(doc.data.map(d=>d.value)),span=domain[1]-domain[0],expanded=[domain[0]-span*.08,domain[1]+span*.08],x=d3.scaleLinear(expanded,[left,left+size]),y=d3.scaleLinear(expanded,[bottom,top]);
  for(const value of x.ticks(4)){s.line(x(value),top,x(value),bottom,{'stroke-width':.5,'stroke-dasharray':'1 5'});num(s,x(value),bottom+16,fmt(value),{'text-anchor':'middle','font-size':s.fs-3});s.line(left,y(value),left+size,y(value),{'stroke-width':.5,'stroke-dasharray':'1 5'});num(s,left-7,y(value)+3,fmt(value),{'text-anchor':'end','font-size':s.fs-3});}
  s.line(left,bottom,left+size,top,{stroke:s.theme.secondary,'stroke-dasharray':'4 4','stroke-width':.8,'data-mark':'lag-equality'});
- points.forEach((p,j)=>{const mark=s.circle(x(p.x),y(p.y),s.compact?2.5:3.1,{fill:markColor(s),'fill-opacity':.3+.55*j/Math.max(1,points.length-1),stroke:s.theme.bg,'stroke-width':.6,'data-mark':'lag-pair','data-x':p.x,'data-y':p.y,'data-source-rows':JSON.stringify([p.i-doc.lag,p.i]),'data-record-ids':records([p.previous,p.row])});s.growCircle(mark,s.compact?2.5:3.1,j/points.length*.36,.46);s.edit(mark,p.row,'value');s.tip(mark,`${p.previous.period} → ${p.row.period}\nX: ${p.x} ${doc.unit}\nY: ${p.y} ${doc.unit}\n${t11('滞后','Lag')} ${doc.lag}`);});
+ points.forEach((p,j)=>{const mark=s.circle(x(p.x),y(p.y),s.compact?2.5:3.1,{fill:s.theme.objectColor(populationId('complete-native-signal',doc.data),markColor(s)),'fill-opacity':.3+.55*j/Math.max(1,points.length-1),stroke:s.theme.bg,'stroke-width':.6,'data-mark':'lag-pair','data-x':p.x,'data-y':p.y,'data-source-rows':JSON.stringify([p.i-doc.lag,p.i]),'data-record-ids':records([p.previous,p.row])});s.growCircle(mark,s.compact?2.5:3.1,j/points.length*.36,.46);s.edit(mark,p.row,'value');s.tip(mark,`${p.previous.period} → ${p.row.period}\nX: ${p.x} ${doc.unit}\nY: ${p.y} ${doc.unit}\n${t11('滞后','Lag')} ${doc.lag}`);});
  label(s,left,13,`Y: x[t] · ${doc.unit}`,{'font-size':s.fs-2},45);label(s,left+size,s.h-3,`X: x[t−${doc.lag}] · ${doc.unit}`,{'font-size':s.fs-2,'text-anchor':'end'},45);
 }
 function periodogram(s,doc){
+ const signalColor=s.theme.objectColor(populationId('complete-native-signal',doc.data),markColor(s));
  const points=spectrum11(doc.data.map(d=>d.value),doc.sampleInterval),peak=points.reduce((a,b)=>b.power>a.power?b:a),f=frame(s,points.map(p=>p.power),{zero:true,top:43}),x=d3.scaleLinear([0,.5/doc.sampleInterval],[f.left,f.right]),g=s.group(),frequencyUnit=`1/${doc.timeUnit}`;
  x.ticks(s.compact?3:5).forEach(v=>num(s,x(v),f.bottom+17,fmt(v),{'text-anchor':'middle','font-size':s.fs-3}));
- const area=d3.area().x(p=>x(p.frequency)).y0(f.y(0)).y1(p=>f.y(p.power));s.path(area(points),{fill:markColor(s),'fill-opacity':.1},g);
- s.path(d3.line().x(p=>x(p.frequency)).y(p=>f.y(p.power))(points),{stroke:markColor(s),'stroke-width':1.25},g);
- points.forEach(p=>{const line=s.line(x(p.frequency),f.y(0),x(p.frequency),f.y(p.power),{stroke:markColor(s),'stroke-width':p===peak?2:.65,'stroke-opacity':p===peak?1:.25,'data-mark':'spectrum-bin','data-frequency':p.frequency,'data-power':p.power},g);s.tip(line,`f=${fmt(p.frequency)} ${frequencyUnit}\nP=${fmt(p.power)} ${doc.unit}²\n${t11('周期','Period')}: ${fmt(1/p.frequency)} ${doc.timeUnit}\nk=${p.k}`);});
- const peakPoint=s.circle(x(peak.frequency),f.y(peak.power),3.1,{fill:markColor(s),stroke:s.theme.bg,'stroke-width':1,'data-mark':'spectrum-peak'},g);s.tip(peakPoint,`${t11('最大频点功率','Peak bin power')}\nf=${fmt(peak.frequency)} ${frequencyUnit}\n${fmt(peak.power)} ${doc.unit}²`);
+ const area=d3.area().x(p=>x(p.frequency)).y0(f.y(0)).y1(p=>f.y(p.power));s.path(area(points),{fill:signalColor,'fill-opacity':.1},g);
+ s.path(d3.line().x(p=>x(p.frequency)).y(p=>f.y(p.power))(points),{stroke:signalColor,'stroke-width':1.25},g);
+ points.forEach(p=>{const line=s.line(x(p.frequency),f.y(0),x(p.frequency),f.y(p.power),{stroke:signalColor,'stroke-width':p===peak?2:.65,'stroke-opacity':p===peak?1:.25,'data-mark':'spectrum-bin','data-frequency':p.frequency,'data-power':p.power},g);s.tip(line,`f=${fmt(p.frequency)} ${frequencyUnit}\nP=${fmt(p.power)} ${doc.unit}²\n${t11('周期','Period')}: ${fmt(1/p.frequency)} ${doc.timeUnit}\nk=${p.k}`);});
+ const peakPoint=s.circle(x(peak.frequency),f.y(peak.power),3.1,{fill:signalColor,stroke:s.theme.bg,'stroke-width':1,'data-mark':'spectrum-peak'},g);s.tip(peakPoint,`${t11('最大频点功率','Peak bin power')}\nf=${fmt(peak.frequency)} ${frequencyUnit}\n${fmt(peak.power)} ${doc.unit}²`);
  s.clipReveal(g,f.left-5,f.top-7,f.right-f.left+10,f.bottom-f.top+14,0,.82);
- label(s,f.left,13,`${t11('每频点功率','Power per bin')} · ${doc.unit}²`,{'font-size':s.fs-2},44);label(s,f.left,29,`${t11('主峰周期','Peak period')} ${fmt(1/peak.frequency)} ${doc.timeUnit}`,{'font-size':s.fs-3,fill:markColor(s)},44);label(s,f.right,s.h-3,`${t11('频率','Frequency')} · ${frequencyUnit}`,{'text-anchor':'end','font-size':s.fs-3},40);
+ label(s,f.left,13,`${t11('每频点功率','Power per bin')} · ${doc.unit}²`,{'font-size':s.fs-2},44);label(s,f.left,29,`${t11('主峰周期','Peak period')} ${fmt(1/peak.frequency)} ${doc.timeUnit}`,{'font-size':s.fs-3,fill:signalColor},44);label(s,f.right,s.h-3,`${t11('频率','Frequency')} · ${frequencyUnit}`,{'text-anchor':'end','font-size':s.fs-3},40);
 }
 function forecastfan(s,doc){
  const split=doc.data.findIndex(d=>d.observed===null),history=doc.data.slice(0,split),forecast=doc.data.slice(split),all=doc.data.flatMap(d=>d.observed===null?[d.lower95,d.upper95]:[d.observed]),f=frame(s,all,{top:37}),x=timeline(s,doc.data,f),g=s.group(),col=markColor(s),boundary=(x(split-1)+x(split))/2;

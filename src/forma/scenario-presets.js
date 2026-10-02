@@ -1,3 +1,7 @@
+import {completionNativePresets,completionNativeRecords} from './completion-native-presets.js';
+import {completionSpatialPresets,completionSpatialRecords} from './completion-spatial-presets.js';
+import {completionResearchPresets,completionResearchRecords} from './completion-research-presets.js';
+import {completionBusinessPresets,completionBusinessRecords} from './completion-business-presets.js';
 import {qualityPresets,qualityRecords} from './quality-series-presets.js';
 import {timePlanningPresets,timePlanningRecords} from './time-planning-presets.js';
 import {engineeringPresets,engineeringRecords} from './engineering-series-presets.js';
@@ -27,6 +31,10 @@ import {refinementPresets,refinementRecords} from './refinement-presets.js';
 
 export const scenarioPresets=[
   ...analyticalPresets.filter(p=>p.id==='screening-effectiveness'),
+  ...completionNativePresets,
+  ...completionSpatialPresets,
+  ...completionResearchPresets,
+  ...completionBusinessPresets,
   ...advancedRelationsPresets,
   ...multivariateExtendedPresets,
   ...engineeringPresets,
@@ -80,6 +88,10 @@ export function morphBaseDocument(doc){
 export function scenarioRecords(id,palette){
   const publicRecords=publicCaseRecords(id,palette);if(publicRecords)return publicRecords;
   palette??='ink';
+  const completionNative=completionNativeRecords(id,palette);if(completionNative)return completionNative;
+  const completionSpatial=completionSpatialRecords(id,palette);if(completionSpatial)return completionSpatial;
+  const completionResearch=completionResearchRecords(id,palette);if(completionResearch)return completionResearch;
+  const completionBusiness=completionBusinessRecords(id,palette);if(completionBusiness)return completionBusiness;
   const advancedRelations=advancedRelationsRecords(id,palette);if(advancedRelations)return advancedRelations;
   const multivariateExtended=multivariateExtendedRecords(id,palette);if(multivariateExtended)return multivariateExtended;
   const engineering=engineeringRecords(id,palette);if(engineering)return engineering;

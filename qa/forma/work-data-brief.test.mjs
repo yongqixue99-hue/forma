@@ -54,11 +54,29 @@ test('user data, original headers, unassigned columns, IDs and tiny values remai
 });
 
 test('work schema instructions deduplicate repeated templates and avoid native algorithms for overriding morph views',()=>{
- const imr=getExample('imr'),work=newWork([{doc:imr},{doc:imr},{doc:getExample('volcano')}]);
+ setLocale('zh-CN');const imr=getExample('imr'),work=newWork([{doc:imr},{doc:imr},{doc:getExample('volcano')}]);
  const brief=workAgentBrief(work);assert.equal((brief.match(/### imr ·/g)||[]).length,1);assert.match(brief,/第 1, 2 步的原始数据表/);
- for(const note of getDataGuide('volcano').notes)assert.ok(brief.includes(note),'existing native statistical rules are shared too');
+ // Volcano now uses its research morph contract. Explicit native instructions
+ // still share every native note, while the selected view keeps the raw-input
+ // constraints in its own guide instead of duplicating a renderer algorithm.
+ assert.equal(morphReady(work.steps[2]),true);
+ const native=workDataInstructions(work.steps,{nativeTemplates:['volcano']});
+ for(const note of getDataGuide('volcano').notes)assert.ok(native.includes(note),'explicit native statistical rules are shared too');
+ for(const rule of [/log2FC 填已经过 log₂ 变换/,/padj 填原始校正 p 值本身/,/不能填 −log₁₀\(padj\)/,/qThreshold 是 \(0,1\] 内的显著性阈值/,/fcThreshold 是绝对 log2FC 的正变化幅度阈值/,/已完成的外部分析结果/])assert.match(brief,rule);
  const step=makeStep({doc:getExample('errorbar'),view:'sample-violin'}),section=workDataInstructions([step]);
  assert.match(section,/view/);assert.match(section,/group:/);assert.ok(!section.includes(getDataGuide('errorbar').notes[0]));
+});
+
+test('research morph briefs retain raw input constraints in Chinese and English',()=>{
+ const rules={
+  'zh-CN':[/padj 填原始校正 p 值本身/,/不能填 −log₁₀\(padj\)、零或缺失值/,/mean 必须大于 0/,/零剂量对照须单独分析/,/不能用组均值替代/,/count≤total/,/输入基因总数/,/真实碱基位置/,/pvalue 填原 p 值本身/],
+  en:[/log2FC is already log₂ transformed/,/padj is the original adjusted p-value itself/,/never enter −log₁₀\(padj\), zero or missing values/,/mean must be positive/,/zero-dose controls require separate analysis/,/rather than replacing them with group means/,/count≤total/,/number of input genes/,/real base-pair coordinate/,/pvalue is the supplied p-value itself/]
+ };
+ try{for(const lang of ['zh-CN','en']){
+  setLocale(lang);const work=newWork(['volcano','ma','dose','enrichment','manhattan'].map(id=>({doc:getExample(id)}))),before=structuredClone(work),brief=workAgentBrief(work);
+  assert.ok(work.steps.every(morphReady));for(const rule of rules[lang])assert.match(brief,rule);
+  assert.deepEqual(work,before,'guide generation must not rewrite original analysis inputs');
+ }}finally{setLocale('zh-CN');}
 });
 
 test('legacy works without record IDs retain values and provenance through brief generation',()=>{

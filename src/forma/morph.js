@@ -399,7 +399,7 @@ export class MorphChart{
         if(styleA&&styleB){for(const [attr,key]of [['fill-opacity','fillOpacity'],['stroke-width','strokeWidth']])node.shape.setAttribute(attr,p===0?styleA[key]:p===1?styleB[key]:styleA[key]+(styleB[key]-styleA[key])*qStyle);node.texture.setAttribute('opacity',p===0?styleA.texture:p===1?styleB.texture:styleA.texture+(styleB.texture-styleA.texture)*qStyle);for(const attr of ['fill','stroke']){const a=styleA[attr],b=styleB[attr];node.shape.setAttribute(attr,p===0?a:p===1?b:a===b?a:a==='none'||b==='none'?(p<.5?a:b):interpolateRgb(a,b)(qStyle));}}
         // Invisible scientific helpers keep deterministic state without
         // interpolating hidden geometry. Endpoints still write exactly.
-        if(!resume&&p>0&&p<1&&m.opacity===0&&known.get(m.key)?.opacity===0){this.writeShape(m.key,m.points);return;}
+        if(!resume&&p>0&&p<1&&!m.cutoutFor&&m.opacity===0&&known.get(m.key)?.opacity===0){this.writeShape(m.key,m.points);return;}
         const stagger=effect==='cascade'?(m.transitionIndex??index)/(next.transitionCount??targets.length)*.22:0,q=ease(clamp((p-stagger)/(1-stagger)));
         const a=from.get(m.key)||collapse(m.points),bend=effect==='arc'?Math.sin(q*Math.PI)*28*(index%2?1:-1):0;
         let points;

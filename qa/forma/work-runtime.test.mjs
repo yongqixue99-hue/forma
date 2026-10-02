@@ -10,7 +10,8 @@ const manifest=JSON.parse(await readFile(new URL('../../public/forma/work-runtim
 test('all existing scenes select a renderer superset; the manifest describes actual smaller files',async()=>{
   for(const preset of scenarioPresets){const w=presetWork(preset.id),p=selectWorkRuntime(w,manifest.profiles);assert.ok(w.steps.every(s=>p.families.includes(workRendererFamily(s))),preset.id);}
   for(const p of manifest.profiles){const data=await readFile(new URL('../../public/forma/'+p.file,import.meta.url));assert.equal(data.length,p.bytes);assert.equal(createHash('sha256').update(data).digest('hex'),p.sha256);}
-  const cases=deliveryWorks(),full=selectWorkRuntime(cases.native,manifest.profiles),basic=selectWorkRuntime(cases.basic,manifest.profiles);assert.equal(full.file,'work-player.js');assert.ok(basic.bytes<full.bytes*.65);
+  const cases=deliveryWorks(),native=selectWorkRuntime(cases.native,manifest.profiles),basic=selectWorkRuntime(cases.basic,manifest.profiles),full=manifest.profiles.find(p=>p.file==='work-player.js');
+  assert.equal(native.file,'work-player-single-scientific.js');assert.deepEqual(cases.native.steps.map(workRendererFamily),['scientific','scientific']);assert.ok(native.bytes<full.bytes);assert.ok(basic.bytes<full.bytes*.65);
   const mixed=cleanWork({...cases.basic,steps:[cases.basic.steps[0],cases.series.steps[0],cases.samples.steps[0]]});const picked=selectWorkRuntime(mixed,manifest.profiles);assert.deepEqual(picked.families,['single','series','scientific']);
 });
 test('engine loading recovers from missing optimized assets and never posts source data',async()=>{

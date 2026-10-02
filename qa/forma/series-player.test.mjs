@@ -72,9 +72,13 @@ test('independent native charts run their own growth tracks during all full-scen
     for(const effect of ['auto','entrance','slide','gather','fade']){
       const a=makeStep({doc:getExample('column')}),b=makeStep({doc:getExample('variwide'),transition:effect,duration:1000});
       const stage=new WorkStage(c.host,a,{steps:[a,b]});const plan=stage.go(b);assert.equal(plan.mode,'gather');c.advance(0);c.advance(280);
-      const bars=[...c.host.querySelectorAll('[data-mark=variwide-bar]')];assert.ok(bars.length>0);assert.ok(bars.every(b=>Number(b.getAttribute('height'))===0));
-      c.advance(500);const middle=bars.map(b=>Number(b.getAttribute('height')));assert.ok(middle.some(v=>v>0));
-      c.advance(1000);assert.ok(bars.some((b,i)=>Number(b.getAttribute('height'))>middle[i]));assert.equal(stage.busy,false);assert.equal(c.host.querySelector('[data-wp-title]').textContent,b.doc.title);
+      const chart=stage.scene,marks=chart.layout.marks.filter(m=>m.role==='business-variwide-record'),nodes=marks.map(m=>chart.nodes.get(m.key).shape);
+      const area=points=>Math.abs(points.reduce((sum,[x,y],i)=>{const [nx,ny]=points[(i+1)%points.length];return sum+x*ny-y*nx;},0))/2;
+      assert.equal(marks.length,b.doc.data.length);assert.equal(chart.svg.dataset.view,'complete-business-variwide');assert.ok(marks.every(m=>area(chart.current.get(m.key))<1e-6));
+      c.advance(500);const middle=marks.map(m=>area(chart.current.get(m.key)));assert.ok(middle.some(v=>v>0));assert.equal(chart.svg.dataset.entranceProgress,String((.5-.28)/.72));
+      c.advance(1000);assert.ok(marks.some((m,i)=>area(chart.current.get(m.key))>middle[i]));
+      for(const [i,m] of marks.entries()){assert.equal(chart.nodes.get(m.key).shape,nodes[i]);assert.deepEqual(chart.current.get(m.key),m.points);}
+      assert.equal(stage.busy,false);assert.equal(c.host.querySelector('[data-wp-title]').textContent,b.doc.title);
       stage.go(a);c.advance(1100);c.advance(1450);stage.go(b);c.advance(1500);c.advance(2500);assert.equal(stage.busy,false);assert.equal(stage.scene.doc.title,b.doc.title);
       stage.destroy();assert.equal(c.queue.size,0);
     }

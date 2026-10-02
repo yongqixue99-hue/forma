@@ -1,4 +1,5 @@
 import {drawSectorLabels} from './chart-readability.js';
+import {populationId} from './data-identity.js';
 import {uiText,uiMarkup,uiMessage} from './locale.js';
 import * as d3 from 'd3';
 import {unique7 as unique,table7,horizonSamples} from './volume7-data.js';
@@ -48,8 +49,8 @@ function vectorfield(s,doc){
   doc.data.forEach((d,i)=>{const x=f.x(d.x),y=f.y(d.y),mag=Math.hypot(d.u,d.v),dx=d.u*factor,dy=-d.v*factor,col=d.v>=0?t.accent:t.fg,g=s.group({'data-mark':'vector','data-magnitude':mag,'data-scale':factor}),path=s.path('',{stroke:col,'stroke-width':1.15,'stroke-linecap':'round'},g);s.tip(g,uiMessage`(${d.x}, ${d.y})\n水平 ${d.u} · 竖直 ${d.v} ${doc.unit}\n大小 ${fmt(mag)} ${doc.unit}`);if(!mag)s.circle(x,y,1.5,{fill:t.secondary},g);s.add(p=>{const q=phase(p,i/doc.data.length*.25,.65),ex=x+dx*q,ey=y+dy*q,head=Math.min(4,mag*factor*.3)*q,a=Math.atan2(dy,dx);path.setAttribute('d',`M${x},${y}L${ex},${ey}M${ex-head*Math.cos(a-.5)},${ey-head*Math.sin(a-.5)}L${ex},${ey}L${ex-head*Math.cos(a+.5)},${ey-head*Math.sin(a+.5)}`);});});label(s,48,s.h-22,uiMessage`最长箭头 ${fmt(max)} ${doc.unit}`,{'font-size':s.fs-3},40);
 }
 function voronoi(s,doc){
-  const {theme:t}=s,f=spatialScale7(s,doc.data),groups=unique(doc.data.map(d=>d.group)),delaunay=d3.Delaunay.from(doc.data,d=>f.x(d.x),d=>f.y(d.y)),v=delaunay.voronoi([f.left,f.top,f.right,f.bottom]);spatialAxes7(s,doc,f);
-  doc.data.forEach((d,i)=>{const col=t.color(groups.indexOf(d.group)),cell=s.path(v.renderCell(i)||'',{fill:col,'fill-opacity':.1,stroke:col,'stroke-opacity':.45,'stroke-width':.7,'data-mark':'voronoi-cell'});s.tip(cell,uiMessage`${d.label} · ${d.group}\n(${d.x}, ${d.y})\n区域为最近邻分区`);s.reveal(cell,i/doc.data.length*.22,.65);const point=s.circle(f.x(d.x),f.y(d.y),2.7,{fill:t.bg,stroke:col,'stroke-width':1.1});s.tip(point,`${d.label}\n${doc.axes.x}：${d.x}\n${doc.axes.y}：${d.y}`);s.growCircle(point,2.7,i/doc.data.length*.25,.6);});
+  const {theme:t}=s,f=spatialScale7(s,doc.data),names=unique(doc.data.map(d=>d.group)),groups=Array.isArray(doc.groupOrder)&&doc.groupOrder.length===names.length&&new Set(doc.groupOrder).size===names.length&&doc.groupOrder.every(g=>names.includes(g))?doc.groupOrder:names,delaunay=d3.Delaunay.from(doc.data,d=>f.x(d.x),d=>f.y(d.y)),v=delaunay.voronoi([f.left,f.top,f.right,f.bottom]);spatialAxes7(s,doc,f);
+  doc.data.forEach((d,i)=>{const col=t.objectColor(populationId('sample-group',doc.data.filter(r=>r.group===d.group)),t.color(groups.indexOf(d.group))),cell=s.path(v.renderCell(i)||'',{fill:col,'fill-opacity':.1,stroke:col,'stroke-opacity':.45,'stroke-width':.7,'data-mark':'voronoi-cell'});s.tip(cell,uiMessage`${d.label} · ${d.group}\n(${d.x}, ${d.y})\n区域为最近邻分区`);s.reveal(cell,i/doc.data.length*.22,.65);const point=s.circle(f.x(d.x),f.y(d.y),2.7,{fill:t.bg,stroke:col,'stroke-width':1.1});s.tip(point,`${d.label}\n${doc.axes.x}：${d.x}\n${doc.axes.y}：${d.y}`);s.growCircle(point,2.7,i/doc.data.length*.25,.6);});
 }
 function gauge(s,doc){
   const {w,h,theme:t}=s,d=doc.data[0],cx=w/2,cy=h*.71,r=Math.min(w*.36,h*.54),g=s.group({transform:`translate(${cx},${cy})`}),start=-Math.PI/2,end=Math.PI/2,ratio=(d.value-d.min)/(d.max-d.min),target=(d.target-d.min)/(d.max-d.min),arc=d3.arc().innerRadius(r*.88).outerRadius(r);

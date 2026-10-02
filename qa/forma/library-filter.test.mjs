@@ -6,7 +6,7 @@ import {filterCatalog,facetCounts} from '../../src/forma/library-filter.js';
 import {morphReady} from '../../src/forma/work-model.js';
 
 test('library animation counts partition templates and use actual work eligibility',()=>{
-  assert.deepEqual(motionCoverage,{templates:204,morph:160,entrance:44,encodings:242});
+  assert.deepEqual(motionCoverage,{templates:204,morph:204,entrance:0,encodings:330});
   assert.deepEqual(libraryCatalog.map(t=>t.id),catalog.map(t=>t.id));
   for(const t of libraryCatalog)assert.equal(t.motion==='morph',morphReady({doc:getExample(t.id)}),t.id);
   const morph=filterCatalog(libraryCatalog,{motion:'morph'}),entrance=filterCatalog(libraryCatalog,{motion:'entrance'});
@@ -18,8 +18,8 @@ test('animation filters compose with research, visual family, search and favorit
   const filters={motion:'morph',category:'research',family:'line',query:'ROC',onlyFavorites:true,favorites:['roc','pca']};
   assert.deepEqual(filterCatalog(libraryCatalog,filters).map(t=>t.id),['roc']);
   assert.deepEqual(filterCatalog(libraryCatalog,{...filters,motion:'entrance'}),[]);
-  assert.equal(filterCatalog(libraryCatalog,{family:'spatial',motion:'morph'}).length,3);
-  assert.equal(filterCatalog(libraryCatalog,{family:'spatial',motion:'entrance'}).length,3);
+  assert.equal(filterCatalog(libraryCatalog,{family:'spatial',motion:'morph'}).length,6);
+  assert.equal(filterCatalog(libraryCatalog,{family:'spatial',motion:'entrance'}).length,0);
   assert.equal(filterCatalog(libraryCatalog).length,204);
 });
 
@@ -28,9 +28,10 @@ test('facets preserve other conditions and remove only their own dimension',()=>
   const motion=facetCounts(libraryCatalog,filters,'motion');
   assert.equal(motion.all,36);assert.equal(motion.morph+motion.entrance,motion.all);
   assert.equal(motion.morph,filterCatalog(libraryCatalog,filters).length);
-  assert.equal(facetCounts(libraryCatalog,filters,'family').all,160);
+  assert.equal(facetCounts(libraryCatalog,filters,'family').all,204);
   const favorites=facetCounts(libraryCatalog,{motion:'morph',onlyFavorites:true,favorites:['roc','pca']},'motion');
-  assert.deepEqual(favorites,{all:2,morph:2});
+  assert.deepEqual(favorites,{all:2,morph:2,entrance:0});
+  assert.deepEqual(facetCounts(libraryCatalog,{query:'no-such-chart-facet'},'motion'),{all:0,morph:0,entrance:0});
 });
 
 test('discovery metadata does not override the eligibility of user-edited data',()=>{

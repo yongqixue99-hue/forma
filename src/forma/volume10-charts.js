@@ -21,7 +21,7 @@ function choropleth(s,doc){
 function geomap(s,doc){
  const {projection,path,g}=baseMap(s);world10.features.forEach(f=>s.path(path(f),{fill:s.theme.fg,'fill-opacity':.04,stroke:s.theme.line,'stroke-width':.5},g));
  const max=d3.max(doc.data,d=>d.value)||1,rMax=Math.min(22,s.w*.035,s.h*.07),sorted=[...doc.data].sort((a,b)=>b.value-a.value);
- sorted.forEach(d=>{const [cx,cy]=projection([d.longitude,d.latitude]),r=d.value===0?2:rMax*Math.sqrt(d.value/max),mark=s.circle(cx,cy,r,{fill:d.value===0?s.theme.bg:s.theme.accent,'fill-opacity':d.value===0?1:.3,stroke:s.theme.accent,'stroke-width':.8,'data-mark':'geo-bubble','data-value':d.value,'data-longitude':d.longitude,'data-latitude':d.latitude},g);s.growCircle(mark,r,doc.data.indexOf(d)/doc.data.length*.3,.55);s.edit(mark,d,'value');s.tip(mark,`${d.label}\n${fmt(d.value)} ${doc.unit}\n${d.longitude}°, ${d.latitude}°`);});
+ sorted.forEach(d=>{const [cx,cy]=projection([d.longitude,d.latitude]),r=d.value===0?2:rMax*Math.sqrt(d.value/max),mark=s.circle(cx,cy,r,{fill:d.value===0?s.theme.bg:s.theme.objectColor(d,s.theme.accent),'fill-opacity':d.value===0?1:.3,stroke:s.theme.objectColor(d,s.theme.accent),'stroke-width':.8,'data-mark':'geo-bubble','data-value':d.value,'data-longitude':d.longitude,'data-latitude':d.latitude},g);s.growCircle(mark,r,doc.data.indexOf(d)/doc.data.length*.3,.55);s.edit(mark,d,'value');s.tip(mark,`${d.label}\n${fmt(d.value)} ${doc.unit}\n${d.longitude}°, ${d.latitude}°`);});
  label(s,18,s.h-15,t10('面积 = 数量','Area = magnitude'),{'font-size':s.fs-3},25);num(s,18,s.h-1,`${fmt(max)} ${doc.unit}`,{'font-size':s.fs-2});mapDetails(s,doc);attribution(s);
 }
 function splom(s,input){

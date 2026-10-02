@@ -241,6 +241,7 @@ Object.assign(icons,{
  'freq-nyquist':'<path d="M2 11h20M12 2v19M18 5c-8-7-18 9-10 13s15-6 6-9"/>',
  'freq-nichols':'<path d="M3 2v18h19M5 17c0-13 5-15 9-10s6 6 7 6"/>'
 });
+for(const view of scientificViews.filter(v=>v.id.startsWith('complete-')))icons[view.id]||='<path d="M3 2v19h19M4 15l5-7 5 5 7-9"/><circle cx="9" cy="8" r="1.6"/>';
 export const viewName=id=>uiText(originalViewName(id));
 Object.assign(icons,{
  'serial-acf':'<path d="M2 11h20M4 11V3m4 8V6m4 5v5m4-5V8m4 3v2"/>',

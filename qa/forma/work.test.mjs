@@ -166,7 +166,9 @@ test('native templates use the same work renderer in editing, playback and stati
   assert.equal(edited.dataset.view,'line');
   const svg=stepSVG(initial.steps[0],initial.steps);assert.match(svg,/data-view="line"/);assert.match(svg,/0\.00[4-9]/);
   const native=newWork([{doc:getExample('volcano')}]);
-  assert.match(stepSVG(native.steps[0]),/差异表达筛选/);assert.doesNotMatch(stepSVG(native.steps[0]),/data-morph-chart/);
+  const volcano=mount(t,native).host.querySelector('#dw-chart svg'),exported=stepSVG(native.steps[0]);
+  assert.equal(volcano.dataset.view,'complete-research-volcano');assert.equal(volcano.querySelectorAll('[data-science-role="observation"]').length,native.steps[0].doc.data.length);
+  assert.match(exported,/差异表达筛选/);assert.match(exported,/data-view="complete-research-volcano"/);assert.match(exported,/data-morph-chart/);assert.equal((exported.match(/data-science-role="observation"/g)||[]).length,native.steps[0].doc.data.length);
 });
 
 test('mapped native forest endpoints edit real lower/upper fields, and ranked charts preserve table rows',async t=>{
@@ -200,7 +202,7 @@ test('view picker explains incompatible negative and missing data without losing
 test('scenario gallery separates reusable scenes from effect studies and preserves data on use',async t=>{
   const {mountMotionGallery}=await server.ssrLoadModule('/src/forma/motion-gallery.js');
   const host=document.createElement('main');document.body.append(host);let chosen;const gallery=mountMotionGallery(host,{onUse:w=>chosen=w});t.after(()=>{gallery.destroy();host.remove();});
-  assert.equal(host.querySelectorAll('[data-mg-preset]').length,55);assert.equal(host.querySelector('[data-mg-title]').textContent,'模型筛选效果');host.querySelector('[data-mg-preset=monthly]').click();
+  assert.equal(host.querySelectorAll('[data-mg-preset]').length,68);assert.equal(host.querySelector('[data-mg-title]').textContent,'模型筛选效果');host.querySelector('[data-mg-preset=monthly]').click();
   host.querySelector('[data-mg-use]').click();assert.equal(chosen.steps[0].doc.data.length,12);assert.equal(chosen.steps[0].doc.data[4].value,null);
   host.querySelector('[data-mg-group="effects"]').click();assert.equal(host.querySelectorAll('[data-mg-preset]').length,7);assert.ok(host.querySelector('[data-mg-preset="classic"]'));
   host.querySelector('[data-mg-group="scenarios"]').click();host.querySelector('[data-mg-preset="conversion"]').click();assert.match(host.querySelector('[data-mg-data]').textContent,/同一批对象/);
@@ -247,9 +249,9 @@ test('editor catalog combines animation capability with search without changing 
   const visible=()=>[...f.host.querySelectorAll('[data-we-template]')].filter(b=>!b.hidden);
   assert.equal(visible().length,204);
   const toggle=f.host.querySelector('[data-we-morph-only]');toggle.checked=true;toggle.dispatchEvent(new win.Event('change',{bubbles:true}));
-  assert.equal(visible().length,160);assert.equal(f.host.querySelector('[data-we-catalog-count]').textContent,'160 个图表');
+  assert.equal(visible().length,204);assert.equal(f.host.querySelector('[data-we-catalog-count]').textContent,'204 个图表');
   change(f.host,'[data-we-search]','3D');
-  assert.equal(visible().length,3);assert.equal(f.host.querySelector('[data-we-catalog-empty]').hidden,true);assert.deepEqual(new Set(visible().map(n=>n.dataset.weTemplate)),new Set(['scatter3d','bubble3d','surface3d']));
+  assert.equal(visible().length,6);assert.equal(f.host.querySelector('[data-we-catalog-empty]').hidden,true);assert.deepEqual(new Set(visible().map(n=>n.dataset.weTemplate)),new Set(['bars3d','lines3d','trajectory3d','scatter3d','bubble3d','surface3d']));
   toggle.checked=false;toggle.dispatchEvent(new win.Event('change',{bubbles:true}));
   assert.equal(visible().length,6);assert.equal(f.host.querySelector('[data-we-catalog-empty]').hidden,true);
   assert.deepEqual(f.app.getWork(),before);
@@ -304,7 +306,7 @@ test('scientific samples preserve all rows through adding, independent editing a
 
 test('research gallery keeps focused presets and A-to-C interval preview without changing the saved sequence',async t=>{
   const {mountMotionGallery}=await server.ssrLoadModule('/src/forma/motion-gallery.js'),host=document.createElement('main');document.body.append(host);let chosen;const gallery=mountMotionGallery(host,{onUse:w=>chosen=w});t.after(()=>{gallery.destroy();host.remove();});
-  host.querySelector('[data-mg-group="research"]').click();assert.equal(host.querySelectorAll('[data-mg-preset]').length,65);assert.ok(host.querySelector('[data-mg-preset="sample-distributions"]'));assert.equal(host.querySelector('[data-mg-preset=monthly]'),null);
+  host.querySelector('[data-mg-group="research"]').click();assert.equal(host.querySelectorAll('[data-mg-preset]').length,96);assert.ok(host.querySelector('[data-mg-preset="sample-distributions"]'));assert.equal(host.querySelector('[data-mg-preset=monthly]'),null);
   host.querySelector('[data-mg-preset="ratio-effects"]').click();change(host,'[data-mg-pair]','2','change');assert.match(host.querySelector('[data-mg-recipe]').textContent,/区间转向/);host.querySelector('[data-mg-use]').click();assert.equal(chosen.steps[0].view,'estimate-points');assert.equal(chosen.steps[2].view,'estimate-vertical');assert.equal(chosen.steps[0].doc.template,'forest');
 });
 

@@ -1,0 +1,5 @@
+import {getExample} from './catalog.js';
+import {withRecordIds} from './data-identity.js';
+import {completionNativeSpecs,completionNativeText as t} from './completion-native-rules.js';
+export const completionNativePresets=completionNativeSpecs.map(([id,zh,en,alt,az,ae,note,noteEn])=>({id:`complete-native-${id}`,category:['geomap','geoflow'].includes(id)?'regular':'research',get name(){return t(`${zh}连续流转`,`${en} in motion`);},get description(){return t(note,noteEn);},get dataNote(){return t('完整原生示例与全部参数；确定性合成数据。','Complete native example and parameters; deterministic synthetic data.');},get relation(){return t('相同原始记录 · 两种表示','Same original records · Two representations');},views:[`complete-native-${id}`,`complete-native-${alt}`]}));
+export function completionNativeRecords(id,palette='ink'){const preset=completionNativePresets.find(p=>p.id===id);if(!preset)return null;const doc=withRecordIds(getExample(id.replace('complete-native-','')),{legacyNamespace:`scenario:${id}`});return preset.views.map(view=>({doc:structuredClone(doc),view,dataGroup:`scenario:${id}`,relation:'auto',scale:'shared',options:{palette}}));}

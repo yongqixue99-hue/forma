@@ -1,3 +1,11 @@
+import {layoutCompletionNative} from './completion-native-morph.js';
+import {isCompletionNativeView} from './completion-native-rules.js';
+import {layoutCompletionSpatial} from './completion-spatial-morph.js';
+import {isCompletionSpatialView} from './completion-spatial-rules.js';
+import {layoutCompletionResearch} from './completion-research-morph.js';
+import {isCompletionResearchView} from './completion-research-rules.js';
+import {layoutCompletionBusiness} from './completion-business-morph.js';
+import {isCompletionBusinessView} from './completion-business-rules.js';
 import {layoutQuality} from './quality-series-morph.js';
 import {isQualityView} from './quality-series-rules.js';
 import {layoutTimePlanning,interpolateTimePlanningMark} from './time-planning-morph.js';
@@ -152,6 +160,10 @@ export function layoutScientific(doc,view,w=800,h=440,options={}){
     return layout;
   }
   const eligible=scientificEligibility(doc,view);if(!eligible.valid)throw new Error(eligible.reason);
+  if(isCompletionNativeView(view))return layoutCompletionNative(doc,view,w,h,options);
+  if(isCompletionSpatialView(view))return layoutCompletionSpatial(doc,view,w,h,options);
+  if(isCompletionResearchView(view))return layoutCompletionResearch(doc,view,w,h,options);
+  if(isCompletionBusinessView(view))return layoutCompletionBusiness(doc,view,w,h,options);
   if(isAdvancedRelationsView(view))return layoutAdvancedRelations(doc,view,w,h,options);
   if(isMultivariateExtendedView(view))return layoutMultivariateExtended(doc,view,w,h,options);
   if(isEngineeringView(view))return layoutEngineering(doc,view,w,h,options);
@@ -187,13 +199,16 @@ export class ScientificMorphChart extends MorphChart{
     this.current.set(key,points);
     const d='M'+compactContour(points).map(p=>p.map(v=>v.toFixed(3)).join(',')).join('L')+'Z';
     const node=this.nodes.get(key),shape=node.shape;if(shape.getAttribute('d')!==d)shape.setAttribute('d',d);
+    if(node.cutoutPath&&node.cutoutPath.getAttribute('d')!==d)node.cutoutPath.setAttribute('d',d);
     if(node.sampleRing){const x=points.reduce((sum,p)=>sum+p[0],0)/points.length,y=points.reduce((sum,p)=>sum+p[1],0)/points.length;for(const el of [node.sampleRing,node.sampleHit].filter(Boolean)){el.setAttribute('cx',x);el.setAttribute('cy',y);}}
   }
   markColor(m){
     if(m.neutral)return this.theme.secondary;
     const colorValue=m.colorValue??m.value;
+    if(m.valueDomain&&colorValue!==null&&['enrichment','soft-accent','linear-accent'].includes(m.nativeColorRole)){const q=Math.max(0,Math.min(1,m.tone||0)),fallback=m.nativeColorRole==='enrichment'?interpolateLab(this.theme.soft,this.theme.accent)(q):interpolateRgb(m.nativeColorRole==='soft-accent'?this.theme.soft:this.theme.bg,this.theme.accent)(q);return valueColorFor(this.options,colorValue,m.valueDomain,fallback);}
     if(m.valueDomain&&colorValue!==null&&m.nativeColorRole==='calendar')return valueColorFor(this.options,colorValue,m.valueDomain,interpolateLab(this.theme.soft,this.theme.color(0))(Math.max(0,Math.min(1,m.tone||0))));
     if(m.valueDomain&&colorValue!==null)return valueColorFor(this.options,colorValue,m.valueDomain,interpolateRgb(this.theme.bg,m.nativeColorRole==='accent'?this.theme.accent:this.theme.colors[(colorValue<0?0:1)%this.theme.colors.length])(Math.max(.08,Math.abs(m.tone||0))));
+    if(m.nativeTornadoLow){const fallback=[...this.theme.colors,this.theme.secondary,this.theme.fg].find(color=>color.toLowerCase()!==this.theme.accent.toLowerCase());return resolveBoundColor(this.options,this.colorKey(m),fallback);}
     if(m.accent)return this.theme.colors[1]||this.theme.colors[0];
     if(Object.hasOwn(m,'tone')){if(m.tone===null)return this.theme.secondary;const end=this.theme.colors[m.tone>=0?1:0]||this.theme.colors[0],fallback=interpolateRgb(this.theme.bg,end)(m.solidTone?1:Math.abs(m.tone));return this.doc.family==='correlation'?valueColorFor(this.options,m.tone,[-1,1],fallback):fallback;}
     if(Number.isInteger(m.nativeDataColorIndex)){
@@ -201,12 +216,25 @@ export class ScientificMorphChart extends MorphChart{
       return resolveBoundColor(this.options,this.colorKey(m),categorical?this.theme.color(m.nativeDataColorIndex):this.theme[m.nativeColorRole||'fg']);
     }
     if(Number.isInteger(m.nativePcaGroup)){const i=m.nativePcaGroup,fallback=this.theme.custom||this.theme.categorical?this.theme.color(i):[this.theme.accent,this.theme.fg,this.theme.color(2),this.theme.color(4),this.theme.secondary][i%5];return resolveBoundColor(this.options,this.colorKey(m),fallback);}
-    const nativeColor=['accent','fg'].includes(m.nativeColorRole)?this.theme[m.nativeColorRole]:Number.isInteger(m.nativeColorIndex)?this.theme.colors[((m.nativeColorIndex%this.theme.colors.length)+this.theme.colors.length)%this.theme.colors.length]:null;
+    const nativeColor=['accent','fg','secondary','line','soft'].includes(m.nativeColorRole)?this.theme[m.nativeColorRole]:Number.isInteger(m.nativeColorIndex)?this.theme.colors[((m.nativeColorIndex%this.theme.colors.length)+this.theme.colors.length)%this.theme.colors.length]:null;
     if(nativeColor)return resolveBoundColor(this.options,this.colorKey(m),nativeColor);
     return resolveBoundColor(this.options,this.colorKey(m),this.theme.colors[this.colorIndices.get(this.colorKey(m))%this.theme.colors.length]);
   }
   paint(layout){
     super.paint(layout);
+    // Geographic islands are separate contours. Their interior holes remove
+    // only the matching country's fill, revealing any independent country
+    // beneath them. The cutout follows the same live contour during seeks.
+    this.cutoutMasks||=new Map();const usedCutouts=new Set();this.cutoutParents=new Map(layout.marks.filter(m=>m.cutoutGroup).map(m=>[m.cutoutGroup,m]));
+    for(const m of layout.marks.filter(mark=>mark.cutoutGroup||mark.cutoutFor)){
+      const id=m.cutoutGroup||m.cutoutFor;let mask=this.cutoutMasks.get(id);
+      if(!mask){const maskId=`${this.id}-cutout-${this.cutoutMasks.size}`,node=this.el('mask',{id:maskId,maskUnits:'userSpaceOnUse',x:0,y:0,width:layout.w,height:layout.h,'mask-type':'luminance'},this.defs),background=this.el('rect',{x:0,y:0,width:layout.w,height:layout.h,fill:'#fff'},node);mask={node,id:maskId,background};this.cutoutMasks.set(id,mask);}
+      for(const el of[mask.node,mask.background]){el.setAttribute('width',layout.w);el.setAttribute('height',layout.h);}
+      const n=this.nodes.get(m.key);
+      if(m.cutoutFor){n.shape.removeAttribute('mask');n.cutoutPath||=this.el('path',{fill:'#000',stroke:'none','data-geographic-hole':''},mask.node);if(n.cutoutPath.parentNode!==mask.node)mask.node.append(n.cutoutPath);n.cutoutPath.setAttribute('d',n.shape.getAttribute('d')||'');usedCutouts.add(n.cutoutPath);}
+      else{n.cutoutPath?.remove();delete n.cutoutPath;n.shape.setAttribute('mask',`url(#${mask.id})`);}
+    }
+    for(const mask of this.cutoutMasks.values())for(const path of mask.node.querySelectorAll('[data-geographic-hole]'))if(!usedCutouts.has(path))path.remove();
     if(this.options.editable&&layout.doc.family==='multivariate')this.svg.setAttribute('role','group');
     for(const m of layout.marks){
       const n=this.nodes.get(m.key),color=this.markColor(m);
@@ -215,6 +243,7 @@ export class ScientificMorphChart extends MorphChart{
       n.shape.setAttribute('opacity',1);
       n.shape.setAttribute('fill',m.paper?this.theme.bg:color);n.shape.setAttribute('fill-opacity',m.opacity);n.shape.setAttribute('stroke',color);n.shape.setAttribute('stroke-opacity',m.opacity);n.shape.setAttribute('stroke-width',m.stroke);n.texture.setAttribute('opacity',0);
       if(Object.hasOwn(m,'tone')&&!m.tone)n.shape.setAttribute('stroke',this.theme.secondary);
+      if(m.strokeColorRole)n.shape.setAttribute('stroke',this.theme[m.strokeColorRole]);
       n.title.textContent=m.tooltip||'';n.group.setAttribute('aria-label',m.tooltip||'');n.group.setAttribute('data-science-role',m.role);n.group.setAttribute('tabindex',m.opacity&&this.options.interactive!==false?0:-1);n.group.setAttribute('aria-hidden',String(!m.opacity));
       if(this.options.editable&&m.editable&&!m.recordIds?.length){n.group.dataset.editRow=m.row;n.group.dataset.editField=m.editable;n.group.setAttribute('role','button');n.group.setAttribute('aria-label',uiMessage`编辑 ${m.tooltip}`);}
       else{delete n.group.dataset.editRow;delete n.group.dataset.editField;n.group.setAttribute('role','graphics-symbol');}
@@ -246,7 +275,7 @@ export class ScientificMorphChart extends MorphChart{
       const opacity=processMarkOpacity(a,m,p) ?? (m.clusterBranch?(p<.15?(a?.opacity||0)*(1-p/.15):m.opacity*clamp((p-.82)/.18)):mix(a?.opacity||0,m.opacity,p));
       n.shape.setAttribute('fill-opacity',opacity);n.shape.setAttribute('stroke-opacity',opacity);n.shape.setAttribute('stroke-width',mix(a?.stroke||0,m.stroke,p));
       n.shape.setAttribute('fill',interpolateRgb(a?.paper?this.theme.bg:a?this.markColor(a):color,m.paper?this.theme.bg:color)(p));
-      n.shape.setAttribute('stroke',interpolateRgb(a?this.markColor(a):color,color)(p));
+      n.shape.setAttribute('stroke',interpolateRgb(a?.strokeColorRole?this.theme[a.strokeColorRole]:a?this.markColor(a):color,m.strokeColorRole?this.theme[m.strokeColorRole]:color)(p));
     }
     if(to.spatialPose){const q=p<.5?4*p*p*p:1-(-2*p+2)**3/2;this.drawSpatial(mixSpatialPose(this.spatialResume||from.spatialPose,to.spatialPose,q),to);}
   }
@@ -332,8 +361,9 @@ export class ScientificMorphChart extends MorphChart{
   render(progress){
     const p=clamp(progress);this.svg.dataset.entranceProgress=String(p);this.svg.dataset.inspectReady=String(p===1);this.labelLayer.setAttribute('opacity',clamp((p-.7)/.3));
     for(const m of this.layout.marks){
-      if(m.opacity===0&&p<1)continue;
-      const delay=((m.derived||m.model) ? .4 : 0)+(m.index/Math.max(1,this.doc.data.length))*.1;
+      if(m.opacity===0&&!m.cutoutFor&&p<1)continue;
+      const parent=this.cutoutParents?.get(m.cutoutFor)||m;
+      const delay=((parent.derived||parent.model) ? .4 : 0)+(parent.index/Math.max(1,this.doc.data.length))*.1;
       const q=1-(1-clamp((p-delay)/(1-delay)))**3;
       this.writeShape(m.key,p===1?m.points:m.points.map((at,i)=>pointMix(m.entrance[i],at,q)));
     }

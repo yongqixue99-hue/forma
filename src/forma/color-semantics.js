@@ -1,3 +1,7 @@
+import {completionNativeColorSubjects,completionNativeViewMap} from './completion-native-rules.js';
+import {completionSpatialColorSubjects,completionSpatialViewMap} from './completion-spatial-rules.js';
+import {completionResearchColorSubjects,completionResearchViewMap} from './completion-research-rules.js';
+import {completionBusinessColorSubjects,completionBusinessViewMap} from './completion-business-rules.js';
 import {qualityColorSubjects,qualityViewMap} from './quality-series-rules.js';
 import {timePlanningColorSubjects,timePlanningViewMap} from './time-planning-rules.js';
 import {engineeringColorSubjects,engineeringViewMap} from './engineering-series-rules.js';
@@ -19,7 +23,7 @@ const statisticalSamples=new Set('scalelocation residualleverage cooksdistance a
 const businessTargets=new Set('progress fan bullet gauge kpi'.split(' '));
 const businessPairs=new Set('comboline difference learning'.split(' '));
 const structuralTrees=new Set('circlehierarchy radialtree treetable'.split(' '));
-export const valueColorTemplates=new Set(['calendar','heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency','spectrogram','radialheatmap','spiralheatmap','hodograph']);
+export const valueColorTemplates=new Set(['calendar','heatmap','correlation','choropleth','clusterheatmap','histogram2d','density2d','adjacency','spectrogram','radialheatmap','spiralheatmap','hodograph','enrichment','hexbin','contour']);
 export function normalizeColorBindings(value){
  if(value===undefined)return undefined;
  if(!Array.isArray(value)||value.length>1500||value.some(r=>!r||typeof r.id!=='string'||!r.id||r.id.length>100000||!hex(r.color))||new Set(value.map(r=>r.id)).size!==value.length)return null;
@@ -32,6 +36,10 @@ export function normalizeValueColors(value){
 }
 export function colorSubjects(doc){
  if(valueColorTemplates.has(doc?.template))return [];
+ if(completionNativeViewMap[doc?.template]&&doc.data.every(r=>r._id))return completionNativeColorSubjects(doc);
+ if(completionSpatialViewMap[doc?.template]&&doc.data.every(r=>r._id))return completionSpatialColorSubjects(doc);
+ if(completionResearchViewMap[doc?.template]&&doc.data.every(r=>r._id))return completionResearchColorSubjects(doc);
+ if(completionBusinessViewMap[doc?.template]&&doc.data.every(r=>r._id))return completionBusinessColorSubjects(doc);
  if(advancedRelationsViewMap[doc?.template]&&doc.data.every(r=>r._id))return advancedRelationsColorSubjects(doc);
  if(multivariateExtendedViewMap[doc?.template]&&doc.data.every(r=>r._id))return multivariateExtendedColorSubjects(doc);
  if(engineeringViewMap[doc?.template]&&doc.data.every(r=>r._id))return engineeringColorSubjects(doc);

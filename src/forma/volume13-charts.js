@@ -14,7 +14,8 @@ function geoflow(s,doc){
  const end=arrow(s,'geo-arrow',s.theme.accent);
  doc.data.forEach((row,i)=>{const from=[row.sourceLongitude,row.sourceLatitude],to=[row.targetLongitude,row.targetLatitude],interpolate=d3.geoInterpolate(from,to),coordinates=Array.from({length:81},(_,j)=>interpolate(j/80)),geometry={type:'LineString',coordinates};
   // Width uses a zero-origin linear magnitude scale, including small flows.
-  const mark=s.path(path(geometry),{stroke:s.theme.accent,'stroke-width':4*row.value/max,'stroke-opacity':.7,'stroke-linecap':'round','marker-end':end,'data-mark':'geoflow-link','data-value':row.value,'data-source':row.source,'data-target':row.target},flows);
+  const color=s.theme.objectColor(row,s.theme.accent),rowEnd=arrow(s,'geo-arrow-'+i,color);
+  const mark=s.path(path(geometry),{stroke:color,'stroke-width':4*row.value/max,'stroke-opacity':.7,'stroke-linecap':'round','marker-end':rowEnd,'data-mark':'geoflow-link','data-value':row.value,'data-source':row.source,'data-target':row.target},flows);
   s.draw(mark,i/doc.data.length*.25,.6);s.tip(mark,`${row.source} → ${row.target}\n${rowTip(row,doc.unit,['value','sourceLongitude','sourceLatitude','targetLongitude','targetLatitude'])}`);s.edit(mark,row,'value');
   points.set(row.source,from);points.set(row.target,to);
  });

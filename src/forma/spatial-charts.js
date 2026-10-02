@@ -5,13 +5,26 @@ import {scaleLinear,extent,max,ticks,color as parseColor} from 'd3';
 import {regularGrid,orderedDates} from './volume6-data.js';
 import {fmt} from './data.js';
 import {boundedLabel} from './chart-readability.js';
+import {populationId} from './data-identity.js';
 
+const orderedNames=(doc,property,field)=>{const names=[...new Set(doc.data.map(r=>r[field]))],order=doc[property];return Array.isArray(order)&&order.length===names.length&&new Set(order).size===names.length&&order.every(n=>names.includes(n))?order:names;};
 const unique=a=>[...new Set(a)],clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const short=(s,n)=>[...String(s)].length>n?[...String(s)].slice(0,n-1).join('')+'…':String(s);
 const phase=(p,d=0,len=.74)=>1-(1-clamp((p-d)/len,0,1))**3;
 const vector=p=>new THREE.Vector3(...p);
 // Three accepts RGB colours; CSS alpha belongs to the material opacity.
 const materialPaint=(value,opacity=1)=>{const color=parseColor(value),alpha=opacity*(color?.opacity??1);return {color:color?.formatHex()||value,opacity:alpha,transparent:alpha<1};};
+function stableSpatialPaths(svg){
+  // Three batches adjacent primitives by their CSS paint. Changing a binding
+  // must not change the serialized data geometry or its primitive ordering.
+  // Mirror the actual shaded paint as SVG attributes as well: side faces retain
+  // the chosen base colour, while lit faces keep their natural Lambert shade.
+  for(const path of [...svg.querySelectorAll(':scope > path')]){
+    const parts=(path.getAttribute('d')||'').match(/M[^M]*/g)||[],fragment=svg.ownerDocument.createDocumentFragment();
+    for(const d of parts){const primitive=path.cloneNode(false);primitive.setAttribute('d',d);for(const name of ['fill','stroke','fill-opacity','stroke-opacity','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray']){const value=primitive.style.getPropertyValue(name);if(value)primitive.setAttribute(name,['fill','stroke'].includes(name)?parseColor(value)?.formatHex()||value:value);else primitive.removeAttribute(name);}fragment.append(primitive);}
+    path.replaceWith(fragment);
+  }
+}
 export const spatialViews={iso:{azimuth:35,elevation:28},front:{azimuth:0,elevation:0},top:{azimuth:0,elevation:89.9}};
 export function cameraState(value={}){value=value&&typeof value==='object'?value:{};return {azimuth:clamp(Number.isFinite(value.azimuth)?value.azimuth:35,-180,180),elevation:clamp(Number.isFinite(value.elevation)?value.elevation:28,0,89.9)};}
 
@@ -33,9 +46,9 @@ function spatial(s,doc){
   const range=values=>{let [a,b]=extent(values);if(a===b){const pad=Math.abs(a)*.1||1;a-=pad;b+=pad;}return scaleLinear().domain([a,b]).nice(3).domain();};
   let xd,yd,zd,xNames,yNames,axisNames;
   if(kind==='bars3d'){
-    xNames=unique(doc.data.map(r=>r.column));yNames=unique(doc.data.map(r=>r.row));xd=[0,xNames.length-1];yd=[0,yNames.length-1];zd=scaleLinear().domain([0,max(doc.data,r=>r.value)]).nice(3).domain();axisNames=[uiText('列分类'),uiText('行分类'),uiMessage`数值 / ${doc.unit}`];
+    xNames=orderedNames(doc,'columnOrder','column');yNames=orderedNames(doc,'rowOrder','row');xd=[0,xNames.length-1];yd=[0,yNames.length-1];zd=scaleLinear().domain([0,max(doc.data,r=>r.value)]).nice(3).domain();axisNames=[uiText('列分类'),uiText('行分类'),uiMessage`数值 / ${doc.unit}`];
   }else if(kind==='lines3d'){
-    xNames=unique(doc.data.map(r=>r.period));yNames=unique(doc.data.map(r=>r.series));xd=[0,xNames.length-1];yd=[0,yNames.length-1];zd=range([0,...doc.data.map(r=>r.value)]);axisNames=[uiText('时期（等间隔）'),uiText('内容序列'),uiMessage`数值 / ${doc.unit}`];
+    xNames=orderedNames(doc,'periodOrder','period');yNames=orderedNames(doc,'seriesOrder','series');xd=[0,xNames.length-1];yd=[0,yNames.length-1];zd=range([0,...doc.data.map(r=>r.value)]);axisNames=[uiText('时期（等间隔）'),uiText('内容序列'),uiMessage`数值 / ${doc.unit}`];
   }else {xd=range(doc.data.map(r=>r.x));yd=range(doc.data.map(r=>r.y));zd=range(doc.data.map(r=>kind==='surface3d'?r.value:r.z));axisNames=['x','y','z'].map(k=>doc.axes[k]);}
   const sx=scaleLinear(xd,[-.65,.65]),sy=scaleLinear(yd,[.55,-.55]),sz=scaleLinear(zd,[0,.96]);
   const base=[-.76,0,.65];
@@ -50,7 +63,7 @@ function spatial(s,doc){
   const groups=['scatter3d','bubble3d'].includes(kind)?unique(doc.data.map(r=>r.group)):[];
   if(kind==='bars3d'){
     const barGeometry=geometry(new THREE.BoxGeometry(1,1,1)),barWidth=Math.min(.18,1.04/xNames.length),barDepth=Math.min(.17,.88/yNames.length);
-    doc.data.forEach((r,i)=>{const height=sz(r.value),x=sx(xNames.indexOf(r.column)),z=sy(yNames.indexOf(r.row)),color=r.value===max(doc.data,d=>d.value)?t.accent:t.colors[yNames.indexOf(r.row)%t.colors.length],mesh=new THREE.Mesh(barGeometry,material(color));scene.add(mesh);mesh.position.set(x,height/2,z);mesh.scale.set(barWidth,height,barDepth);mesh.userData={value:r.value,height};updates.push(p=>{const f=phase(p,yNames.indexOf(r.row)*.035,.7);mesh.scale.y=height*f;mesh.position.y=height*f/2;mesh.visible=height>0&&f>0;});objectMark(mesh,[x,height,z],r,i,`${r.row} · ${r.column}\n${r.value} ${doc.unit}`);});
+    doc.data.forEach((r,i)=>{const height=sz(r.value),x=sx(xNames.indexOf(r.column)),z=sy(yNames.indexOf(r.row)),color=t.objectColor(populationId('complete-spatial-row',doc.data.filter(a=>a.row===r.row)),r.value===max(doc.data,d=>d.value)?t.accent:t.colors[yNames.indexOf(r.row)%t.colors.length]),mesh=new THREE.Mesh(barGeometry,material(color));scene.add(mesh);mesh.position.set(x,height/2,z);mesh.scale.set(barWidth,height,barDepth);mesh.userData={value:r.value,height};updates.push(p=>{const f=phase(p,yNames.indexOf(r.row)*.035,.7);mesh.scale.y=height*f;mesh.position.y=height*f/2;mesh.visible=height>0&&f>0;});objectMark(mesh,[x,height,z],r,i,`${r.row} · ${r.column}\n${r.value} ${doc.unit}`);});
   }else if(kind==='surface3d'){
     const grid=regularGrid(doc.data),positions=grid.rows.flatMap(r=>[sx(r.x),sz(r.value),sy(r.y)]),colors=grid.rows.flatMap(r=>{const c=new THREE.Color(t.soft).lerp(new THREE.Color(t.accent),(r.value-zd[0])/(zd[1]-zd[0]));return[c.r,c.g,c.b];}),indices=[];
     for(let y=0;y<grid.ys.length-1;y++)for(let x=0;x<grid.xs.length-1;x++){const a=y*grid.xs.length+x,b=a+1,c=a+grid.xs.length,d=c+1;indices.push(a,c,b,b,c,d);}
@@ -60,10 +73,10 @@ function spatial(s,doc){
     grid.rows.forEach((r,i)=>objectMark(null,[sx(r.x),sz(r.value),sy(r.y)],r,i,uiMessage`${doc.axes.x}：${r.x}\n${doc.axes.y}：${r.y}\n${doc.axes.z}：${r.value}\n相邻采样点之间线性连接`));
   }else if(kind==='lines3d'){
     const pointGeometry=geometry(new THREE.IcosahedronGeometry(.019,0));
-    yNames.forEach((name,j)=>{const rows=xNames.map(period=>doc.data.find(r=>r.period===period&&r.series===name)),col=t.color(j),mat=material(col),coordinates=rows.map((r,i)=>[sx(i),sz(r.value),sy(j)]);
+    yNames.forEach((name,j)=>{const rows=xNames.map(period=>doc.data.find(r=>r.period===period&&r.series===name)),col=t.objectColor(populationId('complete-spatial-series',rows),t.color(j)),mat=material(col),coordinates=rows.map((r,i)=>[sx(i),sz(r.value),sy(j)]);
       rows.forEach((r,i)=>{const mesh=new THREE.Mesh(pointGeometry,mat),position=coordinates[i];mesh.position.copy(vector(position));scene.add(mesh);updates.push(p=>{const f=phase(p,i/rows.length*.55+j*.035,.3);mesh.scale.setScalar(f);mesh.visible=f>0;});objectMark(mesh,position,r,doc.data.indexOf(r),`${r.series} · ${r.period}\n${r.value} ${doc.unit}`);});
       for(let i=1;i<coordinates.length;i++){const a=coordinates[i-1],b=coordinates[i],line=wire([a,a],col,.95,1.4);updates.push(p=>{const f=phase(p,(i-1)/(coordinates.length-1)*.55+j*.035,.3),arr=line.geometry.attributes.position;arr.setXYZ(1,...a.map((v,k)=>v+(b[k]-v)*f));arr.needsUpdate=true;line.visible=f>0;});}
-    });s.legend(groupLegend(yNames),16,13);
+    });s.legend(yNames.map((name,i)=>({label:boundedLabel(name,Math.min(180,(w-32)/yNames.length-29),1,s.fs).lines[0],color:t.objectColor(populationId('complete-spatial-series',doc.data.filter(r=>r.series===name)),t.color(i))})),16,13);
   }else {
     const rows=kind==='trajectory3d'?orderedDates(doc.data):doc.data,pointGeometry=geometry(new THREE.IcosahedronGeometry(kind==='trajectory3d'?.024:.031,0));
     const pointMaterials=(groups.length?groups:[t.fg,t.accent]).map((g,i)=>material(groups.length?t.color(i):g));
@@ -86,6 +99,7 @@ function spatial(s,doc){
     const signature=`${p}/${state.azimuth}/${state.elevation}`;if(signature===last)return;last=signature;
     updates.forEach(update=>update(p));const az=(state.azimuth+(s.options.orbit?0:10*(1-phase(p))))*Math.PI/180,el=state.elevation*Math.PI/180;
     camera.position.set(Math.sin(az)*Math.cos(el)*5,.45+Math.sin(el)*5,Math.cos(az)*Math.cos(el)*5);camera.lookAt(0,.45,0);camera.updateMatrixWorld();renderer.render(scene,camera);
+    if(['bars3d','lines3d'].includes(kind))stableSpatialPaths(renderer.domElement);
     const project=position=>{const v=vector(position).project(camera);return{x:(v.x+1)*plotW/2,y:plotTop+(1-v.y)*plotH/2,z:v.z};};
     const origin=project(base),axisEnds={x:[.83,0,.65],y:[-.76,0,-.75],z:[-.76,1.06,.65]},axisLengths=Object.fromEntries(Object.entries(axisEnds).map(([k,v])=>{const q=project(v);return[k,Math.hypot(q.x-origin.x,q.y-origin.y)];})),occupied=[];
     labels.forEach(({position,el,dx,dy,axis,text})=>{const point=project(position),font=+el.getAttribute('font-size'),width=[...text].reduce((n,c)=>n+(c.charCodeAt(0)>255?1:.58),0)*font,anchor=el.getAttribute('text-anchor'),x=clamp(point.x+dx,width+4,plotW-width-4),y=clamp(point.y+dy,28,h-26),left=anchor==='end'?x-width:anchor==='middle'?x-width/2:x,box={x:left,y:y-font,w:width,h:font+3};

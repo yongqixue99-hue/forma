@@ -1,3 +1,7 @@
+import {completionNativeColorKeys} from './completion-native-rules.js';
+import {completionSpatialColorKeys} from './completion-spatial-rules.js';
+import {completionResearchColorKeys} from './completion-research-rules.js';
+import {completionBusinessColorKeys} from './completion-business-rules.js';
 import {qualityColorKeys} from './quality-series-rules.js';
 import {timePlanningColorKeys} from './time-planning-rules.js';
 import {engineeringColorKeys} from './engineering-series-rules.js';
@@ -43,7 +47,7 @@ export function workColorMap(step,steps){
   const colors=new Map();
   for(const s of relatedSteps(step,steps)){
     const doc=stepMorphDocument(s),rows=doc?.data||[];
-    const keys=doc?.family?.startsWith('quality-')?qualityColorKeys(doc):doc?.family?.startsWith('planning-')?timePlanningColorKeys(doc):doc?.family?.startsWith('engineering-')?engineeringColorKeys(doc):doc?.family?.startsWith('mvx-')?multivariateExtendedColorKeys(doc):doc?.family?.startsWith('relationx-')?advancedRelationsColorKeys(doc):doc?.family?.startsWith('temporal-')?temporalColorKeys(doc):doc?.family?.startsWith('regression-')?regressionDiagnosticColorKeys(doc):doc?.family?.startsWith('comparison-')?comparisonColorKeys(doc):doc?.family?.startsWith('network-')?networkColorKeys(doc):['matrix-cell','contingency','hierarchy-tree'].includes(doc?.family)?structuralColorKeys(doc):doc?.family?.startsWith('business-')?businessSeriesColorKeys(doc):['samples','spatial','distribution','frequency-response','statistical-observations','statistical-survival'].includes(doc?.family)
+    const keys=doc?.family?.startsWith('complete-native-')?completionNativeColorKeys(doc):doc?.family?.startsWith('complete-spatial-')?completionSpatialColorKeys(doc):doc?.family?.startsWith('complete-research-')?completionResearchColorKeys(doc):doc?.family?.startsWith('complete-business-')?completionBusinessColorKeys(doc):doc?.family?.startsWith('quality-')?qualityColorKeys(doc):doc?.family?.startsWith('planning-')?timePlanningColorKeys(doc):doc?.family?.startsWith('engineering-')?engineeringColorKeys(doc):doc?.family?.startsWith('mvx-')?multivariateExtendedColorKeys(doc):doc?.family?.startsWith('relationx-')?advancedRelationsColorKeys(doc):doc?.family?.startsWith('temporal-')?temporalColorKeys(doc):doc?.family?.startsWith('regression-')?regressionDiagnosticColorKeys(doc):doc?.family?.startsWith('comparison-')?comparisonColorKeys(doc):doc?.family?.startsWith('network-')?networkColorKeys(doc):['matrix-cell','contingency','hierarchy-tree'].includes(doc?.family)?structuralColorKeys(doc):doc?.family?.startsWith('business-')?businessSeriesColorKeys(doc):['samples','spatial','distribution','frequency-response','statistical-observations','statistical-survival'].includes(doc?.family)
       ? [...new Set(rows.map(r=>r.group))].map(group=>populationId(doc.family==='spatial'?'exploratory-group':'sample-group',rows.filter(r=>r.group===group)))
       : doc?.family==='evaluation'?rows.map(r=>entityKey(r,'model')):rows.map(r=>r.parent?entityKey(r,'parent'):r.series?entityKey(r,'series'):r.group||recordId(r));
     for(const key of keys)if(!colors.has(key))colors.set(key,colors.size);

@@ -1,3 +1,5 @@
+import {completionSpatialOrderFields} from './completion-spatial-rules.js';
+import {completionBusinessOrderFields} from './completion-business-rules.js';
 import {timePlanningOrderFields} from './time-planning-rules.js';
 import {multivariateExtendedOrderFields} from './multivariate-extended-rules.js';
 import {temporalOrderFields} from './temporal-series-rules.js';
@@ -40,9 +42,12 @@ function migrateSeriesBindings(options,original,identified){
 function identifyWorkDocument(doc,options){
   const identified=withRecordIds(doc,options),family=scientificFamily(scientificViewMap[doc.template]);
   if(family?.startsWith('comparison-')&&family!=='comparison-counts'&&identified.groupOrder===undefined)identified.groupOrder=[...new Set(identified.data.map(r=>r.group))];
-  for(const [key,field]of Object.entries({...temporalOrderFields(doc),...multivariateExtendedOrderFields(doc),...timePlanningOrderFields(doc)})){
+  for(const [key,field]of Object.entries({...temporalOrderFields(doc),...multivariateExtendedOrderFields(doc),...timePlanningOrderFields(doc),...completionSpatialOrderFields(doc),...completionBusinessOrderFields(doc)})){
     // ISO dates always derive chronological order; date edits need no stale declaration.
     if(key==='periodOrder'&&['streamgraph','horizon'].includes(doc.template)||key==='variables'&&doc.template==='andrews')continue;
+    // These arrays define the analysis, rather than optional display order.
+    // Missing declarations remain invalid; first appearance cannot supply them.
+    if(doc.template==='likert'&&key==='responses'||doc.template==='stackedwaterfall'&&['stepOrder','components'].includes(key))continue;
     if(identified[key]===undefined)identified[key]=[...new Set(identified.data.map(r=>r[field]))];
   }
   return identified;

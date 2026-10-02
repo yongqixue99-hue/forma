@@ -96,8 +96,8 @@ test('native charts grow at seeked timestamps, all scene effects remain reversib
     const a=makeStep({doc:getExample('column')}),b=makeStep({doc:getExample('variwide'),transition:effect});
     const t=workTimeline(newWork([a,b])),s=t.segments[1],renderer=new WorkFrameRenderer(host(),t.work.steps,{width:800,height:360});
     const frame=p=>timelineFrame(t,s.start+s.duration*p);
-    const at0=renderer.render(frame(.28));assert.equal(renderer.scene.p,0);assert.equal(at0.step.doc.template,'variwide');
-    renderer.render(frame(.7));assert.ok(renderer.scene.p>0&&renderer.scene.p<1);
+    const at0=renderer.render(frame(.28));assert.equal(Number(renderer.scene.svg.dataset.entranceProgress),0);assert.equal(at0.step.doc.template,'variwide');
+    renderer.render(frame(.7));assert.ok(Number(renderer.scene.svg.dataset.entranceProgress)>0&&Number(renderer.scene.svg.dataset.entranceProgress)<1);
     const expected=renderer.scene.svg.outerHTML;
     renderer.render(frame(1));renderer.render(frame(.7));assert.equal(renderer.scene.svg.outerHTML,expected);
     renderer.render(frame(.1));assert.equal(renderer.state.step.doc.template,'column');
@@ -150,10 +150,13 @@ test('player and video use the same contour frame; video duration and final hold
   }finally{out.destroy();}
 });
 
-test('all current native templates retain valid deterministic entrance frames in whole-work export',()=>{
+test('all current native templates retain valid deterministic entrance frames in whole-work export',async()=>{
   for(const t of catalog){const work=newWork([{doc:getExample(t.id)}]),out=createWorkExportRenderer(work);try{
     for(const time of [0,800,work.steps[0].duration+1])assert.doesNotMatch(out.frame(time).replace(/<style>[\s\S]*?<\/style>/g,''),/NaN|Infinity|undefined/,t.id);
-  }finally{out.destroy();}}
+  }finally{out.destroy();}
+    // Let DOM mutation/observer deliveries finish before rendering the next chart.
+    await new Promise(resolve=>setTimeout(resolve,0));
+  }
 });
 
 test('cancelled MP4 work never starts encoding or allocates a render scene',async()=>{
