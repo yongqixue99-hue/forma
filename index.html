@@ -7,9 +7,19 @@
     <meta name="description" content="Turn spreadsheets into animated data stories. Edit charts and export images, interactive HTML or video. Free during beta." />
     <title>FORMA — Animated data stories</title>
     <link rel="icon" type="image/svg+xml" href="/forma/favicon.svg" />
+    <!-- Painted before the studio loads; the studio replaces #app and its own stylesheet takes over. -->
+    <style>
+      html{background:#efeeea;color-scheme:light}body{margin:0}
+      .boot-bar{box-sizing:border-box;height:72px;padding:0 42px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #d9d6cf;color:#262626;font:650 20px/1 Manrope,-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;letter-spacing:1.2px}
+      .boot-bar svg{width:26px;height:28px}
+      @media(max-width:760px){.boot-bar{height:65px;padding:0 20px;gap:8px;font-size:18px}}
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="boot-bar" aria-busy="true"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 24V4h4v20M11 24V4h4v20M19 16V4h4v12" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 10h24M1 17h16" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span>FORMA</span></div>
+      <noscript><p style="margin:32px 42px;font:14px/1.7 sans-serif">FORMA 需要启用 JavaScript。 / FORMA needs JavaScript to run.</p></noscript>
+    </div>
     <script type="module" src="/src/forma/bootstrap.js"></script>
   </body>
 </html>

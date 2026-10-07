@@ -520,6 +520,21 @@ export function mountWorkEditor(host,{initial,getSources=()=>[],palette='ink',to
   const annotationInteraction=mountAnnotationInteraction(host,{enabled:()=>mode==='edit',getAnnotation:id=>active().options.annotations?.find(a=>a.id===id),onMove:async a=>{const form=annotationDrafts.get(active().id)?.forms.get(a.id);if(form)form.value.position=structuredClone(a.position);await commitAnnotation(applyAnnotation(work,active().id,a),uiText('调整标注前'));},onError:message=>toast(message)});
   host.addEventListener('keydown',e=>{const annotation=e.target.closest('[data-annotation-id]');if(annotation&&mode==='edit'&&['Enter',' '].includes(e.key)){e.preventDefault();setTool('annotations');annotationPanel?.select(annotation.dataset.annotationId);}},{signal:events.signal});
   win.document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.hidden&&root.classList.contains('we-focus-mode')&&!e.defaultPrevented){setCanvasFocus(false);return;}if(e.key==='Escape'&&!panel.hidden){e.preventDefault();closePanel({focus:true});}},{signal:events.signal});
+  // Workspace shortcuts: save with the platform modifier, and Space toggles the visible player unless a control has focus.
+  const saveButton=$('[data-we="save"]'),applePlatform=/Mac|iPhone|iPad/.test(win.navigator?.platform||'');
+  saveButton.setAttribute('aria-keyshortcuts',applePlatform?'Meta+S':'Control+S');saveButton.title=applePlatform?'⌘S':'Ctrl+S';
+  win.document.addEventListener('keydown',e=>{
+    if(e.defaultPrevented||e.isComposing||e.keyCode===229||e.repeat||e.altKey||!host.isConnected)return;
+    if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&e.key.toLowerCase()==='s'){
+      e.preventDefault();if(win.document.querySelector('dialog[open]'))return;
+      editor?.commitPending();check();if(saveButton.disabled){const report=workReport(work);if(!report.valid)toast(report.message);return;}
+      saveButton.click();return;
+    }
+    if(e.key!==' '||e.metaKey||e.ctrlKey||e.shiftKey||!panel.hidden||win.document.querySelector('dialog[open]'))return;
+    if(e.target instanceof win.Element&&e.target.closest('input,textarea,select,button,a,summary,[contenteditable],[tabindex]:not(main),[role="menu"]'))return;
+    const playButton=$(mode==='preview'?'[data-wp-play]':'[data-workspace="play"]');if(!playButton||playButton.disabled)return;
+    e.preventDefault();playButton.click();
+  },{signal:events.signal});
   win.addEventListener('pagehide',()=>{flush();},{signal:events.signal});
   if(repository){
     win.addEventListener('beforeunload',e=>{if(saver.dirty||saver.error){flush();e.preventDefault();e.returnValue='';}},{signal:events.signal});

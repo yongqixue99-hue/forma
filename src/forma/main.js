@@ -477,6 +477,16 @@ function tick(now){
   if(modal)modal.last=now;lastTime=now;requestAnimationFrame(tick);
 }
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches){state.playing=false;previews?.render(1);if(modal){modal.playing=false;modal.p=1;modalScene?.render(1);updatePlayback();}if($('#gallery-play'))$('#gallery-play').innerHTML=uiMarkup`${icon('Play',13)}<span>播放动效</span>`;}});
+// Warm a lazily loaded route as soon as the pointer or focus shows intent, so opening it does not wait on the network.
+const routeModules={editor:()=>import('./work-editor.js'),motion:()=>import('./motion-gallery.js'),saved:()=>import('./work-collection.js'),start:()=>import('./beta-start.js')},warmedRoutes=new Set();
+function warmRoute(event){
+  if(!(event.target instanceof Element))return;
+  const link=event.target.closest('[data-view],[data-action="add-editor"],[data-action="add-current-editor"]'),name=link?.dataset.view||(link&&'editor');
+  if(!routeModules[name]||warmedRoutes.has(name)||navigator.connection?.saveData)return;
+  warmedRoutes.add(name);routeModules[name]().catch(()=>warmedRoutes.delete(name));
+}
+for(const type of ['pointerover','focusin','touchstart'])document.addEventListener(type,warmRoute,{passive:true});
+
 window.Forma=Forma;
 setPaletteCSS();
 $('#main').innerHTML=uiText('<p class="route-loading" role="status">正在读取本地作品…</p>');
